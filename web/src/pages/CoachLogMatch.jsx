@@ -44,7 +44,8 @@ export default function CoachLogMatch() {
       }));
       const { error: e2 } = await supabase.from('player_match_stats').insert(rows);
       if (e2) { setErr(e2.message); return; }
-      setOk('Match logged.');
+      await supabase.rpc('recompute_team_ranks', { p_team: teamId });
+      setOk('Match logged. Ranks updated.');
     } finally { setBusy(false); }
   }
 

@@ -37,7 +37,8 @@ export default function CoachLogTraining() {
         const { error: e2 } = await supabase.from('attendance').insert(rows);
         if (e2) { setErr(e2.message); return; }
       }
-      setOk(`Saved — ${rows.filter((r) => r.attended).length}/${rows.length} present.`);
+      await supabase.rpc('recompute_team_ranks', { p_team: teamId });
+      setOk(`Saved — ${rows.filter((r) => r.attended).length}/${rows.length} present. Ranks updated.`);
       setNotes('');
     } finally { setBusy(false); }
   }
