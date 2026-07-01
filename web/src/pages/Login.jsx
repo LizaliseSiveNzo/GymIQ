@@ -1,11 +1,20 @@
 import { useState } from 'react';
-// Branded login/register screen. Auth wiring lands in Phase 1 (Blueprint Prompt 2).
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
+// Branded login/register screen + demo entry. Real auth lands in Phase 1 (Blueprint Prompt 2).
 
 const ROLES = ['Admin', 'Coach', 'Parent', 'Player'];
 
 export default function Login() {
   const [mode, setMode] = useState('login'); // login | register
   const [role, setRole] = useState('Admin');
+  const { demoLogin } = useAuth();
+  const navigate = useNavigate();
+
+  function enterDemo(r) {
+    demoLogin(r);
+    navigate(r === 'player' ? '/player' : `/${r}`);
+  }
 
   return (
     <div className="auth">
@@ -67,7 +76,20 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="subtle" style={{ textAlign: 'center', marginTop: 20 }}>
+          {/* Demo entry — explore the app without an account */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0 14px' }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            <span className="subtle" style={{ fontSize: 12 }}>Or explore a live demo</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          </div>
+          <div className="grid grid-2" style={{ gap: 10 }}>
+            <button className="btn btn-secondary" onClick={() => enterDemo('admin')}>View as Admin</button>
+            <button className="btn btn-secondary" onClick={() => enterDemo('coach')}>View as Coach</button>
+            <button className="btn btn-secondary" onClick={() => enterDemo('parent')}>View as Parent</button>
+            <button className="btn btn-secondary" onClick={() => enterDemo('player')}>View as Player</button>
+          </div>
+
+          <p className="subtle" style={{ textAlign: 'center', marginTop: 18 }}>
             {mode === 'login' ? "Don't have an account? " : 'Already have one? '}
             <a onClick={() => setMode(mode === 'login' ? 'register' : 'login')} style={{ cursor: 'pointer' }}>
               {mode === 'login' ? 'Register' : 'Sign in'}
