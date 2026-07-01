@@ -17,7 +17,7 @@ export default function App() {
 
       <Route path="/admin"  element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/coach"  element={<ProtectedRoute roles={['coach','admin']}><CoachDashboard /></ProtectedRoute>} />
-      <Route path="/parent" element={<ProtectedRoute roles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+      <Route path="/parent" element={<ProtectedRoute roles={['parent','admin']}><ParentDashboard /></ProtectedRoute>} />
       <Route path="/player" element={<ProtectedRoute roles={['player','admin']}><PlayerProfile /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

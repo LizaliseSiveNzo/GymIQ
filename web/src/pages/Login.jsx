@@ -1,19 +1,38 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-// Branded login/register screen + demo entry. Real auth lands in Phase 1 (Blueprint Prompt 2).
+// Branded login/register + demo entry + master login. Real Supabase auth lands in Phase 1.
 
 const ROLES = ['Admin', 'Coach', 'Parent', 'Player'];
+// Master login for exploring the full app without a real account.
+const MASTER = { email: '123', password: '123', role: 'admin' };
 
 export default function Login() {
   const [mode, setMode] = useState('login'); // login | register
   const [role, setRole] = useState('Admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const { demoLogin } = useAuth();
   const navigate = useNavigate();
 
   function enterDemo(r) {
     demoLogin(r);
     navigate(r === 'player' ? '/player' : `/${r}`);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+    if (mode === 'login') {
+      if (email.trim() === MASTER.email && password === MASTER.password) {
+        demoLogin(MASTER.role);          // master → full admin view
+        navigate('/admin');
+        return;
+      }
+      setError('Invalid credentials. Tip: use 123 / 123 for the master login.');
+    }
+    // register is not wired yet (Phase 1)
   }
 
   return (
@@ -48,7 +67,7 @@ export default function Login() {
             </div>
           )}
 
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={handleSubmit}>
             {mode === 'register' && (
               <div className="field">
                 <label className="label">Full name</label>
@@ -57,11 +76,13 @@ export default function Login() {
             )}
             <div className="field">
               <label className="label">Email</label>
-              <input className="input" type="email" placeholder="director@academy.co.za" />
+              <input className="input" type="text" placeholder="director@academy.co.za"
+                value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="field">
               <label className="label">Password</label>
-              <input className="input" type="password" placeholder="••••••••" />
+              <input className="input" type="password" placeholder="••••••••"
+                value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
 
             {mode === 'register' && role === 'Parent' && (
@@ -71,15 +92,25 @@ export default function Login() {
               </div>
             )}
 
+            {error && (
+              <p style={{ color: 'var(--danger)', fontSize: 13, margin: '0 0 12px' }}>{error}</p>
+            )}
+
             <button className="btn btn-primary btn-lg btn-block" type="submit">
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </button>
           </form>
 
-          {/* Demo entry — explore the app without an account */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0 14px' }}>
+          {mode === 'login' && (
+            <div className="badge badge-neutral" style={{ marginTop: 12, width: '100%', justifyContent: 'center', padding: '8px' }}>
+              Master login — email: <strong>123</strong>&nbsp; password: <strong>123</strong>
+            </div>
+          )}
+
+          {/* Demo entry — explore each role directly */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0 14px' }}>
             <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-            <span className="subtle" style={{ fontSize: 12 }}>Or explore a live demo</span>
+            <span className="subtle" style={{ fontSize: 12 }}>Or jump into a role</span>
             <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           </div>
           <div className="grid grid-2" style={{ gap: 10 }}>
