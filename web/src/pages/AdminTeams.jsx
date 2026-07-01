@@ -8,6 +8,7 @@ const DIVISIONS = ['U11','U12','U13','U14','U15','U16','U19','First_Team'];
 export default function AdminTeams() {
   const { profile, session } = useAuth();
   const [teams, setTeams] = useState([]);
+  const [coaches, setCoaches] = useState([]);
   const [name, setName] = useState('');
   const [division, setDivision] = useState('U11');
   const [sport, setSport] = useState('soccer');
@@ -15,8 +16,12 @@ export default function AdminTeams() {
   const [err, setErr] = useState('');
 
   async function load() {
-    const { data } = await supabase.from('teams').select('id,name,division,sport').order('division');
-    setTeams(data || []);
+    const [{ data: tm }, { data: co }] = await Promise.all([
+      supabase.from('teams').select('id,name,division,sport,coach_id').order('division'),
+      supabase.from('users').select('id,name').eq('role', 'coach').order('name'),
+    ]);
+    setTeams(tm || []);
+    setCoaches(co || []);
   }
   useEffect(() => { if (!session?.demo) load(); }, []);
 
@@ -27,6 +32,11 @@ export default function AdminTeams() {
       if (error) { setErr(error.message); return; }
       setName(''); await load();
     } finally { setBusy(false); }
+  }
+
+  async function assignCoach(teamId, coachId) {
+    await supabase.from('teams').update({ coach_id: coachId || null }).eq('id', teamId);
+    load();
   }
 
   const noOrg = !session?.demo && profile && !profile.org_id;
@@ -44,12 +54,10 @@ export default function AdminTeams() {
               <input className="input" placeholder="e.g. U15 Boys" value={name} onChange={(e) => setName(e.target.value)} /></div>
             <div className="field"><label className="label">Division</label>
               <select className="select" value={division} onChange={(e) => setDivision(e.target.value)}>
-                {DIVISIONS.map((d) => <option key={d} value={d}>{d.replace('_',' ')}</option>)}
-              </select></div>
+                {DIVISIONS.map((d) => <option key={d} value={d}>{d.replace('_',' ')}</option>)}</select></div>
             <div className="field"><label className="label">Sport</label>
               <select className="select" value={sport} onChange={(e) => setSport(e.target.value)}>
-                {['soccer','rugby','cricket','chess'].map((s) => <option key={s} value={s}>{s}</option>)}
-              </select></div>
+                {['soccer','rugby','cricket','chess'].map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
             {err && <p style={{ color: 'var(--danger)', fontSize: 13 }}>{err}</p>}
             <button className="btn btn-primary btn-block" disabled={busy || !name.trim() || noOrg}>{busy ? 'Saving…' : 'Add team'}</button>
           </form>
@@ -59,9 +67,22 @@ export default function AdminTeams() {
           <div className="section-header"><h4 style={{ margin: 0 }}>Your teams</h4><span className="badge badge-neutral">{teams.length}</span></div>
           {teams.length === 0
             ? <p className="subtle">No teams yet. Add your first team.</p>
-            : <table className="table"><thead><tr><th>Name</th><th>Division</th><th>Sport</th></tr></thead>
-                <tbody>{teams.map((t) => <tr key={t.id}><td>{t.name}</td><td>{t.division.replace('_',' ')}</td><td>{t.sport}</td></tr>)}</tbody>
+            : <table className="table"><thead><tr><th>Name</th><th>Division</th><th>Coach</th></tr></thead>
+                <tbody>{teams.map((t) => (
+                  <tr key={t.id}>
+                    <td>{t.name}</td><td>{t.division.replace('_',' ')}</td>
+                    <td>
+                      <select className="select" style={{ minHeight: 34, padding: '4px 8px' }}
+                        value={t.coach_id || ''} onChange={(e) => assignCoach(t.id, e.target.value)}>
+                        <option value="">— Unassigned —</option>
+                        {coaches.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </td>
+                  </tr>
+                ))}</tbody>
               </table>}
+          {coaches.length === 0 && !session?.demo &&
+            <p className="subtle" style={{ marginTop: 10 }}>No coaches yet — have a coach register, then assign them here.</p>}
         </div>
       </div>
     </AppShell>

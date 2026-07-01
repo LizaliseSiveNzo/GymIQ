@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 // [label, icon, path|null]  — null path = not built yet (shown, not clickable)
 const NAV = {
   admin:  [['Dashboard','▚','/admin'],['Teams','👥','/admin/teams'],['Players','⚽','/admin/players'],['Trials','📋',null],['Reports','📊',null],['Settings','⚙',null]],
-  coach:  [['Dashboard','▚','/coach'],['Squad','👥',null],['Log','➕',null],['Schedule','📅',null],['Messages','💬',null]],
+  coach:  [['Dashboard','▚','/coach'],['Log Training','➕','/coach/training'],['Log Match','⚽','/coach/match'],['Schedule','📅',null],['Messages','💬',null]],
   parent: [['My Child','⚽','/parent'],['Schedule','📅',null],['Messages','💬',null],['Notifications','🔔',null]],
   player: [['My Profile','⚽','/player'],['Leaderboard','🏆',null],['Schedule','📅',null]],
 };
