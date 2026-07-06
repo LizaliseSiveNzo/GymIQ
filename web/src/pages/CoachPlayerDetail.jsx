@@ -6,6 +6,8 @@ import StatCard from '../components/StatCard.jsx';
 import InjuryThread from '../components/InjuryThread.jsx';
 import MatchLog from '../components/MatchLog.jsx';
 import PlayerUploads from '../components/PlayerUploads.jsx';
+import PlayerCard from '../components/PlayerCard.jsx';
+import AttributeEditor from '../components/AttributeEditor.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -160,6 +162,10 @@ export default function CoachPlayerDetail() {
       </div>
 
       <MatchLog playerId={id} />
+
+      <PlayerCard playerId={id} />
+
+      <AttributeEditor playerId={id} />
 
       <PlayerUploads playerId={id} canUpload={false} />
 

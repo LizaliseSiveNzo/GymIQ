@@ -5,6 +5,7 @@ import StatCard from '../components/StatCard.jsx';
 import InjuryThread from '../components/InjuryThread.jsx';
 import MatchLog from '../components/MatchLog.jsx';
 import PlayerUploads from '../components/PlayerUploads.jsx';
+import PlayerCard from '../components/PlayerCard.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -102,6 +103,8 @@ export default function PlayerProfile() {
             <StatCard label="Minutes" value={ov.minutes ?? 0} />
             <StatCard label="Avg rating" value={ov.avg_rating ?? '—'} />
           </div>
+
+          <PlayerCard />
 
           <div className="card" style={{ marginTop: 18, background: 'var(--surface-2)', border: 0 }}>
             <strong style={{ color: 'var(--green-700)', fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase' }}>
