@@ -10,12 +10,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  /* ---------- Brand: navy ink ---------- */
-  --navy-900: #0A1730;   /* headings, primary text */
-  --navy-800: #10203F;
-  --navy-700: #16305C;   /* brand / nav surface */
-  --navy-600: #1E3E76;
-  --navy-500: #2C548F;
+  /* ---------- Structure: Tuks black ---------- */
+  --navy-900: #15161A;   /* headings, sidebar, ink */
+  --navy-800: #1E2026;
+  --navy-700: #2A2C34;   /* dark surface */
+  --navy-600: #3B3E48;
+  --navy-500: #4E515D;
 
   /* ---------- Brand: Tuks red (action) ---------- */
   --green-700: #8C1420;
@@ -28,14 +28,14 @@
   --energy: #E4032E;
 
   /* ---------- Neutrals ---------- */
-  --bg:            #F5F8FC;  /* app background */
+  --bg:            #F7F7F8;  /* app background */
   --surface:       #FFFFFF;  /* cards / panels */
-  --surface-2:     #F0F4F9;  /* subtle fills */
-  --border:        #E2E8F1;
-  --border-strong: #CDD7E4;
-  --ink:           #0E1B2E;  /* body text */
-  --text-muted:    #56677D;
-  --text-subtle:   #8494A6;
+  --surface-2:     #F1F1F4;  /* subtle fills */
+  --border:        #E6E7EB;
+  --border-strong: #D3D5DB;
+  --ink:           #17171C;  /* body text */
+  --text-muted:    #5B616C;
+  --text-subtle:   #8A8F9A;
 
   /* ---------- Semantic ---------- */
   --success: #0BA05F;
@@ -68,10 +68,10 @@
   --r-sm: 8px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-full: 999px;
 
   /* ---------- Shadows (soft, light-UI) ---------- */
-  --shadow-xs: 0 1px 2px rgba(16,32,63,.06);
-  --shadow-sm: 0 2px 6px rgba(16,32,63,.08);
-  --shadow-md: 0 6px 18px rgba(16,32,63,.10);
-  --shadow-lg: 0 14px 40px rgba(16,32,63,.14);
+  --shadow-xs: 0 1px 2px rgba(18,18,22,.06);
+  --shadow-sm: 0 2px 6px rgba(18,18,22,.08);
+  --shadow-md: 0 6px 18px rgba(18,18,22,.10);
+  --shadow-lg: 0 14px 40px rgba(18,18,22,.14);
 
   /* ---------- Layout ---------- */
   --sidebar-w: 240px;
@@ -207,9 +207,9 @@ a:hover { text-decoration: underline; }
    App shell
    ============================================================================ */
 .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
-.sidebar { background: var(--navy-900); color: #C7D2E1; display: flex; flex-direction: column; padding: var(--sp-4); }
+.sidebar { background: var(--navy-900); color: #CBCFD6; display: flex; flex-direction: column; padding: var(--sp-4); }
 .sidebar .brand { color: #fff; font-family: var(--font-display); font-weight: 800; font-size: var(--text-lg); padding: var(--sp-2) var(--sp-3) var(--sp-6); display: flex; align-items: center; gap: 8px; }
-.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-md); color: #AEBBCC; font-weight: 600; font-size: var(--text-sm); cursor: pointer; border-left: 3px solid transparent; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-md); color: #9BA1AC; font-weight: 600; font-size: var(--text-sm); cursor: pointer; border-left: 3px solid transparent; }
 .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; text-decoration: none; }
 .nav-item.active { background: rgba(200,16,46,.18); color: #fff; border-left-color: var(--green-500); }
 .topbar { height: var(--topbar-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-6); }
