@@ -1,0 +1,17 @@
+Copyright © 2026 Lizalise Nzo. All rights reserved.
+PitchIQ — proprietary and confidential. Unauthorised use, copying, or
+distribution is prohibited. See the LICENSE file at the repository root.
+
+--- How to use this header ---
+Add the notice above to the top of source files (as a code comment) to reinforce
+ownership. Examples:
+
+JavaScript / TypeScript / CSS:
+/*
+ * Copyright © 2026 Lizalise Nzo. All rights reserved.
+ * PitchIQ — proprietary and confidential. See LICENSE.
+ */
+
+SQL:
+-- Copyright © 2026 Lizalise Nzo. All rights reserved.
+-- PitchIQ — proprietary and confidential. See LICENSE.
