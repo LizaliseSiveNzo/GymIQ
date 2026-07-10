@@ -199,3 +199,17 @@ html { -webkit-text-size-adjust: 100%; }
   .hamburger-bars { width: 26px; gap: 5px; }
   .hamburger-bars i { height: 3px; }
 }
+
+/* ===================== Navigation — twice as big ===================== */
+:root { --sidebar-w: 340px; }
+.sidebar { padding: 26px 18px; }
+.sidebar .brand { font-size: 28px; padding: 14px 14px 28px; }
+.nav-item { font-size: 22px; padding: 20px 18px; gap: 18px; border-radius: 14px; }
+.nav-item span:first-child { font-size: 28px; width: 32px !important; }
+
+@media (max-width: 767px) {
+  .mobile-menu a, .mobile-menu .m-item { font-size: 21px; padding: 20px 20px; }
+  .mobile-menu a span:first-child, .mobile-menu .m-item span:first-child { font-size: 28px; }
+  .hamburger-bars { width: 30px; gap: 6px; }
+  .hamburger-bars i { height: 3px; }
+}
