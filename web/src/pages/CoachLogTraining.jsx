@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
 import { useQrScanner } from '../lib/useQrScanner.js';
+import { primeAudio, successBeep, errorBeep } from '../lib/sound.js';
 
 const isToday = (iso) => iso && new Date(iso).toDateString() === new Date().toDateString();
 const whenLabel = (s) => s.starts_at ? new Date(s.starts_at).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : (s.date || 'Session');
@@ -77,10 +78,11 @@ export default function CoachLogTraining() {
     const code = (raw || '').trim().toUpperCase();
     if (!code) return;
     const p = playersRef.current.find((x) => (x.code || '').trim().toUpperCase() === code);
-    if (!p) { setScanErr(`No player with code ${code} on this team`); setScanMsg(''); try { navigator.vibrate?.(200); } catch (_e) {} return; }
+    if (!p) { setScanErr(`No player with code ${code} on this team`); setScanMsg(''); try { navigator.vibrate?.(200); } catch (_e) {} errorBeep(); return; }
     setPresent((s) => ({ ...s, [p.id]: true }));
     setLocked((prev) => { const n = new Set(prev); n.add(p.id); return n; });
     setScanErr(''); setScanMsg(`✓ ${p.name} checked in — locked present`);
+    successBeep();
     try { navigator.vibrate?.(60); } catch (_e) {}
   }
   function onManual(e) { e.preventDefault(); if (!manual.trim()) return; markPresentByCode(manual); setManual(''); }
@@ -174,7 +176,7 @@ export default function CoachLogTraining() {
               <div className="row between" style={{ marginBottom: 8 }}>
                 <strong style={{ fontSize: 13 }}>Scan a player’s QR, or type their student code</strong>
                 {scanning ? <button type="button" className="btn btn-ghost" style={{ minHeight: 30 }} onClick={stop}>Stop camera</button>
-                          : <button type="button" className="btn btn-secondary" style={{ minHeight: 30 }} onClick={start}>Start camera</button>}
+                          : <button type="button" className="btn btn-secondary" style={{ minHeight: 30 }} onClick={() => { primeAudio(); start(); }}>Start camera</button>}
               </div>
               <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: '#000', display: scanning ? 'block' : 'none' }}>
                 <video ref={videoRef} playsInline muted style={{ width: '100%', maxHeight: 300, objectFit: 'cover' }} />

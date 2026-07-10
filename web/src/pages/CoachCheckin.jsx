@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams } from '../lib/coach.js';
 import { useQrScanner } from '../lib/useQrScanner.js';
+import { primeAudio, successBeep, errorBeep } from '../lib/sound.js';
 
 const fmt = (iso) => iso ? new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 const REASONS = ['Injury', 'Illness', 'Family / personal', 'Disciplinary', 'Fatigue', 'Other'];
@@ -61,8 +62,9 @@ export default function CoachCheckin() {
     const { data, error } = await supabase.rpc('record_attendance', {
       p_session_id: sessionId, p_code: (code || '').trim(), p_action: 'in', p_method: method,
     });
-    if (error) { setErr(error.message); try { navigator.vibrate?.(200); } catch (_e) {} return; }
+    if (error) { setErr(error.message); try { navigator.vibrate?.(200); } catch (_e) {} errorBeep(); return; }
     setLast(`${data.name} — checked in ${fmt(data.checkin_at)}`);
+    successBeep();
     try { navigator.vibrate?.(60); } catch (_e) {}
     loadRoster();
   }
@@ -102,7 +104,7 @@ export default function CoachCheckin() {
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="section-header"><h4 style={{ margin: 0 }}>Scan player QR to check in</h4>
           {scanning ? <button className="btn btn-ghost" onClick={stop}>Stop camera</button>
-                    : <button className="btn btn-primary" onClick={start} disabled={!sessionId}>📷 Start camera</button>}</div>
+                    : <button className="btn btn-primary" onClick={() => { primeAudio(); start(); }} disabled={!sessionId}>📷 Start camera</button>}</div>
         <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: '#000', display: scanning ? 'block' : 'none' }}>
           <video ref={videoRef} playsInline muted style={{ width: '100%', maxHeight: 320, objectFit: 'cover' }} />
           <div style={{ position: 'absolute', inset: '18% 22%', border: '3px solid rgba(255,255,255,.9)', borderRadius: 12 }} />
