@@ -18,7 +18,7 @@ export default function CoachLogTraining() {
   const [teams, setTeams] = useState([]);
   const [teamId, setTeamId] = useState('');
   const [sessions, setSessions] = useState([]);
-  const [sessionSel, setSessionSel] = useState('new');
+  const [sessionSel, setSessionSel] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
   const [players, setPlayers] = useState([]);
@@ -43,8 +43,7 @@ export default function CoachLogTraining() {
     const { data } = await supabase.from('training_sessions').select('id,starts_at,date,location,notes')
       .eq('team_id', teamId).order('starts_at', { ascending: false, nullsFirst: false }).limit(25);
     setSessions(data || []);
-    const todays = (data || []).find((s) => isToday(s.starts_at));
-    if (todays) selectSession(todays.id, p); else selectSession('new', p);
+    setSessionSel('');
   })(); }, [teamId]);
 
   async function selectSession(sid, plist) {
@@ -156,6 +155,7 @@ export default function CoachLogTraining() {
           )}
         </div>
 
+        {sessionSel ? (
         <form className="card" onSubmit={save}>
           <div className="section-header">
             <h4 style={{ margin: 0 }}>Attendance <span className="subtle" style={{ fontSize: 13, fontWeight: 400 }}>· {presentCount}/{players.length} present</span></h4>
@@ -207,6 +207,9 @@ export default function CoachLogTraining() {
           {ok &&  <p style={{ color: 'var(--green-700)', fontSize: 13 }}>{ok}</p>}
           <button className="btn btn-primary btn-lg btn-block" disabled={busy || !players.length}>{busy ? 'Saving…' : 'Save attendance'}</button>
         </form>
+        ) : (
+          <div className="card"><p className="subtle" style={{ margin: 0 }}>Select a session above (or “New session”) to log attendance.</p></div>
+        )}
       </div>
     </AppShell>
   );
