@@ -23,6 +23,7 @@ export default function CoachLogTraining() {
   const [notes, setNotes] = useState('');
   const [players, setPlayers] = useState([]);
   const [present, setPresent] = useState({});
+  const [locked, setLocked] = useState(new Set());  // checked-in players can't be marked absent
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(''); const [ok, setOk] = useState('');
 
@@ -49,10 +50,13 @@ export default function CoachLogTraining() {
   async function selectSession(sid, plist) {
     const ps = plist || players;
     setSessionSel(sid); setOk(''); setErr('');
-    if (sid === 'new') { setPresent(Object.fromEntries(ps.map((x) => [x.id, true]))); return; }
+    if (sid === 'new') { setLocked(new Set()); setPresent(Object.fromEntries(ps.map((x) => [x.id, true]))); return; }
     const { data } = await supabase.rpc('session_attendance', { p_session_id: sid });
+    const lockedSet = new Set((data || []).filter((x) => x.checkin_at).map((x) => x.player_id));
     const map = {};
     ps.forEach((p) => { const r = (data || []).find((x) => x.player_id === p.id); map[p.id] = r ? !!r.present : false; });
+    lockedSet.forEach((id) => { map[id] = true; });
+    setLocked(lockedSet);
     setPresent(map);
   }
 
@@ -75,7 +79,8 @@ export default function CoachLogTraining() {
     const p = playersRef.current.find((x) => (x.code || '').trim().toUpperCase() === code);
     if (!p) { setScanErr(`No player with code ${code} on this team`); setScanMsg(''); try { navigator.vibrate?.(200); } catch (_e) {} return; }
     setPresent((s) => ({ ...s, [p.id]: true }));
-    setScanErr(''); setScanMsg(`✓ ${p.name} marked present`);
+    setLocked((prev) => { const n = new Set(prev); n.add(p.id); return n; });
+    setScanErr(''); setScanMsg(`✓ ${p.name} checked in — locked present`);
     try { navigator.vibrate?.(60); } catch (_e) {}
   }
   function onManual(e) { e.preventDefault(); if (!manual.trim()) return; markPresentByCode(manual); setManual(''); }
@@ -190,8 +195,10 @@ export default function CoachLogTraining() {
               <label key={p.id} className="row between" style={{ padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer' }}>
                 <span className="row"><span className="avatar">{p.name.split(' ').map((w)=>w[0]).join('')}</span> {p.name}</span>
                 <span className="row" style={{ gap: 8 }}>
+                  {locked.has(p.id) && <span className="badge badge-neutral" title="Checked in via QR / code — locked present">🔒 Checked in</span>}
                   <span className={`badge ${present[p.id] ? 'badge-success' : 'badge-danger'}`}>{present[p.id] ? 'Present' : 'Absent'}</span>
-                  <input type="checkbox" checked={!!present[p.id]} onChange={(e) => setPresent((s) => ({ ...s, [p.id]: e.target.checked }))} />
+                  <input type="checkbox" checked={!!present[p.id]} disabled={locked.has(p.id)}
+                    onChange={(e) => setPresent((s) => ({ ...s, [p.id]: e.target.checked }))} />
                 </span>
               </label>
             ))}
