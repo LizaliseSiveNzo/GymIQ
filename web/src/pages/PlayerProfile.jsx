@@ -11,6 +11,7 @@ import InjuryThread from '../components/InjuryThread.jsx';
 import MatchLog from '../components/MatchLog.jsx';
 import PlayerUploads from '../components/PlayerUploads.jsx';
 import PlayerCard from '../components/PlayerCard.jsx';
+import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -38,10 +39,12 @@ export default function PlayerProfile() {
   const [ai, setAi] = useState(session?.demo ? DEMO_SUMMARY : '');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiErr, setAiErr] = useState('');
+  const [code, setCode] = useState(session?.demo ? 'PIQ-DEMO' : '');
 
   useEffect(() => {
     if (session?.demo) return;
     supabase.rpc('my_player_overview').then(({ data }) => { setOv(data); setLoading(false); });
+    supabase.rpc('my_player_code').then(({ data }) => { setCode(data?.[0]?.child_code || ''); });
     supabase.from('coach_player_notes')
       .select('id,note,diet_plan,created_at')
       .order('created_at', { ascending: false }).limit(30)
@@ -108,6 +111,19 @@ export default function PlayerProfile() {
             <StatCard label="Minutes" value={ov.minutes ?? 0} />
             <StatCard label="Avg rating" value={ov.avg_rating ?? '—'} />
           </div>
+
+          {code && (
+            <div className="card" style={{ marginTop: 18, background: 'var(--surface-2)', border: 0, textAlign: 'center' }}>
+              <strong style={{ color: 'var(--green-700)', fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                ✅ Practice Check-in Code
+              </strong>
+              <div style={{ background: '#fff', display: 'inline-block', padding: 12, borderRadius: 12, marginTop: 12 }}>
+                <QRCodeSVG value={code} size={168} includeMargin={false} />
+              </div>
+              <p style={{ margin: '10px 0 0', fontSize: 20, fontWeight: 800, letterSpacing: '.06em' }}>{code}</p>
+              <p className="subtle" style={{ margin: '4px 0 0', fontSize: 13 }}>Show this to your coach to check in at practice. No phone? Give them the code.</p>
+            </div>
+          )}
 
           <PlayerCard />
 

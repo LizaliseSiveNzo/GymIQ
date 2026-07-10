@@ -148,7 +148,8 @@ export default function CoachSchedule() {
                   </div>
                   <span className={`badge ${u.type === 'Match' ? 'badge-info' : 'badge-success'}`}>{u.type}</span>
                 </div>
-                {u.type === 'Match' && <Link to={`/coach/lineup?match=${u.rawId}`} className="btn btn-secondary" style={{ minHeight: 30, padding: '4px 10px', marginTop: 6 }}>📋 Set lineup</Link>}  {/* CoachLineup-link */}
+                {u.type === 'Match' && <Link to={`/coach/lineup?match=${u.rawId}`} className="btn btn-secondary" style={{ minHeight: 30, padding: '4px 10px', marginTop: 6 }}>📋 Set lineup</Link>}
+                {u.type === 'Practice' && <Link to={`/coach/checkin?session=${u.rawId}`} className="btn btn-secondary" style={{ minHeight: 30, padding: '4px 10px', marginTop: 6 }}>✅ Take attendance</Link>}
                 {(() => {
                   const r = rsvps[`${u.kind}:${u.rawId}`];
                   if (!r) return <div className="subtle" style={{ fontSize: 12, marginTop: 6 }}>No availability responses yet.</div>;
