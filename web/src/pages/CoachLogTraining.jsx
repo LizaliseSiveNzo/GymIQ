@@ -9,6 +9,9 @@ import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
 
+const isToday = (iso) => iso && new Date(iso).toDateString() === new Date().toDateString();
+const whenLabel = (s) => s.starts_at ? new Date(s.starts_at).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : (s.date || 'Session');
+
 export default function CoachLogTraining() {
   const { profile, session } = useAuth();
   const [teams, setTeams] = useState([]);
@@ -41,11 +44,23 @@ export default function CoachLogTraining() {
 
   useEffect(() => { if (!teamId) return; (async () => {
     const p = await teamPlayers(teamId); setPlayers(p);
-    setPresent(Object.fromEntries(p.map((x) => [x.id, true])));
-    const { data } = await supabase.from('training_sessions').select('id,starts_at,location,notes')
-      .eq('team_id', teamId).not('starts_at', 'is', null).order('starts_at', { ascending: false }).limit(10);
-    setSessions(data || []); setSessionSel('new');
+    const { data } = await supabase.from('training_sessions').select('id,starts_at,date,location,notes')
+      .eq('team_id', teamId).order('starts_at', { ascending: false, nullsFirst: false }).limit(25);
+    setSessions(data || []);
+    // auto-select today's session if there is one, else start on "new"
+    const todays = (data || []).find((s) => isToday(s.starts_at));
+    if (todays) selectSession(todays.id, p); else selectSession('new', p);
   })(); }, [teamId]);
+
+  async function selectSession(sid, plist) {
+    const ps = plist || players;
+    setSessionSel(sid); setOk(''); setErr('');
+    if (sid === 'new') { setPresent(Object.fromEntries(ps.map((x) => [x.id, true]))); return; }
+    const { data } = await supabase.rpc('session_attendance', { p_session_id: sid });
+    const map = {};
+    ps.forEach((p) => { const r = (data || []).find((x) => x.player_id === p.id); map[p.id] = r ? !!r.present : false; });
+    setPresent(map);
+  }
 
   function markPresentByCode(raw) {
     const code = (raw || '').trim().toUpperCase();
@@ -56,13 +71,7 @@ export default function CoachLogTraining() {
     setScanErr(''); setScanMsg(`✓ ${p.name} marked present`);
     try { navigator.vibrate?.(60); } catch (_e) {}
   }
-
-  function onManual(e) {
-    e.preventDefault();
-    if (!manual.trim()) return;
-    markPresentByCode(manual);
-    setManual('');
-  }
+  function onManual(e) { e.preventDefault(); if (!manual.trim()) return; markPresentByCode(manual); setManual(''); }
 
   async function startCam() {
     setScanErr('');
@@ -81,8 +90,7 @@ export default function CoachLogTraining() {
             const val = codes[0].rawValue.trim();
             const now = Date.now();
             if (!(val === lastScanRef.current.code && now - lastScanRef.current.t < 2500)) {
-              lastScanRef.current = { code: val, t: now };
-              markPresentByCode(val);
+              lastScanRef.current = { code: val, t: now }; markPresentByCode(val);
             }
           }
         } catch (_e) { /* frame noise */ }
@@ -95,10 +103,7 @@ export default function CoachLogTraining() {
     runningRef.current = false; setScanning(false);
     if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
   }
-  function toggleScanner() {
-    const next = !scanOpen; setScanOpen(next); setScanMsg(''); setScanErr('');
-    if (!next) stopCam();
-  }
+  function toggleScanner() { const next = !scanOpen; setScanOpen(next); setScanMsg(''); setScanErr(''); if (!next) stopCam(); }
 
   async function save(e) {
     e.preventDefault(); setErr(''); setOk(''); setBusy(true);
@@ -118,7 +123,10 @@ export default function CoachLogTraining() {
       await supabase.rpc('recompute_team_ranks', { p_team: teamId });
       stopCam(); setScanOpen(false);
       setOk(`Saved — ${rows.filter((r) => r.attended).length}/${rows.length} present. Ranks updated.`);
-      setNotes('');
+      // refresh session list so a brand-new session appears
+      const { data } = await supabase.from('training_sessions').select('id,starts_at,date,location,notes')
+        .eq('team_id', teamId).order('starts_at', { ascending: false, nullsFirst: false }).limit(25);
+      setSessions(data || []); setSessionSel(sid); setNotes('');
     } finally { setBusy(false); }
   }
 
@@ -130,24 +138,46 @@ export default function CoachLogTraining() {
   return (
     <AppShell role="coach" active="Log Training" title="Log Training">
       <div className="container" style={{ maxWidth: 640, padding: 0 }}>
-        <form className="card" onSubmit={save}>
-          <div className="grid grid-2">
-            <div className="field"><label className="label">Team</label>
-              <select className="select" value={teamId} onChange={(e) => { stopCam(); setScanOpen(false); setTeamId(e.target.value); }}>
-                {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
-            <div className="field"><label className="label">Session</label>
-              <select className="select" value={sessionSel} onChange={(e) => setSessionSel(e.target.value)}>
-                <option value="new">New session</option>
-                {sessions.map((s) => <option key={s.id} value={s.id}>
-                  {new Date(s.starts_at).toLocaleDateString()} — {s.notes || 'Practice'}</option>)}
-              </select></div>
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="field" style={{ margin: 0 }}><label className="label">Team</label>
+            <select className="select" value={teamId} onChange={(e) => { stopCam(); setScanOpen(false); setTeamId(e.target.value); }}>
+              {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
+
+          <div className="section-header" style={{ marginTop: 14 }}><h4 style={{ margin: 0 }}>Scheduled sessions</h4><span className="badge badge-neutral">{sessions.length}</span></div>
+          <p className="subtle" style={{ marginTop: 0, fontSize: 13 }}>Tap the session that’s happening now to log its attendance.</p>
+          <div className="stack" style={{ gap: 8 }}>
+            <div onClick={() => selectSession('new')} role="button" tabIndex={0}
+              style={{ padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                border: sessionSel === 'new' ? '2px solid var(--green-600)' : '1px solid var(--border)' }}>
+              <strong>➕ New session (not scheduled)</strong>
+            </div>
+            {sessions.map((s) => {
+              const sel = sessionSel === s.id; const today = isToday(s.starts_at);
+              return (
+                <div key={s.id} onClick={() => selectSession(s.id)} role="button" tabIndex={0}
+                  style={{ padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                    border: sel ? '2px solid var(--green-600)' : '1px solid var(--border)',
+                    background: today ? 'var(--surface-2)' : 'var(--surface)' }}>
+                  <div className="row between">
+                    <div>
+                      <strong>{s.notes || 'Training'}</strong>
+                      <div className="subtle" style={{ fontSize: 12 }}>{whenLabel(s)}{s.location ? ` · ${s.location}` : ''}</div>
+                    </div>
+                    {today && <span className="badge badge-warning">Today</span>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
           {sessionSel === 'new' && (
-            <div className="field"><label className="label">Date</label>
+            <div className="field" style={{ marginTop: 12 }}><label className="label">Date (for the new session)</label>
               <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
           )}
+        </div>
 
-          <div className="section-header" style={{ marginTop: 8 }}>
+        <form className="card" onSubmit={save}>
+          <div className="section-header">
             <h4 style={{ margin: 0 }}>Attendance <span className="subtle" style={{ fontSize: 13, fontWeight: 400 }}>· {presentCount}/{players.length} present</span></h4>
             <button type="button" className="btn btn-primary" style={{ minHeight: 34, padding: '6px 12px' }} onClick={toggleScanner}>
               {scanOpen ? 'Close scanner' : '📷 Scan present'}
@@ -168,8 +198,7 @@ export default function CoachLogTraining() {
               {!supported && <p className="subtle" style={{ fontSize: 12, margin: '4px 0 0' }}>This browser can’t scan QR codes — use the code box below.</p>}
               <div className="row" style={{ gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                 <input className="input" style={{ flex: 1, minWidth: 150 }} placeholder="Student code, e.g. PIQ-EAG3"
-                  value={manual} onChange={(e) => setManual(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') onManual(e); }} />
+                  value={manual} onChange={(e) => setManual(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') onManual(e); }} />
                 <button type="button" className="btn btn-secondary" onClick={onManual} disabled={!manual.trim()}>Mark present</button>
               </div>
               {scanMsg && <p style={{ color: 'var(--green-700)', fontSize: 14, margin: '10px 0 0', fontWeight: 600 }}>{scanMsg}</p>}
