@@ -57,6 +57,19 @@ export default function CoachLogTraining() {
     setPresent(map);
   }
 
+  async function removeSession(sid, e) {
+    if (e) e.stopPropagation();
+    if (!window.confirm('Delete this training session and its attendance? This cannot be undone.')) return;
+    setErr(''); setOk('');
+    const { error } = await supabase.rpc('delete_training_session', { p_session_id: sid });
+    if (error) { setErr(error.message); return; }
+    const { data } = await supabase.from('training_sessions').select('id,starts_at,date,location,notes')
+      .eq('team_id', teamId).order('starts_at', { ascending: false, nullsFirst: false }).limit(25);
+    setSessions(data || []);
+    if (sessionSel === sid) selectSession('new');
+    setOk('Training session deleted.');
+  }
+
   function markPresentByCode(raw) {
     const code = (raw || '').trim().toUpperCase();
     if (!code) return;
@@ -126,7 +139,11 @@ export default function CoachLogTraining() {
                       <strong>{s.notes || 'Training'}</strong>
                       <div className="subtle" style={{ fontSize: 12 }}>{whenLabel(s)}{s.location ? ` · ${s.location}` : ''}</div>
                     </div>
-                    {today && <span className="badge badge-warning">Today</span>}
+                    <div className="row" style={{ gap: 6 }}>
+                      {today && <span className="badge badge-warning">Today</span>}
+                      <button type="button" className="btn btn-ghost" style={{ minHeight: 28, padding: '2px 8px', color: 'var(--danger)' }}
+                        onClick={(e) => removeSession(s.id, e)} title="Delete session">🗑</button>
+                    </div>
                   </div>
                 </div>
               );
