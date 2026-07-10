@@ -156,3 +156,31 @@ html { -webkit-text-size-adjust: 100%; }
   /* forms comfortable to tap */
   .input, .select, .textarea { font-size: 16px; }   /* 16px avoids iOS zoom-on-focus */
 }
+
+/* ===================== Mobile hamburger dropdown menu ===================== */
+.hamburger { display: none; }
+.hamburger-bars { display: inline-flex; flex-direction: column; gap: 4px; width: 22px; }
+.hamburger-bars i { display: block; height: 2px; background: var(--ink); border-radius: 2px; }
+
+.mobile-menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 45; }
+.mobile-menu {
+  position: fixed; top: 56px; left: 0; right: 0; z-index: 46;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  box-shadow: 0 10px 24px rgba(0,0,0,.14);
+  padding: 8px; max-height: calc(100vh - 56px); overflow-y: auto;
+}
+.mobile-menu a, .mobile-menu .m-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; border-radius: 12px;
+  text-decoration: none; color: var(--ink); font-weight: 600; font-size: 16px;
+}
+.mobile-menu a.active { background: var(--green-100); color: var(--green-700); }
+.mobile-menu .m-item { cursor: pointer; }
+.mobile-menu .m-item.exit { color: var(--danger); }
+
+@media (max-width: 767px) {
+  .hamburger { display: inline-flex; align-items: center; background: transparent; border: 0; padding: 6px 4px; cursor: pointer; }
+  .sidebar { display: none !important; }
+  .tabbar { display: none !important; }
+  .app .content { padding-bottom: 24px; }
+}

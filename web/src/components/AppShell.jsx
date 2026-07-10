@@ -14,8 +14,6 @@ const NAV = {
   coach:  [['Dashboard','▚','/coach'],['Schedule','📅','/coach/schedule'],['Check-in','✅','/coach/checkin'],['Log Match','⚽','/coach/match'],['Announcements','📣','/coach/announcements'],['Log Training','➕','/coach/training'],['Lineup','📋','/coach/lineup']],
   player: [['My Profile','⚽','/player'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements'],['Leaderboard','🏆','/leaderboard']],
 };
-// short labels for the bottom tab bar
-const SHORT = { 'Dashboard':'Home', 'Log Training':'Train', 'Log Match':'Match', 'My Profile':'Profile', 'Announcements':'News', 'Notifications':'Alerts', 'Lineup':'Lineup', 'Check-in':'Check-in' };
 
 const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
@@ -23,8 +21,8 @@ export default function AppShell({ active, title, children }) {
   const { profile, role, session, logout } = useAuth();
   const navigate = useNavigate();
   const items = NAV[role] || [];
-  const tabs = items.filter(([, , path]) => path).slice(0, 4);
   const [unread, setUnread] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!session || session.demo) return;
@@ -32,7 +30,7 @@ export default function AppShell({ active, title, children }) {
       .then(({ count }) => setUnread(count || 0));
   }, [session]);
 
-  function exit() { logout(); navigate('/login'); }
+  function exit() { setMenuOpen(false); logout(); navigate('/login'); }
 
   return (
     <div className="app">
@@ -52,7 +50,12 @@ export default function AppShell({ active, title, children }) {
 
       <div className="app-col" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <header className="topbar">
-          <h3 style={{ margin: 0 }}>{title}</h3>
+          <div className="row" style={{ gap: 8 }}>
+            <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
+              <span className="hamburger-bars"><i /><i /><i /></span>
+            </button>
+            <h3 style={{ margin: 0 }}>{title}</h3>
+          </div>
           <div className="row">
             <button className="btn btn-ghost" style={{ position: 'relative', minHeight: 36, padding: '6px 10px' }}
               onClick={() => navigate('/notifications')} title="Notifications">
@@ -66,15 +69,24 @@ export default function AppShell({ active, title, children }) {
         <main className="content">{children}</main>
       </div>
 
-      {/* Mobile bottom tab bar */}
-      <nav className="tabbar">
-        {tabs.map(([label, icon, path]) => (
-          <Link key={label} to={path} className={label === active ? 'active' : ''}>
-            <span className="tab-ic">{icon}</span>{SHORT[label] || label}
-          </Link>
-        ))}
-        <a onClick={exit} style={{ cursor: 'pointer' }}><span className="tab-ic">↩</span>Exit</a>
-      </nav>
+      {/* Mobile dropdown menu (all pages) */}
+      {menuOpen && (
+        <>
+          <div className="mobile-menu-backdrop" onClick={() => setMenuOpen(false)} />
+          <nav className="mobile-menu">
+            {items.map(([label, icon, path]) => (
+              path
+                ? <Link key={label} to={path} className={label === active ? 'active' : ''} onClick={() => setMenuOpen(false)}>
+                    <span style={{ width: 22, textAlign: 'center' }}>{icon}</span> {label}
+                  </Link>
+                : <div key={label} className="m-item" style={{ opacity: .5 }}>
+                    <span style={{ width: 22, textAlign: 'center' }}>{icon}</span> {label} <span className="subtle" style={{ fontSize: 12 }}>· soon</span>
+                  </div>
+            ))}
+            <div className="m-item exit" onClick={exit}><span style={{ width: 22, textAlign: 'center' }}>↩</span> Exit</div>
+          </nav>
+        </>
+      )}
     </div>
   );
 }
