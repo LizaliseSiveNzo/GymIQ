@@ -159,13 +159,13 @@ export default function CoachLogTraining() {
     } finally { setBusy(false); }
   }
 
-  if (session?.demo) return <AppShell role="coach" active="Log Training" title="Log Training"><div className="card">Demo mode — sign in as a real coach to log training.</div></AppShell>;
-  if (teams.length === 0) return <AppShell role="coach" active="Log Training" title="Log Training"><div className="card">No teams assigned yet.</div></AppShell>;
+  if (session?.demo) return <AppShell role="coach" active="Training" title="Log Training"><div className="card">Demo mode — sign in as a real coach to log training.</div></AppShell>;
+  if (teams.length === 0) return <AppShell role="coach" active="Training" title="Log Training"><div className="card">No teams assigned yet.</div></AppShell>;
 
   const presentCount = players.filter((p) => present[p.id]).length;
 
   return (
-    <AppShell role="coach" active="Log Training" title="Log Training">
+    <AppShell role="coach" active="Training" title="Log Training">
       <div className="container" style={{ maxWidth: 640, padding: 0 }}>
         <div className="card" style={{ marginBottom: 16 }}>
           <div className="field" style={{ margin: 0 }}><label className="label">Team</label>
