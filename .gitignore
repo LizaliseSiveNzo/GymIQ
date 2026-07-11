@@ -35,3 +35,6 @@ supabase/.temp/
 # Misc
 coverage/
 .cache/
+
+# OS/editor temp files
+.fuse_hidden*
