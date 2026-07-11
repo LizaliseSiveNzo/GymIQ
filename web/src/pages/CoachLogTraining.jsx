@@ -228,9 +228,12 @@ export default function CoachLogTraining() {
             {groups.earlier.length > 0 && <>{groupHeader('Earlier')}{earlierShown.map(sessionCard)}
               {groups.earlier.length > 6 && <button type="button" className="btn btn-ghost" style={{ minHeight: 30 }} onClick={() => setShowEarlier((v) => !v)}>{showEarlier ? 'Show less' : `Show ${groups.earlier.length - 6} more`}</button>}</>}
           </div>
+        </div>
 
-          {sessionSel === 'new' && (
-            <div className="grid grid-3" style={{ marginTop: 12, gap: 10 }}>
+        {sessionSel === 'new' && (
+          <div className="card" style={{ marginBottom: 16 }}>
+            <div className="section-header"><h4 style={{ margin: 0 }}>➕ New session details</h4></div>
+            <div className="grid grid-3" style={{ gap: 10 }}>
               <div className="field" style={{ margin: 0 }}><label className="label">Date</label>
                 <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
               <div className="field" style={{ margin: 0 }}><label className="label">Time (optional)</label>
@@ -238,8 +241,8 @@ export default function CoachLogTraining() {
               <div className="field" style={{ margin: 0 }}><label className="label">Location (optional)</label>
                 <input className="input" placeholder="e.g. Main Pitch" value={newLocation} onChange={(e) => setNewLocation(e.target.value)} /></div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {sessionSel ? (
         <form className="card" onSubmit={save}>
