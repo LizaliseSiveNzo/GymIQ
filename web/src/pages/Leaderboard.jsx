@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import RedDust from '../components/RedDust.jsx';
 import CategoryLeaders from '../components/CategoryLeaders.jsx';
+import Stakeboard from '../components/Stakeboard.jsx';
 
 const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const pct = (v) => `${Math.round(v)}%`;
@@ -151,21 +152,7 @@ export default function Leaderboard() {
             ))}
           </select>
           {ranked.length === 0 ? <p style={{ color: C.muted, margin: 0 }}>No match stats logged for this category yet.</p> : (
-            <div>
-              {ranked.slice(0, topN).map((r, i) => (
-                <div key={r.player_id} style={{ ...rowBox, borderBottom: i === ranked.slice(0, topN).length - 1 ? 'none' : rowBox.borderBottom }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                    <span style={{ width: 30, textAlign: 'center', fontSize: MEDALS[i] ? 20 : 14, fontWeight: 800, color: MEDALS[i] ? undefined : C.muted }}>{MEDALS[i] || `#${i + 1}`}</span>
-                    <span style={redAvatar}>{initials(r.name)}</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700 }}>{r.name}</div>
-                      <div style={{ color: C.muted, fontSize: 12 }}>{r.team_name || '—'} · Played {r.games} games</div>
-                    </div>
-                  </div>
-                  <strong style={{ color: C.red, fontSize: 20, whiteSpace: 'nowrap' }}>{metric.fmt(r[metricKey])}</strong>
-                </div>
-              ))}
-            </div>
+            <Stakeboard rows={ranked.slice(0, topN)} metric={metric} C={C} />
           )}
         </div>
 
