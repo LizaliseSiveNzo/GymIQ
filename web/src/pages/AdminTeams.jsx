@@ -44,6 +44,14 @@ export default function AdminTeams() {
     load();
   }
 
+  async function deleteTeam(teamId, teamName) {
+    if (!window.confirm(`Delete ${teamName}? Players stay in the academy (unassigned), but the team's schedule, matches, lineups, stats and announcements are removed. This cannot be undone.`)) return;
+    setErr('');
+    const { error } = await supabase.rpc('delete_team', { p_team: teamId });
+    if (error) { setErr(error.message); return; }
+    load();
+  }
+
   const noOrg = !session?.demo && profile && !profile.org_id;
 
   return (
@@ -72,7 +80,7 @@ export default function AdminTeams() {
           <div className="section-header"><h4 style={{ margin: 0 }}>Your teams</h4><span className="badge badge-neutral">{teams.length}</span></div>
           {teams.length === 0
             ? <p className="subtle">No teams yet. Add your first team.</p>
-            : <table className="table"><thead><tr><th>Name</th><th>Division</th><th>Coach</th></tr></thead>
+            : <table className="table"><thead><tr><th>Name</th><th>Division</th><th>Coach</th><th></th></tr></thead>
                 <tbody>{teams.map((t) => (
                   <tr key={t.id}>
                     <td>{t.name}</td><td>{t.division.replace('_',' ')}</td>
@@ -83,6 +91,7 @@ export default function AdminTeams() {
                         {coaches.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     </td>
+                    <td><button className="btn btn-ghost" style={{ minHeight: 32, padding: '2px 8px', color: 'var(--danger)' }} title="Delete team" onClick={() => deleteTeam(t.id, t.name)}>🗑</button></td>
                   </tr>
                 ))}</tbody>
               </table>}
