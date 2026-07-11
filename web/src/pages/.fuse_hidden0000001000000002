@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+ * Copyright © 2026 Lizalise Nzo. All rights reserved.
  * PitchIQ — proprietary and confidential. See LICENSE.
  */
 
@@ -39,7 +39,7 @@ export default function Landing() {
           <div className="lp-logo"><span className="dot" /> PitchIQ</div>
           <div className="row" style={{ gap: 12 }}>
             <Link to="/login" className="btn btn-ghost">Sign in</Link>
-            <Link to="/login" className="btn btn-primary">Get started</Link>
+            <Link to="/login" className="btn btn-primary">Book a pilot</Link>
           </div>
         </div>
       </nav>
@@ -55,7 +55,7 @@ export default function Landing() {
               performance — all in one place. One subscription per school.
             </p>
             <div className="row" style={{ gap: 12, marginTop: 24 }}>
-              <Link to="/login" className="btn btn-primary btn-lg">Get started</Link>
+              <Link to="/login" className="btn btn-primary btn-lg">Book a pilot</Link>
               <Link to="/login" className="btn btn-secondary btn-lg">See how it works</Link>
             </div>
             <p className="subtle" style={{ marginTop: 16, fontSize: 13 }}>Starts free · Soccer, rugby, cricket & more</p>
@@ -151,14 +151,14 @@ export default function Landing() {
           <div className="lp-eyebrow">Per school</div>
           <div className="amt">Starts free</div>
           <p style={{ margin: '8px 0 20px' }}>All modules, all roles, unlimited teams and players. Add sports as you grow.</p>
-          <Link to="/login" className="btn btn-primary btn-lg btn-block">Get started</Link>
+          <Link to="/login" className="btn btn-primary btn-lg btn-block">Book a pilot</Link>
         </div>
       </section>
 
       <footer className="lp-footer">
         <div className="inner">
           <div className="lp-logo" style={{ fontSize: 16 }}><span className="dot" /> PitchIQ</div>
-          <span>© 2026 RevidArch</span>
+          <span>© 2026 RevidArch · Built with Claude</span>
         </div>
       </footer>
     </div>

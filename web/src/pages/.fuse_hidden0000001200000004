@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+ * Copyright © 2026 Lizalise Nzo. All rights reserved.
  * PitchIQ — proprietary and confidential. See LICENSE.
  */
 
@@ -158,7 +158,7 @@ export default function Landing() {
       <footer className="lp-footer">
         <div className="inner">
           <div className="lp-logo" style={{ fontSize: 16 }}><span className="dot" /> PitchIQ</div>
-          <span>© 2026 RevidArch</span>
+          <span>© 2026 RevidArch · Built with Claude</span>
         </div>
       </footer>
     </div>

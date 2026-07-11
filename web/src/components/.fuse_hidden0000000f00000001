@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+ * Copyright © 2026 Lizalise Nzo. All rights reserved.
  * PitchIQ — proprietary and confidential. See LICENSE.
  */
 
@@ -10,8 +10,8 @@ import { supabase } from '../lib/supabaseClient.js';
 
 // [label, icon, path|null]
 const NAV = {
-  admin:  [['Dashboard','▚','/admin'],['Teams','👥','/admin/teams'],['Players','⚽','/admin/players'],['Coaches','🏃','/admin/coaches'],['Activity','📒','/admin/activity'],['Broadcast','📣','/admin/broadcast'],['Trials','📋','/admin/trials'],['Settings','⚙','/admin/settings']],
-  coach:  [['Dashboard','▚','/coach'],['Schedule','📅','/coach/schedule'],['Matches','⚽','/coach/match'],['Announcements','📣','/coach/announcements'],['Training','➕','/coach/training'],['Leaderboard','🏆','/leaderboard']],
+  admin:  [['Dashboard','▚','/admin'],['Teams','👥','/admin/teams'],['Players','⚽','/admin/players'],['Trials','📋','/admin/trials'],['Reports','📊',null],['Settings','⚙','/admin/settings']],
+  coach:  [['Dashboard','▚','/coach'],['Schedule','📅','/coach/schedule'],['Check-in','✅','/coach/checkin'],['Log Match','⚽','/coach/match'],['Announcements','📣','/coach/announcements'],['Log Training','➕','/coach/training'],['Lineup','📋','/coach/lineup']],
   player: [['My Profile','⚽','/player'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements'],['Leaderboard','🏆','/leaderboard']],
 };
 
