@@ -1,0 +1,2 @@
+-- Add player_id to season leaderboard rows so the UI can show each player's stat summary.
+-- team_leaderboard() recreated with player_id in each row (top-5 player limit kept). Body applied via MCP.

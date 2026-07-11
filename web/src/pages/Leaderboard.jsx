@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import RedDust from '../components/RedDust.jsx';
 import CategoryLeaders from '../components/CategoryLeaders.jsx';
 import Stakeboard from '../components/Stakeboard.jsx';
+import SeasonBoard from '../components/SeasonBoard.jsx';
 
 const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const pct = (v) => `${Math.round(v)}%`;
@@ -76,6 +77,7 @@ export default function Leaderboard() {
   const ranked = [...stats].filter((r) => Number(r[metricKey]) > 0).sort((a, b) => Number(b[metricKey]) - Number(a[metricKey]));
   const topFor = (key) => { const r = [...stats].filter((x) => Number(x[key]) > 0).sort((a, b) => Number(b[key]) - Number(a[key])); return r[0]; };
   const tileItems = TILES.map((t) => { const m = METRICS.find((x) => x.key === t.key); return { ...t, fmt: m.fmt, unit: m.unit }; });
+  const statsById = Object.fromEntries(stats.map((x) => [x.player_id, x]));
 
   const potw = hl?.player_of_week;
   const motm = hl?.motm || [];
@@ -160,21 +162,7 @@ export default function Leaderboard() {
         <div style={{ ...card, marginBottom: 0 }}>
           <H icon="📊" title="Season Leaderboard" right={role === 'player' ? <span style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 8, padding: '3px 10px', fontSize: 12, color: C.muted }}>Top 5</span> : null} />
           {season.length === 0 ? <p style={{ color: C.muted, margin: 0 }}>Rankings appear once training and matches are logged.</p> : (
-            <div>
-              {season.map((r) => (
-                <div key={r.pos} style={{ ...rowBox, background: r.me ? 'rgba(228,3,46,.10)' : 'transparent', borderRadius: r.me ? 10 : 0, paddingLeft: 8, paddingRight: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                    <span style={{ width: 30, textAlign: 'center', fontSize: MEDALS[r.pos - 1] ? 20 : 14, fontWeight: 800, color: MEDALS[r.pos - 1] ? undefined : C.muted }}>{MEDALS[r.pos - 1] || `#${r.pos}`}</span>
-                    <span style={redAvatar}>{initials(r.name)}</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700 }}>{r.name}{r.me ? ' (you)' : ''}</div>
-                      <div style={{ color: C.muted, fontSize: 12 }}>{r.position || '—'} · {(r.rank || 'Rookie').replace('_', ' ')}</div>
-                    </div>
-                  </div>
-                  <strong style={{ color: C.red, fontSize: 18, whiteSpace: 'nowrap' }}>{r.score} pts</strong>
-                </div>
-              ))}
-            </div>
+            <SeasonBoard season={season} statsById={statsById} C={C} />
           )}
         </div>
 
