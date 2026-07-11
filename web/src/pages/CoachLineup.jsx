@@ -10,7 +10,6 @@ import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
 
-// Common formations -> ordered position slots (11-a-side soccer).
 const FORMATIONS = {
   '4-4-2':   ['GK','RB','CB','CB','LB','RM','CM','CM','LM','ST','ST'],
   '4-3-3':   ['GK','RB','CB','CB','LB','CM','CM','CM','RW','ST','LW'],
@@ -24,6 +23,9 @@ const DEF = ['RB','LB','CB','RWB','LWB'];
 const MID = ['RM','LM','CM','CDM','CAM'];
 const FWD = ['RW','LW','ST'];
 const slotCat = (l) => l === 'GK' ? 'GK' : DEF.includes(l) ? 'DEF' : MID.includes(l) ? 'MID' : FWD.includes(l) ? 'FWD' : 'MID';
+const POS_ORDER = ['GK','RB','RWB','CB','LB','LWB','CDM','CM','RM','LM','CAM','RW','ST','LW'];
+const posIndex = (lbl) => { const i = POS_ORDER.indexOf(lbl); return i < 0 ? 99 : i; };
+const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const playerCat = (pos = '') => {
   const s = (pos || '').toLowerCase();
   if (/keep|goal|\bgk\b/.test(s)) return 'GK';
@@ -41,11 +43,11 @@ export default function CoachLineup() {
   const [teams, setTeams] = useState([]);
   const [teamId, setTeamId] = useState('');
   const [matches, setMatches] = useState([]);
-  const [matchId, setMatchId] = useState('');           // '' = new fixture
+  const [matchId, setMatchId] = useState('');
   const [players, setPlayers] = useState([]);
-  const [sel, setSel] = useState({});                    // pid -> { status, position, captain }
+  const [sel, setSel] = useState({});
+  const [mode, setMode] = useState('edit');   // 'view' | 'edit'
 
-  // fixture fields
   const [opponent, setOpponent] = useState('');
   const [dateTime, setDateTime] = useState('');
   const [homeAway, setHomeAway] = useState('Home');
@@ -71,13 +73,14 @@ export default function CoachLineup() {
     setPlayers(await teamPlayers(teamId));
     const pref = wantMatch && (ms || []).some((m) => m.id === wantMatch) ? wantMatch : '';
     setMatchId(pref);
-    if (!pref) resetFixture();
+    if (!pref) { resetFixture(); setMode('edit'); }
   })(); }, [teamId]);
 
-  // load an existing fixture's meta + lineup
-  useEffect(() => { (async () => {
-    if (!matchId) { setSel({}); return; }
-    const m = matches.find((x) => x.id === matchId);
+  useEffect(() => { loadLineup(matchId); }, [matchId, matches]);
+
+  async function loadLineup(id) {
+    if (!id) { setSel({}); setMode('edit'); return; }
+    const m = matches.find((x) => x.id === id);
     if (m) {
       setOpponent(m.opponent || '');
       setDateTime(m.date ? toLocalInput(m.date) : '');
@@ -85,10 +88,11 @@ export default function CoachLineup() {
       setCompetition(m.competition || '');
       setFormation(m.formation && FORMATIONS[m.formation] ? m.formation : '4-3-3');
     }
-    const { data } = await supabase.from('match_lineups').select('player_id,status,position,is_captain').eq('match_id', matchId);
+    const { data } = await supabase.from('match_lineups').select('player_id,status,position,is_captain').eq('match_id', id);
     const map = {}; (data || []).forEach((r) => { map[r.player_id] = { status: r.status, position: r.position || '', captain: !!r.is_captain }; });
     setSel(map);
-  })(); }, [matchId]);
+    setMode((data && data.length) ? 'view' : 'edit');   // existing lineup -> show the run-down first
+  }
 
   function resetFixture() {
     setOpponent(''); setDateTime(''); setHomeAway('Home'); setCompetition(''); setFormation('4-3-3'); setSel({});
@@ -97,12 +101,8 @@ export default function CoachLineup() {
   function setStatus(pid, status) {
     setSel((s) => {
       const cur = s[pid] || { position: '', captain: false };
-      // auto-fill position from the player's own position setting when promoting to starter
       let position = cur.position;
-      if (status === 'starter' && !position) {
-        const p = players.find((x) => x.id === pid);
-        position = p?.position || '';
-      }
+      if (status === 'starter' && !position) { const p = players.find((x) => x.id === pid); position = p?.position || ''; }
       const captain = status === 'starter' ? cur.captain : false;
       return { ...s, [pid]: { status, position, captain } };
     });
@@ -118,21 +118,18 @@ export default function CoachLineup() {
   function autoPick() {
     const slots = FORMATIONS[formation];
     const remaining = [...players];
-    const takeByCat = (need) => {
-      const i = remaining.findIndex((p) => playerCat(p.position) === need);
-      return i >= 0 ? remaining.splice(i, 1)[0] : null;
-    };
+    const takeByCat = (need) => { const i = remaining.findIndex((p) => playerCat(p.position) === need); return i >= 0 ? remaining.splice(i, 1)[0] : null; };
     const filled = slots.map((label) => ({ label, player: takeByCat(slotCat(label)) }));
     filled.forEach((f) => { if (!f.player && remaining.length) f.player = remaining.shift(); });
     const next = {};
     filled.forEach((f) => { if (f.player) next[f.player.id] = { status: 'starter', position: f.label, captain: false }; });
     remaining.forEach((p) => { next[p.id] = { status: 'bench', position: '', captain: false }; });
-    setSel(next);
-    setMsg(''); setErr('');
+    setSel(next); setMsg(''); setErr('');
   }
 
   const startersList = players.filter((p) => sel[p.id]?.status === 'starter');
   const benchList = players.filter((p) => sel[p.id]?.status === 'bench');
+  const startersSorted = [...startersList].sort((a, b) => posIndex(sel[a.id]?.position) - posIndex(sel[b.id]?.position));
   const need = FORMATIONS[formation].length;
   const shape = ['GK','DEF','MID','FWD'].map((c) => `${c} ${FORMATIONS[formation].filter((l) => slotCat(l) === c).length}`).join(' · ');
 
@@ -141,11 +138,7 @@ export default function CoachLineup() {
     try {
       if (!opponent.trim()) { setErr('Add the opponent you are facing.'); return; }
       if (!dateTime) { setErr('Choose the date the match is played.'); return; }
-      const meta = {
-        team_id: teamId, opponent: opponent.trim(),
-        date: new Date(dateTime).toISOString(),
-        home_away: homeAway, competition: competition.trim() || null, formation,
-      };
+      const meta = { team_id: teamId, opponent: opponent.trim(), date: new Date(dateTime).toISOString(), home_away: homeAway, competition: competition.trim() || null, formation };
       let id = matchId;
       if (id) {
         const { error } = await supabase.from('matches').update(meta).eq('id', id);
@@ -166,19 +159,69 @@ export default function CoachLineup() {
         const { error } = await supabase.from('match_lineups').upsert(rows, { onConflict: 'match_id,player_id' });
         if (error) { setErr(error.message); return; }
       }
-      // refresh the fixture list and lock onto the saved match
       const { data: ms } = await supabase.from('matches')
         .select('id,opponent,date,home_away,competition,formation').eq('team_id', teamId).order('date', { ascending: false });
       setMatches(ms || []);
       setMatchId(id);
-      const st = rows.filter((r) => r.status === 'starter').length;
-      setMsg(`Lineup saved — ${formation}, ${st} starting, ${rows.filter((r) => r.status === 'bench').length} on the bench.`);
+      setMode('view');
+      setMsg('');
     } finally { setBusy(false); }
   }
 
   if (session?.demo) return <AppShell role="coach" active="Lineup" title="Lineup"><div className="card">Demo mode — sign in as a real coach to build lineups.</div></AppShell>;
   if (teams.length === 0) return <AppShell role="coach" active="Lineup" title="Lineup"><div className="card">No teams yet. Create a team on your dashboard first.</div></AppShell>;
 
+  // ---------- READ-ONLY RUN-DOWN ----------
+  if (matchId && mode === 'view') {
+    return (
+      <AppShell role="coach" active="Lineup" title="Match Lineup">
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="section-header">
+            <h4 style={{ margin: 0 }}>vs {opponent}</h4>
+            <button className="btn btn-secondary" style={{ minHeight: 34, padding: '6px 14px' }} onClick={() => { setMsg(''); setErr(''); setMode('edit'); }}>✎ Edit</button>
+          </div>
+          <div className="subtle" style={{ fontSize: 13 }}>
+            {dateTime ? new Date(dateTime).toLocaleString() : '—'} · {homeAway}{competition ? ` · ${competition}` : ''}
+          </div>
+          <div className="row" style={{ gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+            <span className="badge badge-info">Formation {formation}</span>
+            <span className="badge badge-neutral">Shape {shape}</span>
+            <span className="badge badge-success">{startersList.length} starting</span>
+            <span className="badge badge-neutral">{benchList.length} bench</span>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="section-header"><h4 style={{ margin: 0 }}>Starting XI</h4><span className="badge badge-success">{startersList.length}</span></div>
+          {startersSorted.length === 0 ? <p className="subtle">No starters set.</p> : (
+            <div className="stack" style={{ gap: 2 }}>
+              {startersSorted.map((p) => (
+                <div key={p.id} className="row between" style={{ padding: '9px 0', borderTop: '1px solid var(--border)' }}>
+                  <span className="row"><span className="avatar">{initials(p.name)}</span> <span>{p.name}{sel[p.id]?.captain ? <strong style={{ color: 'var(--energy)' }}> · © Captain</strong> : ''}</span></span>
+                  <span className="badge badge-neutral" style={{ minWidth: 46, textAlign: 'center' }}>{sel[p.id]?.position || '—'}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card">
+          <div className="section-header"><h4 style={{ margin: 0 }}>Bench</h4><span className="badge badge-neutral">{benchList.length}</span></div>
+          {benchList.length === 0 ? <p className="subtle">No players on the bench.</p> : (
+            <div className="stack" style={{ gap: 2 }}>
+              {benchList.map((p) => (
+                <div key={p.id} className="row" style={{ padding: '9px 0', borderTop: '1px solid var(--border)', gap: 10 }}>
+                  <span className="avatar">{initials(p.name)}</span> <span>{p.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </AppShell>
+    );
+  }
+
+  // ---------- EDITABLE BUILDER ----------
   const controls = (p) => {
     const s = sel[p.id] || {};
     return (
@@ -207,9 +250,10 @@ export default function CoachLineup() {
 
   return (
     <AppShell role="coach" active="Lineup" title="Match Lineup">
-      {/* Fixture details */}
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="section-header"><h4 style={{ margin: 0 }}>Fixture</h4></div>
+        <div className="section-header"><h4 style={{ margin: 0 }}>Fixture</h4>
+          {matchId && <button className="btn btn-ghost" style={{ minHeight: 32 }} onClick={() => loadLineup(matchId)}>Cancel</button>}
+        </div>
         <div className="grid grid-2" style={{ marginBottom: 10 }}>
           <div className="field" style={{ margin: 0 }}><label className="label">Team</label>
             <select className="select" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
@@ -233,7 +277,6 @@ export default function CoachLineup() {
         </div>
       </div>
 
-      {/* Formation + auto pick */}
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="grid grid-2" style={{ alignItems: 'end' }}>
           <div className="field" style={{ margin: 0 }}><label className="label">Formation</label>
@@ -244,7 +287,6 @@ export default function CoachLineup() {
         <p className="subtle" style={{ margin: '10px 0 0', fontSize: 13 }}>Shape: {shape}. Auto-pick slots players into the formation using each player’s saved position, then you can fine-tune below.</p>
       </div>
 
-      {/* Squad selection */}
       <div className="card">
         <div className="section-header"><h4 style={{ margin: 0 }}>Squad</h4>
           <div className="row" style={{ gap: 8 }}>
@@ -263,13 +305,12 @@ export default function CoachLineup() {
           A {formation} needs {need} starters — you have {startersList.length}.</p>}
         {err && <p style={{ color: 'var(--danger)', fontSize: 13 }}>{err}</p>}
         {msg && <p style={{ color: 'var(--green-700)', fontSize: 13 }}>{msg}</p>}
-        <button className="btn btn-primary btn-block" style={{ marginTop: 12 }} onClick={save} disabled={busy}>{busy ? 'Saving…' : (matchId ? 'Update lineup' : 'Create fixture & save lineup')}</button>
+        <button className="btn btn-primary btn-block" style={{ marginTop: 12 }} onClick={save} disabled={busy}>{busy ? 'Saving…' : (matchId ? 'Save lineup' : 'Create fixture & save lineup')}</button>
       </div>
     </AppShell>
   );
 }
 
-// timestamptz -> value for <input type="datetime-local"> (local time)
 function toLocalInput(iso) {
   const d = new Date(iso);
   const pad = (n) => String(n).padStart(2, '0');
