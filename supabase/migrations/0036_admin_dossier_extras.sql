@@ -1,0 +1,4 @@
+-- Admin dossier extras: player matches/attendance + coach dossier/announcements/upcoming.
+-- Bodies applied via MCP migration 0036_admin_dossier_extras:
+--   admin_player_matches(uuid), admin_player_attendance(uuid),
+--   admin_coach_dossier(uuid), admin_coach_announcements(uuid), admin_coach_upcoming(uuid).

@@ -25,17 +25,21 @@ export default function AdminPlayerDetail() {
   const [notes, setNotes] = useState([]);
   const [files, setFiles] = useState([]);
   const [medical, setMedical] = useState([]);
+  const [matches, setMatches] = useState([]);
+  const [attendance, setAttendance] = useState([]);
   const [err, setErr] = useState('');
 
   useEffect(() => { (async () => {
-    const [{ data: dossier, error }, { data: n }, { data: f }, { data: m }] = await Promise.all([
+    const [{ data: dossier, error }, { data: n }, { data: f }, { data: m }, { data: mt }, { data: at }] = await Promise.all([
       supabase.rpc('admin_player_dossier', { p_player_id: id }),
       supabase.rpc('admin_player_notes', { p_player_id: id }),
       supabase.rpc('admin_player_files', { p_player_id: id }),
       supabase.rpc('admin_player_medical', { p_player_id: id }),
+      supabase.rpc('admin_player_matches', { p_player_id: id }),
+      supabase.rpc('admin_player_attendance', { p_player_id: id }),
     ]);
     if (error) setErr(error.message);
-    setD(dossier || false); setNotes(n || []); setFiles(f || []); setMedical(m || []);
+    setD(dossier || false); setNotes(n || []); setFiles(f || []); setMedical(m || []); setMatches(mt || []); setAttendance(at || []);
   })(); }, [id]);
 
   async function openFile(f) {
@@ -87,6 +91,57 @@ export default function AdminPlayerDetail() {
         <StatCard label="Defensive actions" value={d.def_actions} />
         <StatCard label="Sessions attended" value={`${d.sessions_attended}/${d.sessions_total}`} />
       </div>
+
+      {(() => {
+        const upcoming = matches.filter((m) => m.upcoming).sort((a, b) => new Date(a.when_at) - new Date(b.when_at));
+        const history = matches.filter((m) => !m.upcoming);
+        return (
+          <>
+            <div className="card" style={{ marginBottom: 16 }}>
+              <div className="section-header"><h4 style={{ margin: 0 }}>⚽ Upcoming games</h4><span className="badge badge-neutral">{upcoming.length}</span></div>
+              {upcoming.length === 0 ? <p className="subtle">None scheduled.</p> : (
+                <div className="stack" style={{ gap: 6 }}>
+                  {upcoming.map((m) => (
+                    <div key={m.match_id} className="row between" style={{ padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 10 }}>
+                      <span><strong>vs {m.opponent}</strong><span className="subtle" style={{ fontSize: 12 }}> · {new Date(m.when_at).toLocaleString()}{m.venue ? ` · ${m.venue}` : ''}</span></span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="card" style={{ marginBottom: 16 }}>
+              <div className="section-header"><h4 style={{ margin: 0 }}>📜 Game history</h4><span className="badge badge-neutral">{history.length}</span></div>
+              {history.length === 0 ? <p className="subtle">No games played yet.</p> : (
+                <table className="table"><thead><tr><th>Opponent</th><th>Date</th><th>Result</th><th>Min</th><th>G</th><th>A</th><th>Rating</th></tr></thead>
+                  <tbody>{history.map((m) => (
+                    <tr key={m.match_id}>
+                      <td>vs {m.opponent}</td><td>{new Date(m.when_at).toLocaleDateString()}</td><td>{m.result || '—'}</td>
+                      <td>{m.minutes ?? '—'}</td><td>{m.goals ?? '—'}</td><td>{m.assists ?? '—'}</td><td>{m.rating ?? '—'}</td>
+                    </tr>))}</tbody>
+                </table>
+              )}
+            </div>
+
+            <div className="card" style={{ marginBottom: 16 }}>
+              <div className="section-header"><h4 style={{ margin: 0 }}>✅ Practice attendance</h4><span className="badge badge-success">{d.attendance_pct}%</span></div>
+              {attendance.length === 0 ? <p className="subtle">No sessions yet.</p> : (
+                <div className="stack" style={{ gap: 6 }}>
+                  {attendance.map((a) => (
+                    <div key={a.session_id} className="row between" style={{ padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 10, flexWrap: 'wrap', gap: 6 }}>
+                      <span>{new Date(a.when_at).toLocaleDateString()}<span className="subtle" style={{ fontSize: 12 }}>{a.notes ? ` · ${a.notes}` : ''}</span></span>
+                      <span className="row" style={{ gap: 6 }}>
+                        {a.left_early && <span className="badge badge-warning">Left early{a.left_reason ? `: ${a.left_reason}` : ''}</span>}
+                        <span className={`badge ${a.attended ? 'badge-success' : 'badge-danger'}`}>{a.attended ? 'Present' : 'Absent'}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       <div className="grid grid-2" style={{ alignItems: 'start' }}>
         {/* Coach notes + meal */}
