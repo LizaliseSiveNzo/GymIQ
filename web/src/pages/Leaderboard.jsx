@@ -182,11 +182,15 @@ export default function Leaderboard() {
         </div>
         </>) : (
           <>
-            <button type="button" onClick={() => setView('main')} style={{ background: 'transparent', border: `1px solid ${C.border}`, color: C.text, borderRadius: 10, padding: '8px 14px', cursor: 'pointer', marginBottom: 12 }}>← Back to leaderboard</button>
-            <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}><span style={{ color: C.red, fontSize: 18 }}>🏛️</span><strong style={{ fontSize: 17 }}>Hall of Fame</strong></div>
-              <p style={{ color: C.muted, fontSize: 12, margin: '0 0 12px' }}>All-time &amp; standout performers across the academy. Tap a category for its top 5.</p>
-              <CategoryLeaders items={fameItems} stats={fameStats} C={C} />
+            <style>{`@keyframes fameIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}`}</style>
+            <button type="button" onClick={() => setView('main')} style={{ background: 'transparent', border: `1px solid ${C.border}`, color: C.text, borderRadius: 10, padding: '8px 14px', cursor: 'pointer', marginBottom: 12, animation: 'fameIn .4s ease both' }}>← Back to leaderboard</button>
+            <div style={{ ...card, position: 'relative', overflow: 'hidden', background: `radial-gradient(120% 120% at 50% -10%, rgba(228,3,46,.20), ${C.card} 62%)`, animation: 'fameIn .55s cubic-bezier(.2,.7,.2,1) both' }}>
+              <RedDust />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}><span style={{ color: C.red, fontSize: 18 }}>🏛️</span><strong style={{ fontSize: 17 }}>Hall of Fame</strong></div>
+                <p style={{ color: C.muted, fontSize: 12, margin: '0 0 12px' }}>All-time &amp; standout performers across the academy. Tap a category for its top 5.</p>
+                <CategoryLeaders items={fameItems} stats={fameStats} C={C} animateIn />
+              </div>
             </div>
           </>
         )}

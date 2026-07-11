@@ -9,7 +9,7 @@ const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 // Category tiles; swiping a tile left (or tapping) reveals its top 5 directly beneath it.
-export default function CategoryLeaders({ items, stats, C, topN = 5 }) {
+export default function CategoryLeaders({ items, stats, C, topN = 5, animateIn = false }) {
   const [openKey, setOpenKey] = useState(null);
   const startX = useRef(0);
 
@@ -25,8 +25,10 @@ export default function CategoryLeaders({ items, stats, C, topN = 5 }) {
   const redAvatar = { width: 40, height: 40, borderRadius: '50%', background: C.red, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, flexShrink: 0 };
 
   return (
+    <>
+    <style>{`@keyframes clFade{from{opacity:0}to{opacity:1}}`}</style>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
-      {items.map((t) => {
+      {items.map((t, idx) => {
         const open = openKey === t.key;
         const ranked = sortedBy(t.key);
         const top = ranked[0];
@@ -39,7 +41,8 @@ export default function CategoryLeaders({ items, stats, C, topN = 5 }) {
               style={{ textAlign: 'left', background: C.card2, border: `1px solid ${open ? C.red : C.border}`, borderRadius: 12,
                 padding: 14, display: 'flex', gap: 12, alignItems: 'center', cursor: 'pointer', color: 'inherit',
                 transition: 'transform .28s ease, border-color .28s ease, box-shadow .28s ease',
-                transform: open ? 'translateX(-8px)' : 'none', boxShadow: open ? `0 0 0 1px ${C.red} inset` : 'none' }}>
+                transform: open ? 'translateX(-8px)' : 'none', boxShadow: open ? `0 0 0 1px ${C.red} inset` : 'none',
+                animation: animateIn ? 'clFade .5s ease both' : undefined, animationDelay: animateIn ? `${idx * 0.06}s` : undefined }}>
               <span style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(228,3,46,.12)', color: C.red, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{t.icon}</span>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ color: C.muted, fontSize: 11, letterSpacing: '.04em', textTransform: 'uppercase', fontWeight: 700 }}>{t.label}</div>
@@ -82,5 +85,6 @@ export default function CategoryLeaders({ items, stats, C, topN = 5 }) {
         );
       })}
     </div>
+    </>
   );
 }
