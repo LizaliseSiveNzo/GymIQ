@@ -89,7 +89,7 @@ export default function CoachSchedule() {
 
   async function removeEvent(u, e) {
     if (e) e.stopPropagation();
-    const label = u.kind === 'match' ? 'Remove this match? It will disappear from players’ schedule and delete its lineup.' : 'Delete this training session and its attendance?';
+    const label = u.kind === 'match' ? 'Cancel this match? Players will be notified, it disappears from their schedule, and its lineup is deleted.' : 'Cancel this training session? Players will be notified and its attendance is removed.';
     if (!window.confirm(label)) return;
     setErr('');
     const { error } = u.kind === 'match'

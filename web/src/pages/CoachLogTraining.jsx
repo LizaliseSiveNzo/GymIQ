@@ -124,7 +124,7 @@ export default function CoachLogTraining() {
 
   async function removeSession(sid, e) {
     if (e) e.stopPropagation();
-    if (!window.confirm('Delete this training session and its attendance? This cannot be undone.')) return;
+    if (!window.confirm('Cancel this training session? Players will be notified and its attendance is removed. This cannot be undone.')) return;
     setErr(''); setOk('');
     const { error } = await supabase.rpc('delete_training_session', { p_session_id: sid });
     if (error) { setErr(error.message); return; }

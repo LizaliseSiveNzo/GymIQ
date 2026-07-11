@@ -62,7 +62,7 @@ export default function CoachLogMatch() {
 
   async function removeMatch(id, e) {
     if (e) e.stopPropagation();
-    if (!window.confirm('Remove this match? It will disappear from the players’ schedule and delete its lineup.')) return;
+    if (!window.confirm('Cancel this match? Players will be notified, it disappears from their schedule, and its lineup is deleted.')) return;
     const { error } = await supabase.rpc('delete_match', { p_id: id });
     if (error) { setErr(error.message); return; }
     await loadMatches();
