@@ -9,6 +9,7 @@ import AppShell from '../components/AppShell.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
+import CoachCalendar from '../components/CoachCalendar.jsx';
 
 const DIVISIONS = ['U11','U12','U13','U14','U15','U16','U19','First_Team'];
 
@@ -139,6 +140,8 @@ function LiveCoach() {
           <Link to="/coach/match" className="btn btn-secondary">⚽ Log match</Link>
         </div>
       </div>
+
+      <CoachCalendar teamIds={teams.map((t) => t.id)} />
 
       <div className="card">
         <div className="section-header"><h4 style={{ margin: 0 }}>Squad</h4><span className="badge badge-neutral">{squad.length}</span></div>
