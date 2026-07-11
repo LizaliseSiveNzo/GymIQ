@@ -60,6 +60,14 @@ export default function CoachLogMatch() {
 
   const openLineup = (id) => navigate(`/coach/lineup?match=${id}`);
 
+  async function removeMatch(id, e) {
+    if (e) e.stopPropagation();
+    if (!window.confirm('Remove this match? It will disappear from the players’ schedule and delete its lineup.')) return;
+    const { error } = await supabase.rpc('delete_match', { p_id: id });
+    if (error) { setErr(error.message); return; }
+    await loadMatches();
+  }
+
   if (session?.demo) return <AppShell role="coach" active="Matches" title="Matches"><div className="card">Demo mode — sign in as a real coach to manage matches.</div></AppShell>;
   if (teams.length === 0) return <AppShell role="coach" active="Matches" title="Matches"><div className="card">No teams yet. Create a team on your dashboard first.</div></AppShell>;
 
@@ -81,6 +89,8 @@ export default function CoachLogMatch() {
         <div className="row" style={{ gap: 6 }}>
           {isToday(m.date) && <span className="badge badge-warning">Today</span>}
           {m.formation && <span className="badge badge-info">{m.formation}</span>}
+          <button type="button" className="btn btn-ghost" style={{ minHeight: 28, padding: '2px 8px', color: 'var(--danger)' }}
+            onClick={(e) => removeMatch(m.id, e)} title="Remove match">🗑</button>
         </div>
       </div>
       <div className="row between" style={{ marginTop: 6 }}>

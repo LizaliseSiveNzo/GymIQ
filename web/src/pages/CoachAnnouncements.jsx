@@ -67,7 +67,9 @@ export default function CoachAnnouncements() {
   }
 
   async function remove(id) {
-    await supabase.from('announcements').delete().eq('id', id);
+    if (!window.confirm('Delete this announcement? It will also disappear from the players.')) return;
+    const { error } = await supabase.rpc('delete_announcement', { p_id: id });
+    if (error) { setErr(error.message); return; }
     load();
   }
 
