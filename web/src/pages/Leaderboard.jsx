@@ -49,7 +49,7 @@ const TILES = [
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 // dark palette (scoped to this page)
-const C = { bg: '#0B0D12', card: '#14171F', card2: '#1A1E28', border: '#242A36', text: '#E9ECF3', muted: '#8A93A3', red: '#E4032E', gold: '#F5C518' };
+const C = { bg: '#000000', card: '#14171F', card2: '#1A1E28', border: '#242A36', text: '#E9ECF3', muted: '#8A93A3', red: '#E4032E', gold: '#F5C518' };
 const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18, marginBottom: 16 };
 const redAvatar = { width: 44, height: 44, borderRadius: '50%', background: C.red, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, flexShrink: 0 };
 const rowBox = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 4px', borderBottom: `1px solid ${C.border}` };
@@ -85,7 +85,8 @@ export default function Leaderboard() {
 
   return (
     <AppShell role={role} active="Leaderboard" title="Leaderboard">
-      <div style={{ background: C.bg, color: C.text, borderRadius: 18, padding: 16, margin: '-4px' }}>
+      <style>{`.app .content{background:#000 !important;}`}</style>
+      <div style={{ color: C.text }}>
 
         {/* Player of the Week hero */}
         <div style={{ ...card, background: `radial-gradient(120% 140% at 85% 0%, rgba(228,3,46,.55), rgba(228,3,46,.10) 45%, ${C.card} 75%)`, border: `1px solid ${C.border}`, padding: 22 }}>
