@@ -52,7 +52,7 @@ export default function CoachSquad() {
   const filtered = squad
     .filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase()))
     .filter((p) => pos === 'all' || p.position === pos)
-    .filter((p) => avail === 'all' || (avail === 'available' ? !p.benched : !!p.benched))
+    .filter((p) => avail === 'all' || (avail === 'available' ? !p.unavailable : !!p.unavailable))
     .sort((a, b) => {
       if (sort === 'rate') return (b.rate ?? -1) - (a.rate ?? -1) || a.name.localeCompare(b.name);
       if (sort === 'position') return (a.position || 'zz').localeCompare(b.position || 'zz') || a.name.localeCompare(b.name);
@@ -61,7 +61,7 @@ export default function CoachSquad() {
     });
 
   const shown = filtered.slice(0, limit);
-  const unavailable = squad.filter((p) => p.benched).length;
+  const unavailable = squad.filter((p) => p.unavailable).length;
   const active = q.trim() || pos !== 'all' || avail !== 'all';
 
   const attColour = (r) => r == null ? 'badge-neutral' : r >= 80 ? 'badge-success' : r >= 50 ? 'badge-warning' : 'badge-danger';
@@ -136,7 +136,8 @@ export default function CoachSquad() {
                       </div>
                     </div>
                     <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-                      {p.benched && <span className="badge badge-warning" title={p.benchReason || ''}>Unavailable</span>}
+                      {p.injury && <span className="badge badge-danger" title={p.injury.injury_type}>🩹 Injured</span>}
+                      {p.benched && !p.injury && <span className="badge badge-warning" title={p.benchReason || ''}>Unavailable</span>}
                       <span className={`badge ${attColour(p.rate)}`}>{p.rate == null ? '— att' : `${p.rate}% att`}</span>
                       {p.avg && <span className="badge badge-neutral">★ {p.avg}</span>}
                       <span className="subtle" style={{ fontSize: 16 }}>›</span>

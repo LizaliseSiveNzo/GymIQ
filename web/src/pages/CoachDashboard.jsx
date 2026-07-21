@@ -169,7 +169,7 @@ function LiveCoach() {
     );
   }
 
-  const unavailable = squad.filter((p) => p.benched);
+  const unavailable = squad.filter((p) => p.unavailable);
   const avgAtt = squad.some((p) => p.rate != null)
     ? Math.round(squad.filter((p) => p.rate != null).reduce((n, p) => n + p.rate, 0) / squad.filter((p) => p.rate != null).length)
     : null;
@@ -225,8 +225,8 @@ function LiveCoach() {
             ))}
 
             {unavailable.map((p) => (
-              <ActionRow key={'b' + p.id} icon="🩹" tone="#f59e0b" label="Player unavailable"
-                title={p.name} meta={p.benchReason || 'Marked unavailable'}
+              <ActionRow key={'b' + p.id} icon="🩹" tone={p.injury ? 'var(--danger)' : '#f59e0b'} label={p.injury ? 'Player injured' : 'Player unavailable'}
+                title={p.name} meta={p.injury ? `${p.injury.injury_type}${p.injury.expected_return ? ' · back ' + new Date(p.injury.expected_return).toLocaleDateString() : ''}` : (p.benchReason || 'Marked unavailable')}
                 cta="View profile" to={`/coach/player/${p.id}`} />
             ))}
           </div>

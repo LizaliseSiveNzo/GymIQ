@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
+import MatchReport from '../components/MatchReport.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
@@ -307,6 +308,8 @@ export default function CoachLineup() {
         {msg && <p style={{ color: 'var(--green-700)', fontSize: 13 }}>{msg}</p>}
         <button className="btn btn-primary btn-block" style={{ marginTop: 12 }} onClick={save} disabled={busy}>{busy ? 'Saving…' : (matchId ? 'Save lineup' : 'Create fixture & save lineup')}</button>
       </div>
+
+      {matchId && <MatchReport matchId={matchId} players={players} lineup={sel} />}
     </AppShell>
   );
 }

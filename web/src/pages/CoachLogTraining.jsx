@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
 import { useQrScanner } from '../lib/useQrScanner.js';
 import { primeAudio, successBeep, errorBeep } from '../lib/sound.js';
+import SessionJournal from '../components/SessionJournal.jsx';
 
 const isToday = (iso) => iso && new Date(iso).toDateString() === new Date().toDateString();
 const whenLabel = (s) => s.starts_at ? new Date(s.starts_at).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : (s.date ? new Date(s.date).toLocaleDateString() : 'Session');
@@ -243,6 +244,8 @@ export default function CoachLogTraining() {
             </div>
           </div>
         )}
+
+        {sessionSel && sessionSel !== 'new' && <SessionJournal sessionId={sessionSel} players={players} />}
 
         {sessionSel ? (
         <form className="card" onSubmit={save}>

@@ -22,7 +22,13 @@ export default function PlayerTrainingLog({ playerId, teamId }) {
         .select('session_id,attended,left_early,left_reason').eq('player_id', playerId).in('session_id', ids);
       att = data || [];
     }
-    setRows((sessions || []).map((s) => ({ ...s, rec: att.find((a) => a.session_id === s.id) || null })));
+    let stand = [];
+    if (ids.length) {
+      const { data } = await supabase.from('training_standouts')
+        .select('session_id').eq('player_id', playerId).in('session_id', ids);
+      stand = (data || []).map((x) => x.session_id);
+    }
+    setRows((sessions || []).map((s) => ({ ...s, rec: att.find((a) => a.session_id === s.id) || null, standout: stand.includes(s.id) })));
   })(); }, [playerId, teamId]);
 
   if (rows === null) return <div className="card" style={{ marginTop: 16 }}>Loading training…</div>;
@@ -49,6 +55,7 @@ export default function PlayerTrainingLog({ playerId, teamId }) {
                   <div className="subtle" style={{ fontSize: 12 }}>{when}{r.location ? ` · ${r.location}` : ''}</div>
                 </div>
                 <div className="row" style={{ gap: 6 }}>
+                  {r.standout && <span className="badge badge-success" title="Stood out in this session">⭐ Standout</span>}
                   {rec?.left_early && <span className="badge badge-warning" title={rec.left_reason || ''}>Left early</span>}
                   {!rec ? <span className="badge badge-neutral">Not logged</span>
                     : <span className={`badge ${rec.attended ? 'badge-success' : 'badge-danger'}`}>{rec.attended ? 'Present' : 'Absent'}</span>}

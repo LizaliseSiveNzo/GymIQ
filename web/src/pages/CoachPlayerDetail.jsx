@@ -9,6 +9,7 @@ import AppShell from '../components/AppShell.jsx';
 import RankBadge from '../components/RankBadge.jsx';
 import StatCard from '../components/StatCard.jsx';
 import InjuryThread from '../components/InjuryThread.jsx';
+import InjuryTracker from '../components/InjuryTracker.jsx';
 import MatchLog from '../components/MatchLog.jsx';
 import PlayerUploads from '../components/PlayerUploads.jsx';
 import PlayerCard from '../components/PlayerCard.jsx';
@@ -40,6 +41,7 @@ export default function CoachPlayerDetail() {
   const [sendMsg, setSendMsg] = useState('');
   const [uploadsKey, setUploadsKey] = useState(0);
   const [tab, setTab] = useState(() => sessionStorage.getItem(TAB_KEY) || 'Overview');
+  const [injured, setInjured] = useState(false);
 
   useEffect(() => { if (!session?.demo) load(); /* eslint-disable-next-line */ }, [id]);
   useEffect(() => { sessionStorage.setItem(TAB_KEY, tab); }, [tab]);
@@ -151,7 +153,7 @@ export default function CoachPlayerDetail() {
           <StatCard label="Minutes played" value={stats.minutes || '—'} />
           <StatCard label="Goals" value={stats.goals || '—'} />
           <StatCard label="Assists" value={stats.assists || '—'} />
-          <StatCard label="Availability" value={p.benched ? 'Unavailable' : 'Available'} />
+          <StatCard label="Availability" value={injured ? 'Injured' : p.benched ? 'Unavailable' : 'Available'} />
         </div>
         {msg && <p style={{ color: 'var(--green-700)', fontSize: 13, margin: '12px 0 0' }}>{msg}</p>}
       </div>
@@ -234,6 +236,7 @@ export default function CoachPlayerDetail() {
               </div>
             </div>
           )}
+          <InjuryTracker playerId={id} canEdit onChange={setInjured} />
           <InjuryThread playerId={id} />
         </>
       )}

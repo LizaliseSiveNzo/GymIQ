@@ -27,6 +27,15 @@ export async function squadWithStats(teamId) {
     supabase.from('training_sessions').select('id').eq('team_id', teamId),
     supabase.from('matches').select('id').eq('team_id', teamId),
   ]);
+
+  // open injuries make a player unavailable without touching the manual bench flag
+  const pIds = players.map((p) => p.id);
+  let injured = [];
+  if (pIds.length) {
+    const { data } = await supabase.from('injuries')
+      .select('player_id,injury_type,expected_return').in('player_id', pIds).is('resolved_at', null);
+    injured = data || [];
+  }
   const sIds = (sessions || []).map((s) => s.id);
   const mIds = (matches || []).map((m) => m.id);
   const total = sIds.length;
@@ -47,8 +56,11 @@ export async function squadWithStats(teamId) {
     const rate = total ? Math.round(a.filter((x) => x.attended).length / total * 100) : null;
     const st = stats.filter((x) => x.player_id === p.id);
     const rated = st.filter((x) => x.rating != null);
+    const inj = injured.find((x) => x.player_id === p.id) || null;
     return {
       ...p,
+      injury: inj,
+      unavailable: !!p.benched || !!inj,
       sessions: total,
       rate,
       avg: rated.length ? (rated.reduce((n, x) => n + Number(x.rating), 0) / rated.length).toFixed(1) : null,
