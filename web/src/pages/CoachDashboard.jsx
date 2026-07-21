@@ -11,6 +11,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, squadWithStats } from '../lib/coach.js';
 import CoachCalendar from '../components/CoachCalendar.jsx';
 import StatCard from '../components/StatCard.jsx';
+import InsightCards from '../components/InsightCards.jsx';
+import { teamInsights } from '../lib/insights.js';
 
 const DIVISIONS = ['U11','U12','U13','U14','U15','U16','U19','First_Team'];
 const startOfToday = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
@@ -111,6 +113,9 @@ function LiveCoach() {
   const [upcoming, setUpcoming] = useState([]);      // sessions + matches this week
   const [unlogged, setUnlogged] = useState([]);      // past sessions with no attendance
   const [recentAnn, setRecentAnn] = useState([]);
+  const [insights, setInsights] = useState([]);
+  const [insightsBusy, setInsightsBusy] = useState(false);
+  const [allInsights, setAllInsights] = useState(false);
 
   async function reloadTeams(selectId) {
     const t = await myTeams(profile.id);
@@ -122,7 +127,11 @@ function LiveCoach() {
   useEffect(() => { if (teamId) load(teamId); }, [teamId]);
 
   async function load(tid) {
-    setSquad(await squadWithStats(tid));
+    const sq = await squadWithStats(tid);
+    setSquad(sq);
+
+    setInsightsBusy(true);
+    teamInsights(tid, sq).then((r) => { setInsights(r); setInsightsBusy(false); });
 
     const fromIso = startOfToday().toISOString();
     const eowIso = endOfWeek().toISOString();
@@ -256,6 +265,24 @@ function LiveCoach() {
         <StatCard label="Avg attendance" value={avgAtt == null ? '—' : `${avgAtt}%`} />
         <StatCard label="Matches played" value={matchCount} />
         <StatCard label="Unavailable" value={unavailable.length} />
+      </div>
+
+      {/* ---------- What stands out ---------- */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="section-header">
+          <h4 style={{ margin: 0 }}>💡 What stands out</h4>
+          {insights.length > 3 && (
+            <button type="button" className="btn btn-ghost" style={{ minHeight: 28, padding: '2px 8px' }}
+              onClick={() => setAllInsights((v) => !v)}>
+              {allInsights ? 'Show less' : `Show all ${insights.length}`}
+            </button>
+          )}
+        </div>
+        <InsightCards items={allInsights ? insights : insights.slice(0, 3)} loading={insightsBusy}
+          empty="Not enough data yet — log a few sessions and matches and insights will appear here." />
+        <p className="subtle" style={{ fontSize: 12, margin: '10px 0 0' }}>
+          Prompts for your judgement, not verdicts.
+        </p>
       </div>
 
       <CoachCalendar teamIds={teams.map((t) => t.id)} />
