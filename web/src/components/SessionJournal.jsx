@@ -105,6 +105,9 @@ export default function SessionJournal({ sessionId, players = [] }) {
 
               {msg && <p style={{ color: 'var(--green-700)', fontSize: 13 }}>{msg}</p>}
               <button type="button" className="btn btn-primary btn-block" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save session journal'}</button>
+              <p className="subtle" style={{ fontSize: 12, margin: '8px 0 0', textAlign: 'center' }}>
+                This appears in your <a href="/coach/journal">coaching journal</a>.
+              </p>
             </>
           )}
         </div>

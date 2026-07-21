@@ -174,6 +174,9 @@ export default function MatchReport({ matchId, players = [], lineup = {} }) {
 
               {msg && <p style={{ color: msg.includes('saved') ? 'var(--green-700)' : 'var(--danger)', fontSize: 13 }}>{msg}</p>}
               <button type="button" className="btn btn-primary btn-block" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Save match report'}</button>
+              <p className="subtle" style={{ fontSize: 12, margin: '8px 0 0', textAlign: 'center' }}>
+                Your reflection appears in the <a href="/coach/journal">coaching journal</a>.
+              </p>
             </>
           )}
         </div>

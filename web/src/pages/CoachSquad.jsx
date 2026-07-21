@@ -77,6 +77,7 @@ export default function CoachSquad() {
             </select>
           </div>
           <div className="row" style={{ gap: 8, alignSelf: 'end', flexWrap: 'wrap' }}>
+            <Link to="/coach/journal" className="btn btn-ghost" style={{ minHeight: 34 }}>📓 Journal</Link>
             <span className="badge badge-neutral">{squad.length} player{squad.length === 1 ? '' : 's'}</span>
             {unavailable > 0 && <span className="badge badge-warning">{unavailable} unavailable</span>}
           </div>
