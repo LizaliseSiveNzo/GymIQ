@@ -13,6 +13,7 @@ import MatchLog from '../components/MatchLog.jsx';
 import PlayerUploads from '../components/PlayerUploads.jsx';
 import PlayerCard from '../components/PlayerCard.jsx';
 import AttributeEditor from '../components/AttributeEditor.jsx';
+import PlayerInformation from '../components/PlayerInformation.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -22,7 +23,7 @@ export default function CoachPlayerDetail() {
   const { id } = useParams();
   const { profile, session } = useAuth();
   const [p, setP] = useState(null);
-  const [stats, setStats] = useState({ att: '—', avg: '—', minutes: 0 });
+  const [stats, setStats] = useState({ att: null, avg: null, minutes: 0, goals: 0, assists: 0 });
   const [notes, setNotes] = useState([]);
   const [mealPlan, setMealPlan] = useState('');
   const [newNote, setNewNote] = useState('');
@@ -39,7 +40,7 @@ export default function CoachPlayerDetail() {
 
   async function load() {
     const { data: player } = await supabase.from('players')
-      .select('id,position,rank_level,benched,bench_reason,child_code,team_id,users(name)')
+      .select('id,position,rank_level,benched,bench_reason,child_code,team_id,date_of_birth,strong_foot,shirt_number,guardian_name,guardian_phone,guardian_email,emergency_contact,emergency_phone,allergies,users(name)')
       .eq('id', id).single();
     if (!player) { setP(false); return; }
     setP(player);
@@ -48,16 +49,18 @@ export default function CoachPlayerDetail() {
     const [{ data: sessions }, { data: att }, { data: ms }] = await Promise.all([
       supabase.from('training_sessions').select('id').eq('team_id', player.team_id),
       supabase.from('attendance').select('session_id,attended').eq('player_id', id),
-      supabase.from('player_match_stats').select('minutes_played,rating').eq('player_id', id),
+      supabase.from('player_match_stats').select('minutes_played,rating,goals,assists').eq('player_id', id),
     ]);
     const total = (sessions || []).length;
     const attended = (att || []).filter((a) => a.attended).length;
     const minutes = (ms || []).reduce((n, x) => n + (x.minutes_played || 0), 0);
     const rated = (ms || []).filter((x) => x.rating != null);
     setStats({
-      att: total ? `${Math.round(attended / total * 100)}%` : '—',
-      avg: rated.length ? (rated.reduce((n, x) => n + Number(x.rating), 0) / rated.length).toFixed(1) : '—',
+      att: total ? Math.round(attended / total * 100) : null,
+      avg: rated.length ? (rated.reduce((n, x) => n + Number(x.rating), 0) / rated.length).toFixed(1) : null,
       minutes,
+      goals: (ms || []).reduce((n, x) => n + (x.goals || 0), 0),
+      assists: (ms || []).reduce((n, x) => n + (x.assists || 0), 0),
     });
 
     const { data: ns } = await supabase.from('coach_player_notes')
@@ -134,14 +137,20 @@ export default function CoachPlayerDetail() {
           </div>
           <RankBadge level={p.rank_level || 'Rookie'} />
         </div>
-        {p.benched && <div className="badge badge-warning" style={{ marginTop: 12 }}>Benched{p.bench_reason ? ` — ${p.bench_reason}` : ''}</div>}
-        <div className="grid grid-3" style={{ marginTop: 16 }}>
-          <StatCard label="Attendance" value={stats.att} />
-          <StatCard label="Minutes" value={stats.minutes} />
-          <StatCard label="Avg rating" value={stats.avg} />
+        {p.benched && <div className="badge badge-warning" style={{ marginTop: 12 }}>Unavailable{p.bench_reason ? ` — ${p.bench_reason}` : ''}</div>}
+        {/* Quick summary — snapshot of the player at a glance */}
+        <div className="grid grid-3" style={{ marginTop: 16, gap: 10 }}>
+          <StatCard label="Attendance" value={stats.att == null ? '—' : `${stats.att}%`} />
+          <StatCard label="Avg rating" value={stats.avg ?? '—'} />
+          <StatCard label="Minutes played" value={stats.minutes || '—'} />
+          <StatCard label="Goals" value={stats.goals || '—'} />
+          <StatCard label="Assists" value={stats.assists || '—'} />
+          <StatCard label="Availability" value={p.benched ? 'Unavailable' : 'Available'} />
         </div>
         {msg && <p style={{ color: 'var(--green-700)', fontSize: 13, margin: '12px 0 0' }}>{msg}</p>}
       </div>
+
+      <PlayerInformation player={p} editable onSaved={load} />
 
       <div className="grid grid-2" style={{ alignItems: 'start' }}>
         <div className="stack" style={{ gap: 16 }}>

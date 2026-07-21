@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabaseClient.js';
 // [label, icon, path|null]
 const NAV = {
   admin:  [['Dashboard','▚','/admin'],['Teams','👥','/admin/teams'],['Players','⚽','/admin/players'],['Coaches','🏃','/admin/coaches'],['Activity','📒','/admin/activity'],['Broadcast','📣','/admin/broadcast'],['Trials','📋','/admin/trials'],['Settings','⚙','/admin/settings']],
-  coach:  [['Dashboard','▚','/coach'],['Schedule','📅','/coach/schedule'],['Matches','⚽','/coach/match'],['Announcements','📣','/coach/announcements'],['Training','➕','/coach/training'],['Leaderboard','🏆','/leaderboard']],
+  coach:  [['Dashboard','▚','/coach'],['Squad','👥','/coach/squad'],['Schedule','📅','/coach/schedule'],['Matches','⚽','/coach/match'],['Announcements','📣','/coach/announcements'],['Training','➕','/coach/training'],['Leaderboard','🏆','/leaderboard']],
   player: [['My Profile','⚽','/player'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements'],['Leaderboard','🏆','/leaderboard']],
 };
 

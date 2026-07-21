@@ -8,11 +8,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import { myTeams, teamPlayers } from '../lib/coach.js';
+import { myTeams, squadWithStats } from '../lib/coach.js';
 import CoachCalendar from '../components/CoachCalendar.jsx';
 import StatCard from '../components/StatCard.jsx';
 
 const DIVISIONS = ['U11','U12','U13','U14','U15','U16','U19','First_Team'];
+const startOfToday = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const endOfWeek = () => { const d = new Date(); d.setHours(23,59,59,999); d.setDate(d.getDate() + ((7 - d.getDay()) % 7)); return d; };
+const whenLabel = (d) => new Date(d).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const isToday = (d) => new Date(d).toDateString() === new Date().toDateString();
 
 function DemoCoach() {
   const SQUAD = [['Thabo Mokoena','Winger','92%','4.4','Elite'],['Sipho Ndlovu','Midfield','78%','3.8','Rising Star'],['Kabelo Sithole','Defender','88%','4.1','Elite'],['Junior Adams','Striker','64%','3.2','Rookie']];
@@ -72,6 +76,30 @@ function CreateTeam({ onCreated, onCancel }) {
   );
 }
 
+// One row in the "Needs attention" panel.
+function ActionRow({ icon, tone, label, title, meta, cta, onClick, to }) {
+  const inner = (
+    <div className="row between" style={{ flexWrap: 'wrap', gap: 8, width: '100%' }}>
+      <div className="row" style={{ gap: 10, minWidth: 200, textAlign: 'left' }}>
+        <span style={{ fontSize: 18 }}>{icon}</span>
+        <div>
+          <div className="subtle" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
+          <strong>{title}</strong>
+          {meta && <div className="subtle" style={{ fontSize: 12 }}>{meta}</div>}
+        </div>
+      </div>
+      <span className="row" style={{ gap: 6 }}>
+        <span className="btn btn-secondary" style={{ minHeight: 32, padding: '4px 10px', pointerEvents: 'none' }}>{cta}</span>
+        <span className="subtle" style={{ fontSize: 16 }}>›</span>
+      </span>
+    </div>
+  );
+  const style = { width: '100%', border: '1px solid var(--border)', borderLeft: `4px solid ${tone}`,
+                  borderRadius: 12, padding: '10px 12px', background: 'var(--surface)', cursor: 'pointer', display: 'block', textDecoration: 'none', color: 'inherit' };
+  if (to) return <Link to={to} style={style}>{inner}</Link>;
+  return <button type="button" onClick={onClick} style={style}>{inner}</button>;
+}
+
 function LiveCoach() {
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -79,8 +107,10 @@ function LiveCoach() {
   const [teamId, setTeamId] = useState('');
   const [squad, setSquad] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [nextUp, setNextUp] = useState(null);
   const [matchCount, setMatchCount] = useState(0);
+  const [upcoming, setUpcoming] = useState([]);      // sessions + matches this week
+  const [unlogged, setUnlogged] = useState([]);      // past sessions with no attendance
+  const [recentAnn, setRecentAnn] = useState([]);
 
   async function reloadTeams(selectId) {
     const t = await myTeams(profile.id);
@@ -89,38 +119,38 @@ function LiveCoach() {
     return t;
   }
   useEffect(() => { reloadTeams(); }, []);
-  useEffect(() => { if (teamId) loadSquad(teamId); }, [teamId]);
+  useEffect(() => { if (teamId) load(teamId); }, [teamId]);
 
-  async function loadSquad(tid) {
-    const players = await teamPlayers(tid);
-    const { data: sessions } = await supabase.from('training_sessions').select('id').eq('team_id', tid);
-    const sIds = (sessions || []).map((s) => s.id);
-    const total = sIds.length;
-    let att = [];
-    if (sIds.length) { const { data } = await supabase.from('attendance').select('player_id,attended').in('session_id', sIds); att = data || []; }
-    const { data: matches } = await supabase.from('matches').select('id').eq('team_id', tid);
-    const mIds = (matches || []).map((m) => m.id);
-    setMatchCount(mIds.length);
-    let stats = [];
-    if (mIds.length) { const { data } = await supabase.from('player_match_stats').select('player_id,minutes_played,rating').in('match_id', mIds); stats = data || []; }
-    // next up: soonest upcoming match or practice (from start of today)
-    const fromIso = (() => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); })();
-    const [{ data: um }, { data: up }] = await Promise.all([
-      supabase.from('matches').select('id,opponent,date,venue').eq('team_id', tid).gte('date', fromIso).order('date', { ascending: true }).limit(1),
-      supabase.from('training_sessions').select('id,notes,starts_at,location').eq('team_id', tid).not('starts_at', 'is', null).gte('starts_at', fromIso).order('starts_at', { ascending: true }).limit(1),
+  async function load(tid) {
+    setSquad(await squadWithStats(tid));
+
+    const fromIso = startOfToday().toISOString();
+    const eowIso = endOfWeek().toISOString();
+
+    const [{ data: um }, { data: up }, { data: allSessions }, { data: matches }, { data: anns }] = await Promise.all([
+      supabase.from('matches').select('id,opponent,date,venue,competition').eq('team_id', tid).gte('date', fromIso).lte('date', eowIso).order('date'),
+      supabase.from('training_sessions').select('id,notes,starts_at,location').eq('team_id', tid).not('starts_at','is',null).gte('starts_at', fromIso).lte('starts_at', eowIso).order('starts_at'),
+      supabase.from('training_sessions').select('id,notes,starts_at,date').eq('team_id', tid).lt('starts_at', fromIso).order('starts_at', { ascending: false }).limit(10),
+      supabase.from('matches').select('id').eq('team_id', tid),
+      supabase.from('announcements').select('id,title,created_at').eq('team_id', tid).order('created_at', { ascending: false }).limit(3),
     ]);
-    const cand = [];
-    if (um && um[0]) cand.push({ kind: 'match', id: um[0].id, when: new Date(um[0].date), title: 'vs ' + um[0].opponent, where: um[0].venue });
-    if (up && up[0]) cand.push({ kind: 'practice', id: up[0].id, when: new Date(up[0].starts_at), title: up[0].notes || 'Training', where: up[0].location });
-    cand.sort((a, b) => a.when - b.when);
-    setNextUp(cand[0] || null);
-    setSquad(players.map((p) => {
-      const a = att.filter((x) => x.player_id === p.id);
-      const rate = total ? Math.round(a.filter((x) => x.attended).length / total * 100) : 0;
-      const st = stats.filter((x) => x.player_id === p.id);
-      const avg = st.length ? (st.reduce((n, x) => n + Number(x.rating || 0), 0) / st.length).toFixed(1) : '—';
-      return { ...p, rate, avg, sessions: total };
-    }));
+
+    setMatchCount((matches || []).length);
+    setRecentAnn(anns || []);
+
+    const ev = [
+      ...(um || []).map((m) => ({ kind: 'match', id: m.id, when: new Date(m.date), title: 'vs ' + m.opponent, where: m.venue })),
+      ...(up || []).map((s) => ({ kind: 'practice', id: s.id, when: new Date(s.starts_at), title: s.notes || 'Training', where: s.location })),
+    ].sort((a, b) => a.when - b.when);
+    setUpcoming(ev);
+
+    // past sessions with zero attendance rows = outstanding
+    const past = allSessions || [];
+    if (past.length) {
+      const { data: att } = await supabase.from('attendance').select('session_id').in('session_id', past.map((s) => s.id));
+      const logged = new Set((att || []).map((a) => a.session_id));
+      setUnlogged(past.filter((s) => !logged.has(s.id)).slice(0, 5));
+    } else setUnlogged([]);
   }
 
   async function onCreated(newId) { setShowCreate(false); await reloadTeams(newId); }
@@ -139,6 +169,12 @@ function LiveCoach() {
     );
   }
 
+  const unavailable = squad.filter((p) => p.benched);
+  const avgAtt = squad.some((p) => p.rate != null)
+    ? Math.round(squad.filter((p) => p.rate != null).reduce((n, p) => n + p.rate, 0) / squad.filter((p) => p.rate != null).length)
+    : null;
+  const actionCount = upcoming.length + unlogged.length + unavailable.length;
+
   return (
     <>
       {showCreate && <CreateTeam onCreated={onCreated} onCancel={() => setShowCreate(false)} />}
@@ -152,66 +188,86 @@ function LiveCoach() {
         </div>
         <div className="row" style={{ gap: 10, alignSelf: 'end', flexWrap: 'wrap' }}>
           <button className="btn btn-ghost" onClick={() => setShowCreate((v) => !v)}>＋ New team</button>
+          <Link to="/coach/squad" className="btn btn-secondary">👥 Squad</Link>
           <Link to="/coach/training" className="btn btn-primary">➕ Log training</Link>
-          <Link to="/coach/match" className="btn btn-secondary">⚽ Matches</Link>
         </div>
       </div>
 
-      {(() => {
-        const present = squad.filter((p) => p.sessions && p.rate >= 50).length;
-        const avgAtt = squad.length && squad.some((p) => p.sessions) ? Math.round(squad.reduce((n, p) => n + (p.sessions ? p.rate : 0), 0) / squad.filter((p) => p.sessions).length || 0) : 0;
-        const goTo = () => nextUp && (nextUp.kind === 'practice' ? navigate(`/coach/checkin?session=${nextUp.id}`) : navigate(`/coach/lineup?match=${nextUp.id}`));
-        const isToday = nextUp && new Date(nextUp.when).toDateString() === new Date().toDateString();
-        return (
-          <>
-            {nextUp ? (
-              <div className="card" onClick={goTo} role="button" tabIndex={0}
-                style={{ marginBottom: 16, cursor: 'pointer', borderLeft: `4px solid ${nextUp.kind === 'match' ? 'var(--energy)' : 'var(--green-600)'}` }}>
-                <div className="row between" style={{ flexWrap: 'wrap', gap: 10 }}>
-                  <div>
-                    <div className="subtle" style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                      {isToday ? 'Today' : 'Next up'} · {nextUp.kind === 'match' ? 'Match' : 'Training'}
-                    </div>
-                    <h3 style={{ margin: '4px 0 2px' }}>{nextUp.title}</h3>
-                    <div className="subtle" style={{ fontSize: 13 }}>{new Date(nextUp.when).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}{nextUp.where ? ` · ${nextUp.where}` : ''}</div>
-                  </div>
-                  <span className="btn btn-primary" style={{ minHeight: 38 }}>{nextUp.kind === 'match' ? '📋 Set lineup' : '✅ Take attendance'}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="card" style={{ marginBottom: 16 }}>
-                <div className="row between" style={{ flexWrap: 'wrap', gap: 10 }}>
-                  <div><div className="subtle" style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>Next up</div>
-                    <p style={{ margin: '6px 0 0' }}>Nothing scheduled. Add a session or fixture.</p></div>
-                  <Link to="/coach/schedule" className="btn btn-secondary" style={{ minHeight: 38 }}>📅 Schedule</Link>
-                </div>
-              </div>
-            )}
-            <div className="grid grid-4" style={{ marginBottom: 16 }}>
-              <StatCard label="Squad size" value={squad.length} />
-              <StatCard label="Avg attendance" value={squad.some((p) => p.sessions) ? `${avgAtt}%` : '—'} />
-              <StatCard label="Matches played" value={matchCount} />
-              <StatCard label="Teams" value={teams.length} />
+      {/* ---------- Needs attention ---------- */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="section-header">
+          <h4 style={{ margin: 0 }}>Needs attention</h4>
+          {actionCount > 0 && <span className="badge badge-warning">{actionCount}</span>}
+        </div>
+
+        {actionCount === 0 ? (
+          <div style={{ padding: '10px 0' }}>
+            <p style={{ margin: 0 }}>✅ You’re all caught up — nothing needs attention right now.</p>
+            <p className="subtle" style={{ margin: '4px 0 0', fontSize: 13 }}>Nothing scheduled this week? <Link to="/coach/schedule">Add a session or fixture →</Link></p>
+          </div>
+        ) : (
+          <div className="stack" style={{ gap: 8 }}>
+            {unlogged.map((s) => (
+              <ActionRow key={'u' + s.id} icon="⚠️" tone="var(--danger)" label="Attendance outstanding"
+                title={s.notes || 'Training session'}
+                meta={s.starts_at ? whenLabel(s.starts_at) : (s.date || '')}
+                cta="Log now" onClick={() => navigate(`/coach/checkin?session=${s.id}`)} />
+            ))}
+
+            {upcoming.map((e) => (
+              <ActionRow key={e.kind + e.id} icon={e.kind === 'match' ? '⚽' : '🏃'}
+                tone={e.kind === 'match' ? 'var(--energy)' : 'var(--success)'}
+                label={isToday(e.when) ? `Today · ${e.kind === 'match' ? 'Match' : 'Training'}` : (e.kind === 'match' ? 'Upcoming match' : 'Upcoming training')}
+                title={e.title}
+                meta={`${whenLabel(e.when)}${e.where ? ' · ' + e.where : ''}`}
+                cta={e.kind === 'match' ? '📋 Lineup' : '✅ Attendance'}
+                onClick={() => navigate(e.kind === 'match' ? `/coach/lineup?match=${e.id}` : `/coach/checkin?session=${e.id}`)} />
+            ))}
+
+            {unavailable.map((p) => (
+              <ActionRow key={'b' + p.id} icon="🩹" tone="#f59e0b" label="Player unavailable"
+                title={p.name} meta={p.benchReason || 'Marked unavailable'}
+                cta="View profile" to={`/coach/player/${p.id}`} />
+            ))}
+          </div>
+        )}
+
+        {recentAnn.length > 0 && (
+          <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+            <div className="row between" style={{ marginBottom: 6 }}>
+              <strong style={{ fontSize: 13 }}>📣 Recent announcements</strong>
+              <Link to="/coach/announcements" className="subtle" style={{ fontSize: 12 }}>See all →</Link>
             </div>
-          </>
-        );
-      })()}
+            <div className="stack" style={{ gap: 4 }}>
+              {recentAnn.map((a) => (
+                <div key={a.id} className="row between">
+                  <span style={{ fontSize: 13 }}>{a.title}</span>
+                  <span className="subtle" style={{ fontSize: 12 }}>{new Date(a.created_at).toLocaleDateString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ---------- Stats (secondary) ---------- */}
+      <div className="grid grid-4" style={{ marginBottom: 16 }}>
+        <StatCard label="Squad size" value={squad.length} />
+        <StatCard label="Avg attendance" value={avgAtt == null ? '—' : `${avgAtt}%`} />
+        <StatCard label="Matches played" value={matchCount} />
+        <StatCard label="Unavailable" value={unavailable.length} />
+      </div>
 
       <CoachCalendar teamIds={teams.map((t) => t.id)} />
 
       <div className="card">
-        <div className="section-header"><h4 style={{ margin: 0 }}>Squad</h4><span className="badge badge-neutral">{squad.length}</span></div>
-        {squad.length === 0
-          ? <p className="subtle">No players on this team yet. Ask your academy admin to add players (they’ll get a child code to link).</p>
-          : <table className="table"><thead><tr><th>Player</th><th>Position</th><th>Attendance</th><th>Avg rating</th><th>Rank</th></tr></thead>
-              <tbody>{squad.map((p) => (
-                <tr key={p.id}>
-                  <td><Link to={`/coach/player/${p.id}`} className="row" style={{ color: 'inherit', textDecoration: 'none' }}><span className="avatar">{p.name.split(' ').map((w)=>w[0]).join('')}</span> <span style={{ textDecoration: 'underline' }}>{p.name}</span></Link></td>
-                  <td>{p.position || '—'}</td>
-                  <td>{p.sessions ? `${p.rate}%` : '—'}</td>
-                  <td>{p.avg}</td>
-                  <td><span className="badge badge-neutral">{(p.rank || 'Rookie').replace('_',' ')}</span></td>
-                </tr>))}</tbody></table>}
+        <div className="row between" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <strong>👥 Squad</strong>
+            <div className="subtle" style={{ fontSize: 13 }}>{squad.length} player{squad.length === 1 ? '' : 's'} — search, filter and sort on the Squad page.</div>
+          </div>
+          <Link to="/coach/squad" className="btn btn-primary" style={{ minHeight: 38 }}>Open squad →</Link>
+        </div>
       </div>
     </>
   );
