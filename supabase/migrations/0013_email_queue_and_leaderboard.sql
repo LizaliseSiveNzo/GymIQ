@@ -13,7 +13,7 @@ create or replace function tg_flush_notification_emails() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   perform net.http_post(
-    url     := 'https://xqfhlpraejcesrvahmez.supabase.co/functions/v1/email-dispatch',
+    url     := 'https://vxzxqxqmrstvtgjhwrih.supabase.co/functions/v1/email-dispatch',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer <ANON_KEY>'  -- anon key; see live DB for actual value
