@@ -44,15 +44,17 @@ export function AuthProvider({ children }) {
     return { role: prof?.role };
   }
 
-  async function signUp({ name, email, password, role, consent, consentVersion, guardianName, consentPhotoMedia }) {
+  // role is 'trainer' | 'customer'; the DB trigger (migration 0056) maps those
+  // onto the internal 'coach' / 'player' enum values and refuses anything else.
+  async function signUp({ name, email, password, role, consent, consentVersion, inviteCode }) {
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { data: {
         name,
+        role: role || 'customer',
         consent: !!consent,
         consent_version: consentVersion || null,
-        guardian_name: guardianName || null,
-        consent_photo_media: !!consentPhotoMedia,
+        invite_code: inviteCode || null,
       } },
     });
     if (error) return { error: error.message };

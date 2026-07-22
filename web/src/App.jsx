@@ -58,7 +58,14 @@ export default function App() {
       <Route path="/admin/trials"   element={<ProtectedRoute roles={['admin']}><AdminTrials /></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute roles={['admin']}><AdminSettings /></ProtectedRoute>} />
 
-      <Route path="/coach"          element={<ProtectedRoute roles={['coach','admin']}><CoachDashboard /></ProtectedRoute>} />
+      {/* Adults-only two-role model (0056): 'coach' is shown as Trainer,
+          'player' as Customer. Old paths redirect to the new vocabulary. */}
+      <Route path="/trainer"  element={<ProtectedRoute roles={['coach','admin']}><CoachDashboard /></ProtectedRoute>} />
+      <Route path="/customer" element={<ProtectedRoute roles={['player','admin']}><PlayerProfile /></ProtectedRoute>} />
+      <Route path="/coach"    element={<Navigate to="/trainer" replace />} />
+      <Route path="/player"   element={<Navigate to="/customer" replace />} />
+
+      <Route path="/coach/dashboard" element={<ProtectedRoute roles={['coach','admin']}><CoachDashboard /></ProtectedRoute>} />
       <Route path="/coach/squad"    element={<ProtectedRoute roles={['coach','admin']}><CoachSquad /></ProtectedRoute>} />
       <Route path="/coach/journal"  element={<ProtectedRoute roles={['coach','admin']}><CoachJournal /></ProtectedRoute>} />
       <Route path="/coach/training" element={<ProtectedRoute roles={['coach','admin']}><CoachLogTraining /></ProtectedRoute>} />
@@ -69,7 +76,6 @@ export default function App() {
       <Route path="/coach/announcements" element={<ProtectedRoute roles={['coach','admin']}><CoachAnnouncements /></ProtectedRoute>} />
       <Route path="/coach/player/:id" element={<ProtectedRoute roles={['coach','admin']}><CoachPlayerDetail /></ProtectedRoute>} />
 
-      <Route path="/player"        element={<ProtectedRoute roles={['player','admin']}><PlayerProfile /></ProtectedRoute>} />
       <Route path="/announcements" element={<ProtectedRoute roles={['player','admin']}><Announcements /></ProtectedRoute>} />
 
       <Route path="/leaderboard"   element={<ProtectedRoute roles={ANY}><Leaderboard /></ProtectedRoute>} />

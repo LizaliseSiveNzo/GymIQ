@@ -10,14 +10,21 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 import { CONSENT_VERSION } from './Privacy.jsx';
 
-const ROLES = ['Player'];
+// Adults-only, two-role product. Internally these map to 'coach' and 'player'
+// (see migration 0056) — the enum values were left alone deliberately.
+const ROLES = [
+  { key: 'trainer',  label: 'Trainer',  blurb: 'I train clients' },
+  { key: 'customer', label: 'Customer', blurb: 'I train with a trainer' },
+];
+
+// role -> landing route after auth
+export const HOME_FOR_ROLE = { coach: '/trainer', player: '/customer', admin: '/trainer' };
 
 export default function Login() {
   const [mode, setMode] = useState('login'); // login | register
-  const [role, setRole] = useState('Player');
+  const [role, setRole] = useState('trainer');
   const [consent, setConsent] = useState(false);
-  const [photoConsent, setPhotoConsent] = useState(false);
-  const [guardianName, setGuardianName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,26 +44,22 @@ export default function Login() {
         const loginEmail = email.includes('@') ? email.trim() : `${email.trim().toLowerCase()}@gymiq.app`;
         const { error, role: r } = await signIn({ email: loginEmail, password });
         if (error) { setError(error); return; }
-        navigate(`/${r}`);
+        navigate(HOME_FOR_ROLE[r] || '/customer');
       } else {
         if (!consent) { setError('Please confirm you accept the privacy policy to continue.'); return; }
-        if (role === 'Player' && !guardianName.trim()) {
-          setError('Please give the name of the parent or guardian giving consent.'); return;
-        }
         const { error, needsConfirmation } = await signUp({
           name, email: email.trim(), password,
-          role: role.toLowerCase(),
+          role,
           consent: true,
           consentVersion: CONSENT_VERSION,
-          guardianName: role === 'Player' ? guardianName.trim() : null,
-          consentPhotoMedia: photoConsent,
+          inviteCode: role === 'customer' ? inviteCode.trim() : null,
         });
         if (error) { setError(error); return; }
         if (needsConfirmation) {
           setNotice('Account created. Check your email to confirm, then sign in.');
           setMode('login');
         } else {
-          navigate(`/${role.toLowerCase()}`);
+          navigate(role === 'trainer' ? '/trainer' : '/customer');
         }
       }
     } finally {
@@ -87,12 +90,29 @@ export default function Login() {
 
           {mode === 'register' && (
             <div className="field">
-              <p className="subtle" style={{ fontSize: 13, margin: '0 0 10px' }}>
-                👨‍👩‍👧 <strong>Parents:</strong> no separate account needed — sign in with your child's Player account to see their notes, meal plan and schedule.
-              </p>
-              <p className="subtle" style={{ fontSize: 13, margin: 0 }}>
-                🏃 <strong>Coaches:</strong> coach accounts are created by your academy admin — register here first and ask them to upgrade you.
-              </p>
+              <label className="label">I'm signing up as</label>
+              <div className="row" style={{ gap: 10 }}>
+                {ROLES.map((r) => (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => setRole(r.key)}
+                    aria-pressed={role === r.key}
+                    style={{
+                      flex: 1,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      padding: '12px 14px',
+                      borderRadius: 12,
+                      background: role === r.key ? 'var(--brand-50, #fdf2f4)' : 'transparent',
+                      border: `1.5px solid ${role === r.key ? 'var(--brand, #C8102E)' : 'var(--border)'}`,
+                    }}
+                  >
+                    <span style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{r.label}</span>
+                    <span className="subtle" style={{ fontSize: 12 }}>{r.blurb}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -115,13 +135,13 @@ export default function Login() {
                 value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
 
-            {mode === 'register' && role === 'Player' && (
+            {mode === 'register' && role === 'customer' && (
               <div className="field">
-                <label className="label">Parent / guardian name</label>
-                <input className="input" placeholder="The adult giving consent"
-                  value={guardianName} onChange={(e) => setGuardianName(e.target.value)} />
+                <label className="label">Trainer invite code <span className="subtle">(optional)</span></label>
+                <input className="input" placeholder="e.g. LZ4K9P"
+                  value={inviteCode} onChange={(e) => setInviteCode(e.target.value.toUpperCase())} />
                 <p className="subtle" style={{ fontSize: 12, margin: '4px 0 0' }}>
-                  Players are usually under 18, so a parent or guardian must give consent.
+                  If your trainer gave you a code, enter it to link your account to them. You can add it later.
                 </p>
               </div>
             )}
@@ -131,16 +151,9 @@ export default function Login() {
                 <label className="row" style={{ gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}>
                   <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 3 }} />
                   <span style={{ fontSize: 13 }}>
-                    I have read and accept the <Link to="/privacy" target="_blank">privacy policy</Link>, and
-                    {role === 'Player'
-                      ? ' I am the parent or legal guardian giving consent for this child’s information to be processed.'
-                      : ' I consent to my information being processed.'}
-                  </span>
-                </label>
-                <label className="row" style={{ gap: 8, alignItems: 'flex-start', cursor: 'pointer', marginTop: 8 }}>
-                  <input type="checkbox" checked={photoConsent} onChange={(e) => setPhotoConsent(e.target.checked)} style={{ marginTop: 3 }} />
-                  <span style={{ fontSize: 13 }}>
-                    <strong>Optional:</strong> I also consent to photographs and video being recorded and shared within the academy.
+                    I am 18 or over, and I have read and accept the{' '}
+                    <Link to="/privacy" target="_blank">privacy policy</Link> and consent to my
+                    information being processed.
                   </span>
                 </label>
               </div>
