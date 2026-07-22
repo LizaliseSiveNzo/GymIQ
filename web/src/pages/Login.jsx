@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-// Real Supabase auth + master login (123/123) + role demo entry.
+// Supabase auth + role demo entry.
 
 import { CONSENT_VERSION } from './Privacy.jsx';
 

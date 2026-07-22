@@ -13,12 +13,9 @@ import CoachCalendar from '../components/CoachCalendar.jsx';
 import StatCard from '../components/StatCard.jsx';
 import InsightCards from '../components/InsightCards.jsx';
 import { teamInsights } from '../lib/insights.js';
+import { isToday, whenLabel, startOfToday, endOfWeek } from '../lib/format.js';
 
 const DIVISIONS = ['U11','U12','U13','U14','U15','U16','U19','First_Team'];
-const startOfToday = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
-const endOfWeek = () => { const d = new Date(); d.setHours(23,59,59,999); d.setDate(d.getDate() + ((7 - d.getDay()) % 7)); return d; };
-const whenLabel = (d) => new Date(d).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-const isToday = (d) => new Date(d).toDateString() === new Date().toDateString();
 
 function DemoCoach() {
   const SQUAD = [['Thabo Mokoena','Winger','92%','4.4','Elite'],['Sipho Ndlovu','Midfield','78%','3.8','Rising Star'],['Kabelo Sithole','Defender','88%','4.1','Elite'],['Junior Adams','Striker','64%','3.2','Rookie']];

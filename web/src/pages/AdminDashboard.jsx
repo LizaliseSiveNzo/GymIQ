@@ -88,16 +88,30 @@ function CreateAcademy({ onDone }) {
 function LiveDashboard() {
   const [counts, setCounts] = useState({ teams: 0 });
   const [roster, setRoster] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState('');
 
   async function load() {
-    const [{ count: teams }, { data: rp }] = await Promise.all([
-      supabase.from('teams').select('*', { count: 'exact', head: true }),
-      supabase.rpc('admin_list_players'),
-    ]);
-    setCounts({ teams: teams || 0 });
-    setRoster(rp || []);
+    setLoading(true); setLoadErr('');
+    try {
+      const [{ count: teams, error: e1 }, { data: rp, error: e2 }] = await Promise.all([
+        supabase.from('teams').select('*', { count: 'exact', head: true }),
+        supabase.rpc('admin_list_players'),
+      ]);
+      if (e1 || e2) { setLoadErr((e1 || e2).message); return; }
+      setCounts({ teams: teams || 0 });
+      setRoster(rp || []);
+    } finally { setLoading(false); }
   }
   useEffect(() => { load(); }, []);
+
+  if (loading) return <div className="card">Loading dashboard…</div>;
+  if (loadErr) return (
+    <div className="card">
+      <p style={{ margin: 0 }}>Couldn’t load the dashboard — {loadErr}</p>
+      <button className="btn btn-secondary" style={{ marginTop: 10 }} onClick={load}>Retry</button>
+    </div>
+  );
 
   const assigned = roster.filter((r) => !r.needs_team);
   const pending = roster.filter((r) => r.needs_team);

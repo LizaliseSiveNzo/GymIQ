@@ -8,7 +8,6 @@ import { useParams, Link } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
 import RankBadge from '../components/RankBadge.jsx';
 import StatCard from '../components/StatCard.jsx';
-import InjuryThread from '../components/InjuryThread.jsx';
 import InjuryTracker from '../components/InjuryTracker.jsx';
 import MatchLog from '../components/MatchLog.jsx';
 import PlayerUploads from '../components/PlayerUploads.jsx';
@@ -23,8 +22,8 @@ import PlayerTrainingLog from '../components/PlayerTrainingLog.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { playerInsights } from '../lib/insights.js';
+import { initials } from '../lib/format.js';
 
-const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const TABS = ['Overview', 'Development', 'Matches', 'Training', 'Notes', 'Documents', 'Medical'];
 const TAB_KEY = 'pitchiq.playerTab';
 
@@ -250,7 +249,6 @@ export default function CoachPlayerDetail() {
             </div>
           )}
           <InjuryTracker playerId={id} canEdit onChange={setInjured} />
-          <InjuryThread playerId={id} />
         </>
       )}
     </AppShell>

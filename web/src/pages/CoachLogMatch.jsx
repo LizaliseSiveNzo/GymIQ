@@ -9,10 +9,8 @@ import AppShell from '../components/AppShell.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams } from '../lib/coach.js';
+import { isToday, whenLabel, endOfWeek } from '../lib/format.js';
 
-const isToday = (iso) => iso && new Date(iso).toDateString() === new Date().toDateString();
-const whenLabel = (iso) => new Date(iso).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-const endOfWeek = () => { const d = new Date(); d.setHours(23, 59, 59, 999); d.setDate(d.getDate() + ((7 - d.getDay()) % 7)); return d; };
 
 export default function CoachLogMatch() {
   const { profile, session } = useAuth();

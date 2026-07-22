@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
 import RankBadge from '../components/RankBadge.jsx';
 import StatCard from '../components/StatCard.jsx';
-import InjuryThread from '../components/InjuryThread.jsx';
+import InjuryTracker from '../components/InjuryTracker.jsx';
 import MatchLog from '../components/MatchLog.jsx';
 import DevelopmentPlan from '../components/DevelopmentPlan.jsx';
 import AttributeProgress from '../components/AttributeProgress.jsx';
@@ -170,7 +170,7 @@ export default function PlayerProfile() {
 
           <PlayerUploads />
 
-          <InjuryThread />
+          {myPlayerId && <InjuryTracker playerId={myPlayerId} canEdit={false} />}
 
           <div className="card" style={{ marginTop: 18, background: 'var(--surface-2)', border: 0 }}>
             <div className="row between">

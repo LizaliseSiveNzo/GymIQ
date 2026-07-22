@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -19,6 +20,7 @@ const first = (n = '') => n.split(' ')[0];
 
 export default function CoachLogTraining() {
   const { profile, session } = useAuth();
+  const [params] = useSearchParams();
   const [teams, setTeams] = useState([]);
   const [teamId, setTeamId] = useState('');
   const [sessions, setSessions] = useState([]);
@@ -60,8 +62,10 @@ export default function CoachLogTraining() {
 
   useEffect(() => { if (!teamId) return; (async () => {
     const p = await teamPlayers(teamId); setPlayers(p);
-    await reloadSessions();
-    setSessionSel('');
+    const list = await reloadSessions();
+    const linked = params.get('session');
+    if (linked && list.some((s) => s.id === linked)) selectSession(linked, p);
+    else setSessionSel('');
   })(); }, [teamId]);
 
   async function reloadSessions() {

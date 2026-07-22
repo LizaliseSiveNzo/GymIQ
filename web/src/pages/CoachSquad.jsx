@@ -8,8 +8,8 @@ import { Link } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, squadWithStats } from '../lib/coach.js';
+import { initials } from '../lib/format.js';
 
-const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const PAGE = 25;
 
 const SORTS = [
