@@ -104,8 +104,8 @@ export default function Login() {
                 style={{
                   flex: 1, cursor: 'pointer', padding: '10px 12px', borderRadius: 9,
                   fontSize: 14, fontWeight: 700, border: 'none',
-                  background: mode === m ? '#fff' : 'transparent',
-                  color: mode === m ? 'var(--brand, #C8102E)' : 'var(--muted, #6b7280)',
+                  background: mode === m ? 'var(--green-600)' : 'transparent',
+                  color: mode === m ? 'var(--on-accent)' : 'var(--text-muted)',
                   boxShadow: mode === m ? '0 1px 3px rgba(0,0,0,.12)' : 'none',
                 }}
               >
@@ -133,8 +133,8 @@ export default function Login() {
                       cursor: 'pointer',
                       padding: '12px 14px',
                       borderRadius: 12,
-                      background: role === r.key ? 'var(--brand-50, #fdf2f4)' : 'transparent',
-                      border: `1.5px solid ${role === r.key ? 'var(--brand, #C8102E)' : 'var(--border)'}`,
+                      background: role === r.key ? 'var(--green-100)' : 'transparent',
+                      border: `1.5px solid ${role === r.key ? 'var(--green-600)' : 'var(--border)'}`,
                     }}
                   >
                     <span style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{r.label}</span>

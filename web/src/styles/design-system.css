@@ -4,53 +4,62 @@
  */
 
 /* ============================================================================
-   GymIQ Design System — v1
-   Light & institutional. Navy ink + Tuks red accent.
+   GymIQ Design System — v2 (dark)
+   Charcoal base + electric-lime accent. Trainer ↔ client, adults-only.
    Install: import this once at your app root (e.g. in web/src/main.jsx:
      import '../../design/gymiq-design-system.css';
    or copy into web/src/styles/ and import there.)
    ============================================================================ */
 
 /* ---- Fonts (institutional + modern) ---- */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* ---------- Structure: Tuks black ---------- */
-  --navy-900: #15161A;   /* headings, sidebar, ink */
-  --navy-800: #1E2026;
-  --navy-700: #2A2C34;   /* dark surface */
-  --navy-600: #3B3E48;
-  --navy-500: #4E515D;
+  /* ============================================================
+     GymIQ dark theme — charcoal base + electric-lime accent.
+     Variable NAMES are kept (navy-* / green-*) so no component
+     markup changes; only the VALUES flipped from the old PitchIQ
+     light/red identity. green-* now holds lime; navy-* now holds
+     the dark panel scale used by the sidebar and dark bands.
+     ============================================================ */
 
-  /* ---------- Brand: Tuks red (action) ---------- */
-  --green-700: #8C1420;
-  --green-600: #B01329;  /* primary action — Tuks red */
-  --green-500: #C8102E;
-  --green-400: #DC3A4C;
-  --green-100: #FCE8EA;  /* tint / active bg */
+  /* ---------- Dark panel scale (sidebar, bands, avatars) ---------- */
+  --navy-900: #0A0C10;   /* darkest — sidebar / band background */
+  --navy-800: #0E1116;
+  --navy-700: #141821;   /* raised dark surface */
+  --navy-600: #2A313D;   /* avatar / chip fills */
+  --navy-500: #3A4250;
 
-  /* ---------- Energy red (player / gamification only) ---------- */
-  --energy: #E4032E;
+  /* ---------- Brand: electric lime (action) ---------- */
+  --green-700: #A6E000;  /* hover / pressed */
+  --green-600: #C6FF3A;  /* primary action — electric lime */
+  --green-500: #B6F82E;  /* focus ring / active accent */
+  --green-400: #D6FF6E;
+  --green-100: rgba(198,255,58,.14);  /* lime tint / active bg */
+  --on-accent: #0C0F14;  /* text/icons ON lime (dark, for contrast) */
 
-  /* ---------- Neutrals ---------- */
-  --bg:            #F7F7F8;  /* app background */
-  --surface:       #FFFFFF;  /* cards / panels */
-  --surface-2:     #F1F1F4;  /* subtle fills */
-  --border:        #E6E7EB;
-  --border-strong: #D3D5DB;
-  --ink:           #17171C;  /* body text */
-  --text-muted:    #5B616C;
-  --text-subtle:   #8A8F9A;
+  /* ---------- Energy (gamification pop) ---------- */
+  --energy: #FF6A3D;     /* warm orange, distinct from the lime accent */
 
-  /* ---------- Semantic ---------- */
-  --success: #0BA05F;
-  --warning: #E8A400;
-  --danger:  #E5484D;
-  --info:    #2E77D0;
-  --success-bg: #E4F7EE;
-  --warning-bg: #FEF3D6;
-  --danger-bg:  #FCE8E8;
-  --info-bg:    #E7F0FC;
+  /* ---------- Neutrals (dark) ---------- */
+  --bg:            #0E1116;  /* app background — near-black */
+  --surface:       #171B22;  /* cards / panels */
+  --surface-2:     #1F242D;  /* subtle fills / inputs */
+  --border:        #262C36;
+  --border-strong: #333B47;
+  --ink:           #EEF1F5;  /* body + heading text (light) */
+  --text-muted:    #A0AAB8;
+  --text-subtle:   #6C7788;
+
+  /* ---------- Semantic (brightened for dark) ---------- */
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger:  #FB7185;
+  --info:    #60A5FA;
+  --success-bg: rgba(52,211,153,.14);
+  --warning-bg: rgba(251,191,36,.14);
+  --danger-bg:  rgba(251,113,133,.14);
+  --info-bg:    rgba(96,165,250,.14);
 
   /* ---------- Rank tiers ---------- */
   --rank-rookie:      #64748B;
@@ -60,7 +69,7 @@
   --rank-grandmaster: #C2379A;
 
   /* ---------- Typography ---------- */
-  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body:    'Inter', system-ui, -apple-system, sans-serif;
   --text-xs: 12px; --text-sm: 13px; --text-base: 15px;
   --text-lg: 18px; --text-xl: 22px; --text-2xl: 28px; --text-3xl: 36px; --text-4xl: 48px;
@@ -73,10 +82,10 @@
   --r-sm: 8px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-full: 999px;
 
   /* ---------- Shadows (soft, light-UI) ---------- */
-  --shadow-xs: 0 1px 2px rgba(18,18,22,.06);
-  --shadow-sm: 0 2px 6px rgba(18,18,22,.08);
-  --shadow-md: 0 6px 18px rgba(18,18,22,.10);
-  --shadow-lg: 0 14px 40px rgba(18,18,22,.14);
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.45);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.5);
+  --shadow-lg: 0 18px 50px rgba(0,0,0,.6);
 
   /* ---------- Layout ---------- */
   --sidebar-w: 240px;
@@ -98,7 +107,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-h1, h2, h3, h4 { font-family: var(--font-display); color: var(--navy-900); margin: 0 0 var(--sp-3); line-height: 1.2; }
+h1, h2, h3, h4 { font-family: var(--font-display); color: var(--ink); margin: 0 0 var(--sp-3); line-height: 1.2; }
 h1 { font-size: var(--text-3xl); font-weight: 800; letter-spacing: -0.02em; }
 h2 { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; }
 h3 { font-size: var(--text-xl); font-weight: 700; }
@@ -120,7 +129,7 @@ a:hover { text-decoration: underline; }
   cursor: pointer; transition: var(--transition); min-height: 40px; white-space: nowrap;
 }
 .btn:active { transform: translateY(1px); }
-.btn-primary { background: var(--green-600); color: #fff; box-shadow: var(--shadow-xs); }
+.btn-primary { background: var(--green-600); color: var(--on-accent); box-shadow: var(--shadow-xs); font-weight: 700; }
 .btn-primary:hover { background: var(--green-700); }
 .btn-secondary { background: var(--surface); color: var(--navy-700); border-color: var(--border-strong); }
 .btn-secondary:hover { background: var(--surface-2); }
@@ -134,7 +143,7 @@ a:hover { text-decoration: underline; }
    Forms
    ============================================================================ */
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--sp-4); }
-.label { font-size: var(--text-sm); font-weight: 600; color: var(--navy-800); }
+.label { font-size: var(--text-sm); font-weight: 600; color: var(--ink); }
 .input, .select, .textarea {
   font-family: var(--font-body); font-size: var(--text-base); color: var(--ink);
   background: var(--surface); border: 1px solid var(--border-strong);
@@ -148,7 +157,7 @@ a:hover { text-decoration: underline; }
 /* Segmented control (role selector) */
 .segmented { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 3px; gap: 3px; }
 .segmented button { border: 0; background: transparent; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: var(--text-sm); color: var(--text-muted); cursor: pointer; }
-.segmented button[aria-selected="true"] { background: var(--surface); color: var(--navy-800); box-shadow: var(--shadow-xs); }
+.segmented button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-xs); }
 
 /* ============================================================================
    Cards & surfaces
@@ -161,7 +170,7 @@ a:hover { text-decoration: underline; }
 /* KPI / stat card */
 .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-5); }
 .kpi-label { font-size: var(--text-sm); color: var(--text-muted); font-weight: 500; }
-.kpi-value { font-family: var(--font-display); font-size: var(--text-3xl); font-weight: 800; color: var(--navy-900); line-height: 1.1; margin-top: 4px; }
+.kpi-value { font-family: var(--font-display); font-size: var(--text-3xl); font-weight: 800; color: var(--ink); line-height: 1.1; margin-top: 4px; }
 .kpi-delta { font-size: var(--text-sm); font-weight: 600; }
 .kpi-delta.up { color: var(--success); } .kpi-delta.down { color: var(--danger); }
 
@@ -171,14 +180,14 @@ a:hover { text-decoration: underline; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); font-weight: 600; padding: 4px 10px; border-radius: var(--r-full); }
 .badge-neutral { background: var(--surface-2); color: var(--text-muted); }
 .badge-success { background: var(--success-bg); color: var(--success); }
-.badge-warning { background: var(--warning-bg); color: #9A6B00; }
-.badge-danger  { background: var(--danger-bg); color: #B42318; }
+.badge-warning { background: var(--warning-bg); color: var(--warning); }
+.badge-danger  { background: var(--danger-bg); color: var(--danger); }
 .badge-info    { background: var(--info-bg); color: var(--info); }
 
 /* Outcome chips (trials) */
 .chip-accepted { background: var(--success-bg); color: var(--success); }
-.chip-declined { background: var(--danger-bg); color: #B42318; }
-.chip-pending  { background: var(--warning-bg); color: #9A6B00; }
+.chip-declined { background: var(--danger-bg); color: var(--danger); }
+.chip-pending  { background: var(--warning-bg); color: var(--warning); }
 
 /* ============================================================================
    Rank system
@@ -197,7 +206,7 @@ a:hover { text-decoration: underline; }
 /* Rank ladder (stepper) */
 .ladder { display: flex; gap: 6px; }
 .ladder .step { flex: 1; text-align: center; font-size: var(--text-xs); font-weight: 600; color: var(--text-subtle); padding: 8px 4px; border-radius: var(--r-sm); background: var(--surface-2); }
-.ladder .step.active { color: #fff; background: var(--green-600); }
+.ladder .step.active { color: var(--on-accent); background: var(--green-600); }
 
 /* ============================================================================
    Tables
@@ -216,7 +225,7 @@ a:hover { text-decoration: underline; }
 .sidebar .brand { color: #fff; font-family: var(--font-display); font-weight: 800; font-size: var(--text-lg); padding: var(--sp-2) var(--sp-3) var(--sp-6); display: flex; align-items: center; gap: 8px; }
 .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-md); color: #9BA1AC; font-weight: 600; font-size: var(--text-sm); cursor: pointer; border-left: 3px solid transparent; }
 .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; text-decoration: none; }
-.nav-item.active { background: rgba(200,16,46,.18); color: #fff; border-left-color: var(--green-500); }
+.nav-item.active { background: var(--green-100); color: var(--green-600); border-left-color: var(--green-500); }
 .topbar { height: var(--topbar-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-6); }
 .content { padding: var(--sp-6); }
 
