@@ -74,10 +74,10 @@ export default function Login() {
           <span className="dot" /> GymIQ
         </div>
         <div>
-          <h2>Run your academy like a pro club.</h2>
+          <h2>Train smarter. Together.</h2>
           <p style={{ color: '#C7D2E1', maxWidth: 420 }}>
-            Track players, keep parents in the loop, run trials, and measure performance —
-            all in one place. One subscription per school.
+            GymIQ gives trainers and their clients one place for programmes,
+            progress, nutrition and sessions.
           </p>
         </div>
         <p className="subtle" style={{ color: '#8FA0B6', margin: 0 }}>Built with Claude · RevidArch</p>
@@ -85,8 +85,37 @@ export default function Login() {
 
       <main className="auth-panel">
         <div className="auth-card">
+          {/* Sign in / Create account is a primary choice — make it a visible
+              tab pair rather than a text link buried at the bottom. */}
+          <div
+            role="tablist"
+            style={{
+              display: 'flex', gap: 4, padding: 4, marginBottom: 18,
+              background: 'var(--surface-2, #f1f3f6)', borderRadius: 12,
+            }}
+          >
+            {[['login', 'Sign in'], ['register', 'Create account']].map(([m, label]) => (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={mode === m}
+                onClick={() => { setMode(m); setError(''); setNotice(''); }}
+                style={{
+                  flex: 1, cursor: 'pointer', padding: '10px 12px', borderRadius: 9,
+                  fontSize: 14, fontWeight: 700, border: 'none',
+                  background: mode === m ? '#fff' : 'transparent',
+                  color: mode === m ? 'var(--brand, #C8102E)' : 'var(--muted, #6b7280)',
+                  boxShadow: mode === m ? '0 1px 3px rgba(0,0,0,.12)' : 'none',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <h1 style={{ fontSize: 26 }}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
-          <p>{mode === 'login' ? 'Sign in to your academy dashboard.' : 'Choose your role to get started.'}</p>
+          <p>{mode === 'login' ? 'Sign in to your GymIQ dashboard.' : 'Are you a trainer, or training with one?'}</p>
 
           {mode === 'register' && (
             <div className="field">
@@ -126,7 +155,7 @@ export default function Login() {
             <div className="field">
               <label className="label">Email</label>
               <input className="input" type="text"
-                placeholder={mode === 'login' ? 'Email or username' : 'director@academy.co.za'}
+                placeholder={mode === 'login' ? 'Email or username' : 'you@example.com'}
                 value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="field">
