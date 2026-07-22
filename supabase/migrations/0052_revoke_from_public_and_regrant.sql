@@ -1,4 +1,4 @@
--- Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+-- Copyright © 2026 Lizalise Nzo. All rights reserved.
 -- Postgres grants EXECUTE to PUBLIC by default, so revoking from anon/authenticated
 -- alone is a no-op. Revoke from PUBLIC, then grant back only what is needed.
 -- NOTE: fn_* and current_role_of() are referenced inside RLS policies and MUST

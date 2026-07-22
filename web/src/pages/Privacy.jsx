@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+ * Copyright © 2026 Lizalise Nzo. All rights reserved.
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
@@ -35,7 +35,7 @@ export default function Privacy() {
         </div>
 
         <S title="1. Who is responsible for this information">
-          GymIQ is owned and operated by <strong>Lizalise Nzo</strong> and <strong>Dumabezwe Skele</strong> (jointly, the “Operator”), who acts as the responsible
+          GymIQ is owned and operated by <strong>Lizalise Nzo</strong> (the “Operator”), who acts as the responsible
           party under the Protection of Personal Information Act 4 of 2013 (“POPIA”). The sports academy using GymIQ
           is the operator of the data about its own players. Questions or requests can be sent to the academy in the
           first instance, or to the Operator.

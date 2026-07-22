@@ -1,4 +1,4 @@
--- Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+-- Copyright © 2026 Lizalise Nzo. All rights reserved.
 -- Security hardening: no self-elevation, scoped announcement files, trial insert,
 -- announcement_recipients policies, search_path.
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+ * Copyright © 2026 Lizalise Nzo. All rights reserved.
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 

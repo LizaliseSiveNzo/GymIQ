@@ -1,4 +1,4 @@
-Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+Copyright © 2026 Lizalise Nzo. All rights reserved.
 GymIQ — proprietary and confidential. Unauthorised use, copying, or
 distribution is prohibited. See the LICENSE file at the repository root.
 
@@ -8,10 +8,10 @@ ownership. Examples:
 
 JavaScript / TypeScript / CSS:
 /*
- * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+ * Copyright © 2026 Lizalise Nzo. All rights reserved.
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 SQL:
--- Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+-- Copyright © 2026 Lizalise Nzo. All rights reserved.
 -- GymIQ — proprietary and confidential. See LICENSE.

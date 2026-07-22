@@ -1,4 +1,4 @@
--- Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+-- Copyright © 2026 Lizalise Nzo. All rights reserved.
 -- GymIQ — proprietary and confidential. See LICENSE.
 -- Performance pass: FK covering indexes + RLS initplan rewrites.
 -- (Applied to production via Supabase MCP; kept here for the migration record.)

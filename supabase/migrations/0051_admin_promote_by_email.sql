@@ -1,4 +1,4 @@
--- Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
+-- Copyright © 2026 Lizalise Nzo. All rights reserved.
 create or replace function public.admin_set_role_by_email(p_email text, p_role user_role)
 returns json language plpgsql security definer set search_path to 'public' as $function$
 declare v_id uuid; v_name text;
