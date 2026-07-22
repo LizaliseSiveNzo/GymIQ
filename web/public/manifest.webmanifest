@@ -1,6 +1,6 @@
 {
-  "name": "PitchIQ",
-  "short_name": "PitchIQ",
+  "name": "GymIQ",
+  "short_name": "GymIQ",
   "description": "Sports academy management — track players, ratings, schedule and more.",
   "start_url": "/",
   "scope": "/",

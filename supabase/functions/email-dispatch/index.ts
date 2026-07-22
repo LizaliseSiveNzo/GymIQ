@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 // email-dispatch: flushes the notification email queue.
@@ -9,7 +9,7 @@
 // notifications are inserted; safe to call repeatedly (idempotent queue flush).
 //
 // Required secrets: RESEND_API_KEY  (https://resend.com — free tier is fine)
-// Optional:         EMAIL_FROM      e.g. "PitchIQ <updates@yourdomain.co.za>"
+// Optional:         EMAIL_FROM      e.g. "GymIQ <updates@yourdomain.co.za>"
 //                   (defaults to Resend's test sender, which only delivers to
 //                    the Resend account owner's own inbox)
 
@@ -20,7 +20,7 @@ const json = (body: unknown, status = 200) =>
 
 Deno.serve(async (_req: Request) => {
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  const FROM = Deno.env.get('EMAIL_FROM') ?? 'PitchIQ <onboarding@resend.dev>';
+  const FROM = Deno.env.get('EMAIL_FROM') ?? 'GymIQ <onboarding@resend.dev>';
 
   if (!RESEND_API_KEY) {
     // Not configured yet — leave the queue untouched so emails go out once a key is set.
@@ -47,7 +47,7 @@ Deno.serve(async (_req: Request) => {
   for (const n of pending) {
     const user = Array.isArray(n.users) ? n.users[0] : n.users;
     const email = user?.email;
-    if (!email || email.endsWith('@pitchiq.app')) {
+    if (!email || email.endsWith('@gymiq.app')) {
       // test/seed accounts have no real inbox — just mark as handled
       done.push(n.id);
       continue;
@@ -59,12 +59,12 @@ Deno.serve(async (_req: Request) => {
         body: JSON.stringify({
           from: FROM,
           to: [email],
-          subject: `PitchIQ — ${n.message.slice(0, 60)}`,
+          subject: `GymIQ — ${n.message.slice(0, 60)}`,
           html: `
             <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto">
-              <h2 style="color:#16305C">PitchIQ</h2>
+              <h2 style="color:#16305C">GymIQ</h2>
               <p style="font-size:15px;color:#222">${escapeHtml(n.message)}</p>
-              <p style="font-size:12px;color:#888">You're receiving this because your academy uses PitchIQ.
+              <p style="font-size:12px;color:#888">You're receiving this because your academy uses GymIQ.
               Open the app to see full details.</p>
             </div>`,
         }),

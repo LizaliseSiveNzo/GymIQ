@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { Link } from 'react-router-dom';
@@ -36,7 +36,7 @@ export default function Landing() {
     <div className="lp">
       <nav className="lp-nav">
         <div className="inner">
-          <div className="lp-logo"><span className="dot" /> PitchIQ</div>
+          <div className="lp-logo"><span className="dot" /> GymIQ</div>
           <div className="row" style={{ gap: 12 }}>
             <Link to="/login" className="btn btn-ghost">Sign in</Link>
             <Link to="/login" className="btn btn-primary">Get started</Link>
@@ -51,7 +51,7 @@ export default function Landing() {
             <div className="lp-eyebrow">Sports academy management</div>
             <h1 style={{ margin: '10px 0 16px' }}>Run your academy like a pro club.</h1>
             <p className="lead">
-              PitchIQ digitises how academies track players, talk to parents, run trials, and measure
+              GymIQ digitises how academies track players, talk to parents, run trials, and measure
               performance — all in one place. One subscription per school.
             </p>
             <div className="row" style={{ gap: 12, marginTop: 24 }}>
@@ -157,7 +157,7 @@ export default function Landing() {
 
       <footer className="lp-footer">
         <div className="inner">
-          <div className="lp-logo" style={{ fontSize: 16 }}><span className="dot" /> PitchIQ</div>
+          <div className="lp-logo" style={{ fontSize: 16 }}><span className="dot" /> GymIQ</div>
           <span>© 2026 RevidArch</span>
         </div>
       </footer>

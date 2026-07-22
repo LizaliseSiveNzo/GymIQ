@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 -- Team-level coaching journal entries (aggregated with training + match journals)
 create table if not exists public.coach_journal_entries (
   id uuid primary key default gen_random_uuid(),

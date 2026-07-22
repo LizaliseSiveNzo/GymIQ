@@ -1,12 +1,12 @@
 # Statement of Ownership & Authorship
 
-**Software:** PitchIQ — sports academy management platform
+**Software:** GymIQ — sports academy management platform
 **Sole Owner & Author:** Lizalise Nzo (the "Owner")
 **Copyright:** © 2026 Lizalise Nzo. All rights reserved.
 
 ## Declaration
 
-Lizalise Nzo is the sole author, creator, and owner of the PitchIQ software,
+Lizalise Nzo is the sole author, creator, and owner of the GymIQ software,
 including without limitation its source code, database schemas, user interface,
 design system, documentation, branding, and all related materials
 (collectively, the "Work").

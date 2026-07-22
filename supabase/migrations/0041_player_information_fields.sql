@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Phase 1 (item 4): richer Player Information + safeguarding contacts
 alter table public.players

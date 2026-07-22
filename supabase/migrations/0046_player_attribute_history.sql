@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 -- Phase 4 (item 5): attribute ratings tracked over time
 create table if not exists public.player_attribute_history (
   id uuid primary key default gen_random_uuid(),

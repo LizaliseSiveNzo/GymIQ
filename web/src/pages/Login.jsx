@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { useState } from 'react';
@@ -33,8 +33,8 @@ export default function Login() {
     setBusy(true);
     try {
       if (mode === 'login') {
-        // usernames work too: "coach" -> coach@pitchiq.app
-        const loginEmail = email.includes('@') ? email.trim() : `${email.trim().toLowerCase()}@pitchiq.app`;
+        // usernames work too: "coach" -> coach@gymiq.app
+        const loginEmail = email.includes('@') ? email.trim() : `${email.trim().toLowerCase()}@gymiq.app`;
         const { error, role: r } = await signIn({ email: loginEmail, password });
         if (error) { setError(error); return; }
         navigate(`/${r}`);
@@ -68,7 +68,7 @@ export default function Login() {
     <div className="auth">
       <aside className="auth-brand">
         <div className="row" style={{ gap: 10, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
-          <span className="dot" /> PitchIQ
+          <span className="dot" /> GymIQ
         </div>
         <div>
           <h2>Run your academy like a pro club.</h2>

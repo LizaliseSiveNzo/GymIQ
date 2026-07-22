@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { useEffect, useState } from 'react';
@@ -52,7 +52,7 @@ export default function TrialRegister() {
       <div className="card" style={{ maxWidth: 440, width: '100%' }}>
         <div className="row" style={{ gap: 10, marginBottom: 6 }}>
           <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--green-600)' }} />
-          <strong style={{ fontFamily: 'var(--font-display)' }}>{trial.org_name || 'PitchIQ'}</strong>
+          <strong style={{ fontFamily: 'var(--font-display)' }}>{trial.org_name || 'GymIQ'}</strong>
         </div>
         <h2 style={{ marginTop: 4 }}>Trial registration</h2>
         <p className="subtle">{new Date(trial.date).toLocaleDateString()} · {trial.sport}</p>

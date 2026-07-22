@@ -1,9 +1,9 @@
-# PitchIQ — Architecture
+# GymIQ — Architecture
 
 Monorepo (npm workspaces).
 
 ```
-pitchiq/
+gymiq/
 ├── web/        React (Vite) — admin/coach/player + public trial page
 ├── supabase/   SQL migrations (schema + RLS) + edge functions
 ├── mobile/     React Native (Expo) — placeholder (web app is mobile-optimized; PWA planned)

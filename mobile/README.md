@@ -1,4 +1,4 @@
-# PitchIQ — Mobile (React Native)
+# GymIQ — Mobile (React Native)
 
 Coaches log training/matches on a phone; parents & players check in on the go.
 Placeholder structure — scaffold with Expo when Phase 4 (notifications) begins.

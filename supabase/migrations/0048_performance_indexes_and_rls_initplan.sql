@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 -- Performance pass: FK covering indexes + RLS initplan rewrites.
 -- (Applied to production via Supabase MCP; kept here for the migration record.)
 

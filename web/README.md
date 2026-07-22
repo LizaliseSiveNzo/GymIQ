@@ -1,4 +1,4 @@
-# PitchIQ — Web (React + Vite)
+# GymIQ — Web (React + Vite)
 
 Dark theme, green accent (#00e676), mobile-responsive.
 

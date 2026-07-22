@@ -1,4 +1,4 @@
-# PitchIQ — UI Design Specification
+# GymIQ — UI Design Specification
 
 **Direction:** Light & institutional. Clean, trustworthy, professional — built to make a school director feel this is a serious tool worth paying for. Green is an accent (action, success, rank), never the whole room. A brighter "energy green" appears only in player-facing / gamified moments.
 
@@ -18,7 +18,7 @@
 
 ---
 
-## 2. Brand & visual language (summary — full tokens in `pitchiq-design-system.css`)
+## 2. Brand & visual language (summary — full tokens in `gymiq-design-system.css`)
 
 - **Ink / primary:** deep institutional navy — headings, nav, primary text.
 - **Brand green:** the action & success color (buttons, active states, positive stats).
@@ -127,7 +127,7 @@
 ---
 
 ## 7. Deliverables in this folder
-- `PitchIQ_Design_Spec.md` — this document.
-- `pitchiq-design-system.css` — installable design tokens + base component styles.
+- `GymIQ_Design_Spec.md` — this document.
+- `gymiq-design-system.css` — installable design tokens + base component styles.
 - `style-guide.html` — open in a browser to see the palette, type, components, and sample screens.
 - `claude-design-prompt.md` — paste-ready prompt to generate the full UI project in Claude Design.

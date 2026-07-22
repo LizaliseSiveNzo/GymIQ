@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Per-game minutes / stats log for a player (authz: the player, their coach, or admin)
 create or replace function player_match_log(p_player uuid default null)

@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Phase 6: trial QR check-in
 create policy trialreg_staff_update on trial_registrations for update
@@ -37,7 +37,7 @@ begin
   update trial_registrations set outcome = p_outcome::trial_outcome, coach_notes = coalesce(p_notes, coach_notes)
     where id = p_reg returning * into rec;
   if rec.id is null then return json_build_object('ok', false, 'error', 'Registration not found'); end if;
-  msg := format('Hi %s, we have reviewed %s''s trial. Outcome: %s. — PitchIQ', rec.parent_name, rec.child_name, rec.outcome);
+  msg := format('Hi %s, we have reviewed %s''s trial. Outcome: %s. — GymIQ', rec.parent_name, rec.child_name, rec.outcome);
   select id into matched from users where lower(email) = lower(rec.parent_email) limit 1;
   if matched is not null then insert into notifications (user_id, message) values (matched, msg); end if;
   return json_build_object('ok', true, 'message', msg, 'notified', matched is not null);

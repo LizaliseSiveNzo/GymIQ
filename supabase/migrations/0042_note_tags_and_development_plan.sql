@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Phase 2 (items 7 & 8): tagged coach notes + development plan tracker
 alter table public.coach_player_notes add column if not exists tag text not null default 'General';

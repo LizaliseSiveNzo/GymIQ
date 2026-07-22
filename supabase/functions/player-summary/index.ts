@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -11,7 +11,7 @@ const cors = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const SYSTEM_PROMPT = `You are a youth sports development assistant for PitchIQ. Given a player's recent stats and coach notes, write a short encouraging but honest performance summary (max 150 words). Include: what the player is doing well, one area to improve, one practical home training tip. Write for both a parent and a 13-year-old to understand. Do not invent statistics that are not provided.`;
+const SYSTEM_PROMPT = `You are a youth sports development assistant for GymIQ. Given a player's recent stats and coach notes, write a short encouraging but honest performance summary (max 150 words). Include: what the player is doing well, one area to improve, one practical home training tip. Write for both a parent and a 13-year-old to understand. Do not invent statistics that are not provided.`;
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });

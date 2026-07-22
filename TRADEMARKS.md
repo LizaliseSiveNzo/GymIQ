@@ -1,6 +1,6 @@
 # Trademarks
 
-"PitchIQ", the PitchIQ name, logo, and any associated marks, slogans, and
+"GymIQ", the GymIQ name, logo, and any associated marks, slogans, and
 branding (the "Marks") are trademarks of Lizalise Nzo (the "Owner").
 
 - The Marks may not be used without the prior written permission of the Owner.

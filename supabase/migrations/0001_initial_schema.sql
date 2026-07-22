@@ -1,7 +1,7 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
--- PitchIQ — Initial database schema (Phase 1)
+-- GymIQ — Initial database schema (Phase 1)
 -- Postgres / Supabase. Includes tables + Row Level Security policies.
 -- Roles: admin | coach | parent | player
 

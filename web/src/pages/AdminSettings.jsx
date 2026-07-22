@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { useEffect, useState } from 'react';
@@ -55,7 +55,7 @@ export default function AdminSettings() {
 
         <div className="card">
           <h4>Sports</h4>
-          <p className="subtle" style={{ marginTop: 0 }}>PitchIQ is multi-sport — each team picks its sport. Add a team in any sport to expand.</p>
+          <p className="subtle" style={{ marginTop: 0 }}>GymIQ is multi-sport — each team picks its sport. Add a team in any sport to expand.</p>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
             {SPORTS.map((s) => (
               <span key={s} className={`badge ${sports.includes(s) ? 'badge-success' : 'badge-neutral'}`}>

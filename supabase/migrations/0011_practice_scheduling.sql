@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Practice scheduling: training sessions get a time + location; players/parents read their team's sessions
 alter table training_sessions add column if not exists starts_at timestamptz;

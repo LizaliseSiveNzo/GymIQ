@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Admin: list every player registration (incl. self-signups with no player row yet) + assign to a team.
 create or replace function admin_list_players()

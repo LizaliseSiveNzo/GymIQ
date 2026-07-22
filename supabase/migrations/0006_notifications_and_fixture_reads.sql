@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Phase 4: schedule + notifications (see also 0007 recursion fix)
 create or replace function public.notify_team(p_team uuid, p_message text)

@@ -1,12 +1,12 @@
-# Claude Design — Project Prompt for PitchIQ
+# Claude Design — Project Prompt for GymIQ
 
-Paste the block below into Claude Design (claude.ai → Design, or the "New design project" flow) to generate the PitchIQ UI. It encodes the brand, tokens, and every screen. Generate screens one section at a time for best results, then ask for a shared component library.
+Paste the block below into Claude Design (claude.ai → Design, or the "New design project" flow) to generate the GymIQ UI. It encodes the brand, tokens, and every screen. Generate screens one section at a time for best results, then ask for a shared component library.
 
 ---
 
 ## PROMPT — paste from here ↓
 
-Create a new design project called **PitchIQ** — a sports academy management platform (SaaS). One subscription per school; starts with soccer, expands to rugby, cricket, chess. The buyer is a **school director / academy owner**, so the design must feel **professional, trustworthy, and premium** — software a school pays for, not a toy.
+Create a new design project called **GymIQ** — a sports academy management platform (SaaS). One subscription per school; starts with soccer, expands to rugby, cricket, chess. The buyer is a **school director / academy owner**, so the design must feel **professional, trustworthy, and premium** — software a school pays for, not a toy.
 
 **Art direction: light & institutional.**
 - Clean white surfaces on a cool light-gray background (#F5F8FC). Generous whitespace. Soft, low shadows.
@@ -49,7 +49,7 @@ Deliver a cohesive, production-ready design with a shared style library and both
 ---
 
 ### Tips
-- If Claude Design supports importing tokens, hand it `pitchiq-design-system.css` for exact colors, type, and spacing.
+- If Claude Design supports importing tokens, hand it `gymiq-design-system.css` for exact colors, type, and spacing.
 - Generate the **landing page + login first** — that's what sells the look — then the dashboards.
 - Ask for a **component library / style guide frame** at the end so everything stays consistent.
 - To pull a generated design back into the codebase, use the "import design from URL" flow, then map components onto `web/src/components/`.

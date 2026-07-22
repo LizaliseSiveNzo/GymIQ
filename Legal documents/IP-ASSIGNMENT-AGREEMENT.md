@@ -6,14 +6,14 @@
 **This Agreement** is made between:
 
 - **Owner:** Lizalise Nzo ("Owner"), sole owner of the software known as
-  "PitchIQ"; and
+  "GymIQ"; and
 - **Contributor:** [Full name], ID/Passport no. [____], of [address]
   ("Contributor").
 
 **Effective date:** [date]
 
 ## 1. Background
-The Contributor has performed or will perform work relating to PitchIQ,
+The Contributor has performed or will perform work relating to GymIQ,
 including software development, design, documentation, or other creative or
 technical work (the "Contributions").
 
@@ -41,12 +41,12 @@ and authority to make this assignment and has not previously assigned or
 licensed the Contributions to anyone else.
 
 ## 6. Confidentiality
-The Contributor will keep all non-public information about PitchIQ confidential
+The Contributor will keep all non-public information about GymIQ confidential
 and will not use it except for the benefit of the Owner.
 
 ## 7. No Retained Rights
 The Contributor retains no ownership, licence, or other interest in the
-Contributions or in PitchIQ.
+Contributions or in GymIQ.
 
 ## 8. Consideration
 This assignment is made in consideration of [payment / employment / engagement /

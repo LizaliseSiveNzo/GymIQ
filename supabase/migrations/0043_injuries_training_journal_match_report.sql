@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 -- Phase 3 (items 9, 10, 11): injuries/return-to-play, training journal, match report
 
 create table if not exists public.injuries (

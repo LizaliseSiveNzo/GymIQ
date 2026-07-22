@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { Link } from 'react-router-dom';
@@ -19,7 +19,7 @@ export default function Privacy() {
     <div className="container" style={{ maxWidth: 760, padding: '28px 18px 60px' }}>
       <div className="row between" style={{ marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
         <div className="row" style={{ gap: 10, fontWeight: 800, fontSize: 20 }}>
-          <span className="dot" /> PitchIQ
+          <span className="dot" /> GymIQ
         </div>
         <Link to="/login" className="btn btn-ghost" style={{ minHeight: 34 }}>← Back to sign in</Link>
       </div>
@@ -29,14 +29,14 @@ export default function Privacy() {
         <p className="subtle" style={{ marginTop: 0 }}>Version {CONSENT_VERSION} · Last updated July 2026 · Governed by the laws of the Republic of South Africa</p>
 
         <div style={{ border: '1px solid var(--border)', borderLeft: '4px solid var(--energy)', borderRadius: 12, padding: '12px 14px', marginTop: 16 }}>
-          <strong>In short:</strong> PitchIQ stores information about young athletes so their coach can run training,
+          <strong>In short:</strong> GymIQ stores information about young athletes so their coach can run training,
           track development and keep families informed. We only collect what a coach genuinely needs, we never sell it,
           and a parent or guardian can ask to see or delete it at any time.
         </div>
 
         <S title="1. Who is responsible for this information">
-          PitchIQ is owned and operated by <strong>Lizalise Nzo</strong> and <strong>Dumabezwe Skele</strong> (jointly, the “Operator”), who acts as the responsible
-          party under the Protection of Personal Information Act 4 of 2013 (“POPIA”). The sports academy using PitchIQ
+          GymIQ is owned and operated by <strong>Lizalise Nzo</strong> and <strong>Dumabezwe Skele</strong> (jointly, the “Operator”), who acts as the responsible
+          party under the Protection of Personal Information Act 4 of 2013 (“POPIA”). The sports academy using GymIQ
           is the operator of the data about its own players. Questions or requests can be sent to the academy in the
           first instance, or to the Operator.
         </S>
@@ -54,7 +54,7 @@ export default function Privacy() {
         </S>
 
         <S title="3. Children’s information">
-          Most PitchIQ users are under 18. Under POPIA, personal information about a child may only be processed with
+          Most GymIQ users are under 18. Under POPIA, personal information about a child may only be processed with
           the consent of a competent person — normally a parent or legal guardian. By creating a player account, or by
           allowing a child to be added to a squad, the parent or guardian confirms they consent to the processing
           described in this policy. Consent can be withdrawn at any time by contacting the academy, after which the

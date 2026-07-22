@@ -1,5 +1,5 @@
 Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
-PitchIQ — proprietary and confidential. Unauthorised use, copying, or
+GymIQ — proprietary and confidential. Unauthorised use, copying, or
 distribution is prohibited. See the LICENSE file at the repository root.
 
 --- How to use this header ---
@@ -9,9 +9,9 @@ ownership. Examples:
 JavaScript / TypeScript / CSS:
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 SQL:
 -- Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.

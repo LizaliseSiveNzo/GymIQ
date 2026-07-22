@@ -1,8 +1,8 @@
 {
-  "name": "pitchiq",
+  "name": "gymiq",
   "version": "0.1.0",
   "private": true,
-  "description": "PitchIQ — sports academy management platform (Built with Claude · RevidArch)",
+  "description": "GymIQ \u2014 sports academy management platform (Built with Claude \u00b7 RevidArch)",
   "workspaces": [
     "web"
   ],

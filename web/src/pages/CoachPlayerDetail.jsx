@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { useEffect, useState } from 'react';
@@ -25,7 +25,7 @@ import { playerInsights } from '../lib/insights.js';
 import { initials } from '../lib/format.js';
 
 const TABS = ['Overview', 'Development', 'Matches', 'Training', 'Notes', 'Documents', 'Medical'];
-const TAB_KEY = 'pitchiq.playerTab';
+const TAB_KEY = 'gymiq.playerTab';
 
 export default function CoachPlayerDetail() {
   const { id } = useParams();

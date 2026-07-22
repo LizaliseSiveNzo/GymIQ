@@ -4,14 +4,14 @@
 > qualified South African attorney before use. Fill in the bracketed fields.
 
 **Between:**
-- **Disclosing Party:** Lizalise Nzo, owner of "PitchIQ" ("Owner"); and
+- **Disclosing Party:** Lizalise Nzo, owner of "GymIQ" ("Owner"); and
 - **Receiving Party:** [Full name / company], of [address] ("Recipient").
 
 **Effective date:** [date]
 
 ## 1. Purpose
 The Owner may share confidential information with the Recipient so the Recipient
-can [evaluate / develop / collaborate on / provide services for] PitchIQ (the
+can [evaluate / develop / collaborate on / provide services for] GymIQ (the
 "Purpose").
 
 ## 2. Confidential Information
@@ -32,7 +32,7 @@ through no fault of the Recipient, was lawfully known before disclosure, or is
 independently developed without use of the Confidential Information.
 
 ## 5. No Rights Granted
-No licence or ownership right in the Confidential Information or in PitchIQ is
+No licence or ownership right in the Confidential Information or in GymIQ is
 granted to the Recipient. All rights remain with the Owner.
 
 ## 6. Return or Destruction

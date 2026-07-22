@@ -1,6 +1,6 @@
-# Contributing to PitchIQ
+# Contributing to GymIQ
 
-PitchIQ is proprietary software solely owned by Lizalise Nzo (the "Owner").
+GymIQ is proprietary software solely owned by Lizalise Nzo (the "Owner").
 It is **not** an open-source project and does not accept public contributions.
 
 ## No unsolicited contributions
@@ -11,7 +11,7 @@ place.
 
 ## Mandatory IP assignment
 
-Anyone who performs any work on PitchIQ — employees, contractors, freelancers,
+Anyone who performs any work on GymIQ — employees, contractors, freelancers,
 collaborators, or advisers — **must** sign the Intellectual Property Assignment
 Agreement in [`legal/IP-ASSIGNMENT-AGREEMENT.md`](legal/IP-ASSIGNMENT-AGREEMENT.md)
 **before** contributing. That agreement assigns all rights in the contribution

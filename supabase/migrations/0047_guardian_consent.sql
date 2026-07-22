@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 -- Guardian consent capture (POPIA: children's data requires guardian consent)
 alter table public.users
   add column if not exists consent_accepted_at timestamptz,

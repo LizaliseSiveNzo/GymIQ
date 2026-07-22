@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Phase 5: ranking engine
 -- Score 0-100 = attendance_rate*40 + min(minutes/900,1)*30 + (avg_rating/5)*30

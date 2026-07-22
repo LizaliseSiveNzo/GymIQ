@@ -1,5 +1,5 @@
 -- Copyright © 2026 Lizalise Nzo. All rights reserved.
--- PitchIQ — proprietary and confidential. See LICENSE.
+-- GymIQ — proprietary and confidential. See LICENSE.
 
 -- Break cross-table RLS recursion (teams <-> players <-> matches) via SECURITY DEFINER helpers.
 create or replace function fn_coach_team_ids() returns setof uuid language sql stable security definer set search_path=public as $$ select id from teams where coach_id=auth.uid() $$;

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { useEffect, useState } from 'react';
@@ -35,7 +35,7 @@ export default function AppShell({ active, title, children }) {
   return (
     <div className="app">
       <aside className="sidebar">
-        <div className="brand"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--energy)' }} /> PitchIQ</div>
+        <div className="brand"><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--energy)' }} /> GymIQ</div>
         {items.map(([label, icon, path]) => {
           const cls = `nav-item ${label === active ? 'active' : ''}`;
           const inner = <><span style={{ width: 18, textAlign: 'center' }}>{icon}</span> {label}</>;
@@ -62,7 +62,7 @@ export default function AppShell({ active, title, children }) {
               🔔
               {unread > 0 && <span style={{ position: 'absolute', top: 2, right: 2, background: 'var(--danger)', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{unread}</span>}
             </button>
-            <span className="badge badge-neutral hide-mobile">{profile?.org || 'PitchIQ'}</span>
+            <span className="badge badge-neutral hide-mobile">{profile?.org || 'GymIQ'}</span>
             <span className="avatar">{initials(profile?.name)}</span>
           </div>
         </header>

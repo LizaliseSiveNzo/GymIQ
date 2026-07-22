@@ -1,4 +1,4 @@
-# PitchIQ
+# GymIQ
 
 **Sports academy management platform** — track players, communicate with parents, manage trials, and measure performance. Soccer first, then rugby, cricket, chess. One subscription per school.
 
@@ -7,7 +7,7 @@ Built with React, Node.js, Supabase, and the Claude API. _Built with Claude · R
 ## Monorepo layout
 
 ```
-pitchiq/
+gymiq/
 ├── backend/    Node.js + Express REST API (Supabase + Claude API)
 ├── web/        React (Vite) web app — dark theme, green accent (#00e676)
 ├── mobile/     React Native (Expo) — placeholder for Phase 4+
@@ -51,4 +51,4 @@ React · React Native · Node.js/Express · Supabase (DB + auth + storage) · Cl
 
 1. Auth system 2. Player profiles 3. Stats logging 4. Schedule + notifications 5. Ranking 6. Trial QR check-in 7. AI coach summaries 8. Multi-sport expansion
 
-See `docs/ARCHITECTURE.md` and `PitchIQ_Blueprint.pdf` for full detail.
+See `docs/ARCHITECTURE.md` and `GymIQ_Blueprint.pdf` for full detail.

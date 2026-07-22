@@ -1,6 +1,6 @@
 /*
  * Copyright © 2026 Lizalise Nzo & Dumabezwe Skele. All rights reserved.
- * PitchIQ — proprietary and confidential. See LICENSE.
+ * GymIQ — proprietary and confidential. See LICENSE.
  */
 
 import { useEffect, useState } from 'react';
@@ -52,7 +52,7 @@ export default function AdminPlayers() {
     try {
       const child_code = genCode();
       const { data: u, error: ue } = await supabase.from('users')
-        .insert({ name: form.name, email: `${child_code.toLowerCase()}@player.pitchiq.local`, role: 'player' })
+        .insert({ name: form.name, email: `${child_code.toLowerCase()}@player.gymiq.local`, role: 'player' })
         .select().single();
       if (ue) { setErr(ue.message); return; }
       const { error } = await supabase.from('players').insert({
