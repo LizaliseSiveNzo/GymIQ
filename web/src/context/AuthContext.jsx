@@ -12,6 +12,7 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [profileError, setProfileError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,10 +24,25 @@ export function AuthProvider({ children }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Surface failures instead of leaving the UI on a spinner forever. If this
+  // read fails (permission denied, missing profile row, network), ProtectedRoute
+  // needs to know it *finished and failed* — not that it's still loading.
   useEffect(() => {
     if (!session?.user || session.demo) return;
+    let cancelled = false;
+    setProfileError(null);
     supabase.from('users').select('*').eq('id', session.user.id).single()
-      .then(({ data }) => { if (data) setProfile(data); });
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('[GymIQ] could not load profile:', error.message, error);
+          setProfileError(error.message || 'Could not load your profile.');
+          return;
+        }
+        if (data) setProfile(data);
+        else setProfileError('No profile found for this account.');
+      });
+    return () => { cancelled = true; };
   }, [session]);
 
   async function refreshProfile() {
@@ -69,7 +85,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      session, profile, role: profile?.role, loading,
+      session, profile, profileError, role: profile?.role, loading,
       signIn, signUp, logout, refreshProfile,
     }}>
       {children}
