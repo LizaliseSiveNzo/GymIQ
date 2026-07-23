@@ -9,10 +9,13 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 
 // [label, icon, path|null]
+// GymIQ trainer↔client model. Internal roles stay 'coach'/'player'; labels are
+// Trainer/Client. Client-centric nav: a client's programme, progress, nutrition
+// and session log live INSIDE their detail page, not as top-level items.
 const NAV = {
   admin:  [['Dashboard','▚','/admin'],['Teams','👥','/admin/teams'],['Players','⚽','/admin/players'],['Coaches','🏃','/admin/coaches'],['Activity','📒','/admin/activity'],['Broadcast','📣','/admin/broadcast'],['Trials','📋','/admin/trials'],['Settings','⚙','/admin/settings']],
-  coach:  [['Dashboard','▚','/coach'],['Squad','👥','/coach/squad'],['Schedule','📅','/coach/schedule'],['Matches','⚽','/coach/match'],['Announcements','📣','/coach/announcements'],['Training','➕','/coach/training'],['Journal','📓','/coach/journal'],['Leaderboard','🏆','/leaderboard']],
-  player: [['My Profile','⚽','/player'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements'],['Leaderboard','🏆','/leaderboard']],
+  coach:  [['Dashboard','▚','/coach'],['Clients','👥','/coach/squad'],['Schedule','📅','/coach/schedule'],['Announcements','📣','/coach/announcements'],['Journal','📓','/coach/journal']],
+  player: [['Home','▚','/customer'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements']],
 };
 
 const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
