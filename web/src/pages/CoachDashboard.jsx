@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
+import Calendar from '../components/Calendar.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { initials } from '../lib/format.js';
@@ -15,6 +16,7 @@ export default function CoachDashboard() {
   const { session, profile } = useAuth();
   const [clients, setClients] = useState(null);
   const [recent, setRecent] = useState([]);
+  const [events, setEvents] = useState([]);
   const [stats, setStats] = useState({ withProgramme: 0, loggedThisWeek: 0 });
 
   useEffect(() => { if (session?.demo || !profile) return; (async () => {
@@ -25,19 +27,21 @@ export default function CoachDashboard() {
     const cs = (links || []).map((r) => r.client).filter(Boolean);
     setClients(cs);
     const ids = cs.map((c) => c.id);
-    if (ids.length === 0) { setRecent([]); return; }
-
-    // recent logged sessions across all clients
-    const { data: logs } = await supabase
-      .from('workout_logs')
-      .select('id, client_id, log_date, logged_sets(id)')
-      .in('client_id', ids)
-      .order('log_date', { ascending: false })
-      .limit(8);
+    if (ids.length === 0) { setRecent([]); setEvents([]); return; }
     const byId = Object.fromEntries(cs.map((c) => [c.id, c]));
-    setRecent((logs || []).map((l) => ({ ...l, client: byId[l.client_id] })));
 
-    // quick stats
+    const [{ data: logs }, { data: appts }] = await Promise.all([
+      supabase.from('workout_logs').select('id, client_id, log_date, logged_sets(id)').in('client_id', ids).order('log_date', { ascending: false }).limit(200),
+      supabase.from('appointments').select('id, client_id, starts_at, duration_min, note').order('starts_at', { ascending: true }),
+    ]);
+
+    setRecent((logs || []).slice(0, 8).map((l) => ({ ...l, client: byId[l.client_id] })));
+
+    const ev = [];
+    (appts || []).forEach((a) => ev.push({ date: a.starts_at.slice(0, 10), kind: 'appointment', label: `${byId[a.client_id]?.name || 'Client'} · session${a.note ? ` (${a.note})` : ''}` }));
+    (logs || []).forEach((l) => ev.push({ date: l.log_date, kind: 'session', label: `${byId[l.client_id]?.name || 'Client'} logged a workout` }));
+    setEvents(ev);
+
     const weekAgo = new Date(Date.now() - 7 * 86400e3).toISOString().slice(0, 10);
     const [{ count: progCount }, { count: weekCount }] = await Promise.all([
       supabase.from('workout_programmes').select('client_id', { count: 'exact', head: true }).in('client_id', ids).eq('is_active', true),
@@ -63,6 +67,10 @@ export default function CoachDashboard() {
           <div className="kpi-value">{stats.withProgramme}</div></div>
         <div className="kpi"><div className="kpi-label">Sessions this week</div>
           <div className="kpi-value">{stats.loggedThisWeek}</div></div>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <Calendar events={events} title="This month" />
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>

@@ -5,10 +5,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
+import Calendar from '../components/Calendar.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 
-const TABS = ['My plan', 'Log session', 'Progress', 'Nutrition'];
+const TABS = ['My plan', 'Log session', 'Progress', 'Nutrition', 'Calendar', 'Journal'];
 
 // The client's own view. All reads/writes are scoped to their own client_id
 // (= auth.uid) by RLS, so no id needs to be passed around.
@@ -35,6 +36,8 @@ export default function PlayerProfile() {
       {tab === 'Log session' && <LogSession cid={cid} />}
       {tab === 'Progress'    && <Progress cid={cid} />}
       {tab === 'Nutrition'   && <Nutrition cid={cid} />}
+      {tab === 'Calendar'    && <MyCalendar cid={cid} />}
+      {tab === 'Journal'     && <MyJournal cid={cid} />}
     </AppShell>
   );
 }
@@ -298,6 +301,76 @@ function Nutrition({ cid }) {
           <button className="btn btn-primary" style={{ gridColumn: '1 / -1' }}>{today ? 'Update today' : 'Save today'}</button>
         </form>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ Calendar */
+function MyCalendar({ cid }) {
+  const [events, setEvents] = useState(null);
+  useEffect(() => { (async () => {
+    const [appts, logs, journal, metrics] = await Promise.all([
+      supabase.from('appointments').select('starts_at, duration_min, note').eq('client_id', cid),
+      supabase.from('workout_logs').select('log_date, note, logged_sets(id)').eq('client_id', cid).limit(300),
+      supabase.from('client_journal').select('entry_date, body').eq('client_id', cid).limit(300),
+      supabase.from('body_metrics').select('metric_date, weight_kg').eq('client_id', cid).limit(300),
+    ]);
+    const ev = [];
+    (appts.data || []).forEach((a) => ev.push({ date: a.starts_at.slice(0, 10), kind: 'appointment', label: `Session · ${a.duration_min} min${a.note ? ` (${a.note})` : ''}` }));
+    (logs.data || []).forEach((l) => ev.push({ date: l.log_date, kind: 'session', label: `Workout · ${l.logged_sets?.length || 0} sets` }));
+    (journal.data || []).forEach((j) => ev.push({ date: j.entry_date, kind: 'journal', label: `Journal: ${j.body.slice(0, 60)}` }));
+    (metrics.data || []).forEach((m) => ev.push({ date: m.metric_date, kind: 'metric', label: `Check-in${m.weight_kg != null ? ` · ${m.weight_kg}kg` : ''}` }));
+    setEvents(ev);
+  })(); }, [cid]);
+  if (events === null) return <div className="card">Loading…</div>;
+  return <Calendar events={events} title="My month" />;
+}
+
+/* ------------------------------------------------------------------- Journal */
+function MyJournal({ cid }) {
+  const [entries, setEntries] = useState(null);
+  const [body, setBody] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    const { data } = await supabase.from('client_journal')
+      .select('*').eq('client_id', cid).order('entry_date', { ascending: false }).order('created_at', { ascending: false });
+    setEntries(data || []);
+  }
+  useEffect(() => { load(); }, [cid]);
+
+  async function add(e) {
+    e.preventDefault();
+    if (!body.trim()) return;
+    setBusy(true);
+    try {
+      await supabase.from('client_journal').insert({ client_id: cid, body: body.trim() });
+      setBody(''); load();
+    } finally { setBusy(false); }
+  }
+  async function del(id) { await supabase.from('client_journal').delete().eq('id', id); load(); }
+
+  return (
+    <div className="stack">
+      <div className="card">
+        <h4 style={{ marginTop: 0 }}>Add a note</h4>
+        <p className="subtle" style={{ fontSize: 12, marginTop: 0 }}>Jot down how you're feeling, cravings, energy, sleep — your trainer can see these.</p>
+        <form onSubmit={add}>
+          <textarea className="textarea" placeholder="What's on your mind today?" value={body} onChange={(e) => setBody(e.target.value)} />
+          <button className="btn btn-primary" style={{ marginTop: 8 }} disabled={busy || !body.trim()}>Save note</button>
+        </form>
+      </div>
+      {entries === null ? <div className="card">Loading…</div>
+       : entries.length === 0 ? <div className="card"><p className="subtle" style={{ margin: 0 }}>No notes yet.</p></div>
+       : entries.map((e) => (
+        <div className="card" key={e.id}>
+          <div className="row between">
+            <span className="subtle" style={{ fontSize: 12 }}>{e.entry_date}</span>
+            <button className="btn btn-ghost" style={{ minHeight: 26 }} onClick={() => del(e.id)}>Delete</button>
+          </div>
+          <p style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{e.body}</p>
+        </div>
+      ))}
     </div>
   );
 }

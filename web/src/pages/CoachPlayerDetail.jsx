@@ -6,11 +6,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
+import Calendar from '../components/Calendar.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { initials } from '../lib/format.js';
 
-const TABS = ['Overview', 'Programme', 'Progress', 'Nutrition', 'Sessions', 'Notes'];
+const TABS = ['Overview', 'Programme', 'Progress', 'Nutrition', 'Sessions', 'Calendar', 'Journal', 'Notes'];
 
 export default function CoachPlayerDetail() {
   const { id } = useParams();
@@ -50,6 +51,8 @@ export default function CoachPlayerDetail() {
       {tab === 'Progress'  && <Progress  clientId={id} />}
       {tab === 'Nutrition' && <Nutrition clientId={id} />}
       {tab === 'Sessions'  && <Sessions  clientId={id} />}
+      {tab === 'Calendar'  && <ClientCalendar clientId={id} />}
+      {tab === 'Journal'   && <ClientJournalView clientId={id} />}
       {tab === 'Notes'     && <Notes     clientId={id} />}
     </AppShell>
   );
@@ -547,6 +550,51 @@ function Notes({ clientId }) {
             <button className="btn btn-ghost" style={{ minHeight: 26 }} onClick={() => del(n.id)}>Delete</button>
           </div>
           <p style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{n.note}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ Calendar */
+function ClientCalendar({ clientId }) {
+  const [events, setEvents] = useState(null);
+  useEffect(() => { (async () => {
+    const [appts, logs, journal, metrics] = await Promise.all([
+      supabase.from('appointments').select('starts_at, duration_min, note').eq('client_id', clientId),
+      supabase.from('workout_logs').select('log_date, note, logged_sets(id)').eq('client_id', clientId).limit(300),
+      supabase.from('client_journal').select('entry_date, body').eq('client_id', clientId).limit(300),
+      supabase.from('body_metrics').select('metric_date, weight_kg').eq('client_id', clientId).limit(300),
+    ]);
+    const ev = [];
+    (appts.data || []).forEach((a) => ev.push({ date: a.starts_at.slice(0, 10), kind: 'appointment', label: `Session · ${a.duration_min} min${a.note ? ` (${a.note})` : ''}` }));
+    (logs.data || []).forEach((l) => ev.push({ date: l.log_date, kind: 'session', label: `Workout · ${l.logged_sets?.length || 0} sets${l.note ? ` (${l.note})` : ''}` }));
+    (journal.data || []).forEach((j) => ev.push({ date: j.entry_date, kind: 'journal', label: `Journal: ${j.body.slice(0, 60)}` }));
+    (metrics.data || []).forEach((m) => ev.push({ date: m.metric_date, kind: 'metric', label: `Check-in${m.weight_kg != null ? ` · ${m.weight_kg}kg` : ''}` }));
+    setEvents(ev);
+  })(); }, [clientId]);
+
+  if (events === null) return <div className="card">Loading…</div>;
+  return <Calendar events={events} title="Client month" />;
+}
+
+/* ---------------------------------------------------- Client journal (read) */
+function ClientJournalView({ clientId }) {
+  const [entries, setEntries] = useState(null);
+  useEffect(() => { (async () => {
+    const { data } = await supabase.from('client_journal')
+      .select('*').eq('client_id', clientId).order('entry_date', { ascending: false }).order('created_at', { ascending: false });
+    setEntries(data || []);
+  })(); }, [clientId]);
+
+  if (entries === null) return <div className="card">Loading…</div>;
+  if (entries.length === 0) return <div className="card"><p className="subtle" style={{ margin: 0 }}>Your client hasn't written any journal notes yet. Their entries appear here.</p></div>;
+  return (
+    <div className="stack">
+      {entries.map((e) => (
+        <div className="card" key={e.id}>
+          <div className="subtle" style={{ fontSize: 12 }}>{e.entry_date}</div>
+          <p style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>{e.body}</p>
         </div>
       ))}
     </div>
