@@ -3,192 +3,301 @@
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
-import RankBadge from '../components/RankBadge.jsx';
-import StatCard from '../components/StatCard.jsx';
-import InjuryTracker from '../components/InjuryTracker.jsx';
-import MatchLog from '../components/MatchLog.jsx';
-import DevelopmentPlan from '../components/DevelopmentPlan.jsx';
-import AttributeProgress from '../components/AttributeProgress.jsx';
-import { tagColour } from '../lib/noteTags.js';
-import PlayerUploads from '../components/PlayerUploads.jsx';
-import PlayerCard from '../components/PlayerCard.jsx';
-import CoachCalendar from '../components/CoachCalendar.jsx';
-import { QRCodeSVG } from 'qrcode.react';
-import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { supabase } from '../lib/supabaseClient.js';
 
-const RANKS = ['Rookie', 'Rising_Star', 'Elite', 'Master', 'Grand_Master'];
-const NEXT = { Rookie: 'Rising Star', Rising_Star: 'Elite', Elite: 'Master', Master: 'Grand Master', Grand_Master: 'Grand Master' };
-const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+const TABS = ['My plan', 'Log session', 'Progress', 'Nutrition'];
 
-const DEMO = { name: 'Thabo Mokoena', position: 'Winger', team: 'U15', rank: 'Elite', progress: 62,
-  attendance_pct: 92, minutes: 840, avg_rating: 4.4 };
-const DEMO_NOTES = [
-  { id: 1, note: 'Great pressing today. Keep working on your first touch — 10 min of wall passes a day.', created_at: new Date(Date.now() - 86400e3).toISOString() },
-  { id: 2, note: 'Man of the match vs Rivera FC. Composure in the box has improved a lot.', created_at: new Date(Date.now() - 5 * 86400e3).toISOString() },
-];
-const DEMO_MEAL = 'Breakfast: oats + banana\nPre-training: fruit + water\nDinner: chicken, brown rice, veg';
-const DEMO_SUMMARY = "Thabo's pace on the wing is creating real chances — three assists this month. Focus area: tracking back on defence. Home tip: 10 minutes of shuttle runs, 3× a week.";
-
+// The client's own view. All reads/writes are scoped to their own client_id
+// (= auth.uid) by RLS, so no id needs to be passed around.
 export default function PlayerProfile() {
   const { session, profile } = useAuth();
-  const [ov, setOv] = useState(session?.demo ? DEMO : null);
-  const [loading, setLoading] = useState(!session?.demo);
+  const [tab, setTab] = useState('My plan');
 
-  const [notes, setNotes] = useState(session?.demo ? DEMO_NOTES : []);
-  const [mealPlan, setMealPlan] = useState(session?.demo ? DEMO_MEAL : '');
+  if (session?.demo)
+    return <AppShell role="player" active="Home" title="Home"><div className="card">Demo mode — sign in as a client to see your plan.</div></AppShell>;
+  if (!profile) return <AppShell role="player" active="Home" title="Home"><div className="card">Loading…</div></AppShell>;
 
-  const [ai, setAi] = useState(session?.demo ? DEMO_SUMMARY : '');
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiErr, setAiErr] = useState('');
-  const [code, setCode] = useState(session?.demo ? 'PIQ-DEMO' : '');
-  const [myPlayerId, setMyPlayerId] = useState('');
-
-  useEffect(() => {
-    if (session?.demo) return;
-    supabase.rpc('my_player_overview').then(({ data }) => { setOv(data); setLoading(false); });
-    supabase.rpc('my_player_code').then(({ data }) => { setCode(data?.[0]?.child_code || ''); });
-    if (profile?.id) supabase.from('players').select('id').eq('user_id', profile.id).maybeSingle()
-      .then(({ data }) => setMyPlayerId(data?.id || ''));
-    supabase.from('coach_player_notes')
-      .select('id,note,diet_plan,tag,created_at')
-      .order('created_at', { ascending: false }).limit(30)
-      .then(({ data }) => {
-        setNotes((data || []).filter((n) => n.note));
-        setMealPlan((data || []).find((n) => n.diet_plan)?.diet_plan || '');
-      });
-  }, []);
-
-  async function generate() {
-    if (session?.demo) return;
-    setAiBusy(true); setAiErr(''); setAi('');
-    try {
-      const { data, error } = await supabase.functions.invoke('player-summary', { body: {} });
-      if (error) {
-        let msg = error.message;
-        try { const b = await error.context.json(); if (b?.error) msg = b.error; } catch (_e) {}
-        setAiErr(msg); return;
-      }
-      setAi(data?.summary || 'No summary returned.');
-    } catch (e) { setAiErr(String(e)); }
-    finally { setAiBusy(false); }
-  }
-
-  if (loading) return <AppShell role="player" active="My Profile" title="My Profile"><div className="card">Loading…</div></AppShell>;
-  if (!ov) return (
-    <AppShell role="player" active="My Profile" title="My Profile">
-      <div className="card"><h3>No player profile linked</h3>
-        <p className="subtle" style={{ margin: 0 }}>This account isn’t linked to a player yet. Ask your academy admin.</p></div>
-    </AppShell>
-  );
-
-  const rank = ov.rank || 'Rookie';
+  const cid = profile.id;
   return (
-    <AppShell role="player" active="My Profile" title="My Profile">
-      <div className="container" style={{ maxWidth: 640, padding: 0 }}>
-        <div className="card">
-          <div className="row between">
-            <div className="row">
-              <span className="avatar" style={{ width: 52, height: 52, fontSize: 16 }}>{initials(ov.name)}</span>
-              <div>
-                <h3 style={{ margin: 0 }}>{ov.name}</h3>
-                <div className="subtle">{[ov.team, ov.position].filter(Boolean).join(' · ') || '—'}</div>
-              </div>
-            </div>
-            <RankBadge level={rank} />
-          </div>
-
-          <div className="progress energy" style={{ margin: '18px 0 6px' }}>
-            <span style={{ width: `${ov.progress || 0}%` }} />
-          </div>
-          <div className="subtle" style={{ fontSize: 13 }}>
-            {rank === 'Grand_Master' ? 'Top rank reached! 🏆' : `${ov.progress || 0}% to ${NEXT[rank]}`}
-          </div>
-
-          <div className="ladder" style={{ marginTop: 14 }}>
-            {RANKS.map((r) => (
-              <div key={r} className={`step ${r === rank ? 'active' : ''}`}>{r.replace('_', ' ')}</div>
-            ))}
-          </div>
-
-          <div className="grid grid-3" style={{ marginTop: 18 }}>
-            <StatCard label="Attendance" value={`${ov.attendance_pct ?? 0}%`} />
-            <StatCard label="Minutes" value={ov.minutes ?? 0} />
-            <StatCard label="Avg rating" value={ov.avg_rating ?? '—'} />
-          </div>
-
-          {!session?.demo && <div style={{ marginTop: 18 }}><CoachCalendar mode="player" /></div>}
-
-          {code && (
-            <div className="card" style={{ marginTop: 18, background: 'var(--surface-2)', border: 0, textAlign: 'center' }}>
-              <strong style={{ color: 'var(--green-700)', fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-                ✅ Practice Check-in Code
-              </strong>
-              <div style={{ background: '#fff', display: 'inline-block', padding: 12, borderRadius: 12, marginTop: 12 }}>
-                <QRCodeSVG value={code} size={168} includeMargin={false} />
-              </div>
-              <p style={{ margin: '10px 0 0', fontSize: 20, fontWeight: 800, letterSpacing: '.06em' }}>{code}</p>
-              <p className="subtle" style={{ margin: '4px 0 0', fontSize: 13 }}>Show this to your coach to check in at practice. No phone? Give them the code.</p>
-            </div>
-          )}
-
-          <PlayerCard />
-
-          <div className="card" style={{ marginTop: 18, background: 'var(--surface-2)', border: 0 }}>
-            <strong style={{ color: 'var(--green-700)', fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-              🥗 Meal Plan
-            </strong>
-            {mealPlan
-              ? <p style={{ margin: '10px 0 0', whiteSpace: 'pre-line' }}>{mealPlan}</p>
-              : <p className="subtle" style={{ margin: '10px 0 0' }}>No meal plan from your coach yet.</p>}
-          </div>
-
-          <div className="card" style={{ marginTop: 18, background: 'var(--surface-2)', border: 0 }}>
-            <strong style={{ color: 'var(--green-700)', fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-              📝 Coach Notes
-            </strong>
-            {notes.length === 0
-              ? <p className="subtle" style={{ margin: '10px 0 0' }}>No notes from your coach yet.</p>
-              : notes.map((n) => (
-                <div key={n.id} style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
-                  <div className="row between" style={{ marginBottom: 4, flexWrap: 'wrap', gap: 6 }}>
-                    <span className="badge" style={{ background: tagColour(n.tag || 'General'), color: '#fff' }}>{n.tag || 'General'}</span>
-                    <span className="subtle" style={{ fontSize: 12 }}>{new Date(n.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <p style={{ margin: 0 }}>{n.note}</p>
-                </div>
-              ))}
-          </div>
-
-          {myPlayerId && <DevelopmentPlan playerId={myPlayerId} canEdit={false} />}
-
-          {myPlayerId && <AttributeProgress playerId={myPlayerId} />}
-
-          <MatchLog />
-
-          <PlayerUploads />
-
-          {myPlayerId && <InjuryTracker playerId={myPlayerId} canEdit={false} />}
-
-          <div className="card" style={{ marginTop: 18, background: 'var(--surface-2)', border: 0 }}>
-            <div className="row between">
-              <strong style={{ color: 'var(--green-700)', fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-                AI Summary — Last 30 Days
-              </strong>
-              <button className="btn btn-secondary" style={{ minHeight: 32, padding: '6px 12px' }}
-                onClick={generate} disabled={aiBusy || session?.demo}>
-                {aiBusy ? 'Generating…' : (ai ? 'Regenerate' : 'Generate')}
-              </button>
-            </div>
-            {aiErr && <p style={{ color: 'var(--danger)', fontSize: 13, margin: '10px 0 0' }}>{aiErr}</p>}
-            {ai
-              ? <p style={{ margin: '10px 0 0' }}>{ai}</p>
-              : !aiErr && <p className="subtle" style={{ margin: '10px 0 0' }}>Tap Generate for an AI performance summary powered by Claude.</p>}
-          </div>
+    <AppShell role="player" active="Home" title="Home">
+      <div className="card" style={{ marginBottom: 16 }}>
+        <strong style={{ fontSize: 18 }}>Hi, {profile.name?.split(' ')[0] || 'there'} 👋</strong>
+        <div className="subtle" style={{ fontSize: 13 }}>Your training, progress and nutrition — all in one place.</div>
+        <div className="segmented" style={{ marginTop: 14, flexWrap: 'wrap' }}>
+          {TABS.map((t) => <button key={t} type="button" aria-selected={tab === t} onClick={() => setTab(t)}>{t}</button>)}
         </div>
       </div>
+
+      {tab === 'My plan'     && <MyPlan cid={cid} />}
+      {tab === 'Log session' && <LogSession cid={cid} />}
+      {tab === 'Progress'    && <Progress cid={cid} />}
+      {tab === 'Nutrition'   && <Nutrition cid={cid} />}
     </AppShell>
+  );
+}
+
+/* --------------------------------------------------------- shared: load plan */
+function useProgramme(cid) {
+  const [state, setState] = useState({ prog: undefined, days: [], ex: {} });
+  useEffect(() => { (async () => {
+    const { data: p } = await supabase.from('workout_programmes')
+      .select('*').eq('client_id', cid).eq('is_active', true).limit(1);
+    const prog = p?.[0] || null;
+    if (!prog) { setState({ prog: null, days: [], ex: {} }); return; }
+    const { data: dd } = await supabase.from('programme_days').select('*').eq('programme_id', prog.id).order('sort_order');
+    const dayIds = (dd || []).map((d) => d.id);
+    let ex = {};
+    if (dayIds.length) {
+      const { data: xx } = await supabase.from('programme_exercises').select('*').in('day_id', dayIds).order('sort_order');
+      (xx || []).forEach((e) => { (ex[e.day_id] ||= []).push(e); });
+    }
+    setState({ prog, days: dd || [], ex });
+  })(); }, [cid]);
+  return state;
+}
+
+/* ------------------------------------------------------------------- My plan */
+function MyPlan({ cid }) {
+  const { prog, days, ex } = useProgramme(cid);
+  if (prog === undefined) return <div className="card">Loading…</div>;
+  if (!prog) return <div className="card"><p className="subtle" style={{ margin: 0 }}>Your trainer hasn't set a programme yet.</p></div>;
+  return (
+    <div className="stack">
+      <div className="card"><h4 style={{ margin: 0 }}>{prog.name}</h4></div>
+      {days.map((day) => (
+        <div className="card" key={day.id}>
+          <h4 style={{ marginTop: 0 }}>{day.name}</h4>
+          {(ex[day.id] || []).length === 0 ? <p className="subtle" style={{ margin: 0 }}>No exercises.</p> : (
+            <table className="table"><thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight</th></tr></thead>
+              <tbody>{(ex[day.id] || []).map((e) => (
+                <tr key={e.id}><td>{e.name}</td><td>{e.target_sets ?? '—'}</td><td>{e.target_reps || '—'}</td><td>{e.target_weight != null ? `${e.target_weight}kg` : '—'}</td></tr>
+              ))}</tbody></table>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------- Log session */
+function LogSession({ cid }) {
+  const { prog, days, ex } = useProgramme(cid);
+  const [dayId, setDayId] = useState('');
+  const [rows, setRows] = useState([]);      // { exercise_name, weight, reps }
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  // When a day is picked, prefill a row per exercise.
+  function pickDay(id) {
+    setDayId(id);
+    if (id && ex[id]) setRows(ex[id].map((e) => ({ exercise_name: e.name, weight: '', reps: '', pex: e.id })));
+    else setRows([{ exercise_name: '', weight: '', reps: '', pex: null }]);
+  }
+  function setRow(i, k, v) { setRows((r) => r.map((row, j) => j === i ? { ...row, [k]: v } : row)); }
+  function addRow() { setRows((r) => [...r, { exercise_name: '', weight: '', reps: '', pex: null }]); }
+  function delRow(i) { setRows((r) => r.filter((_, j) => j !== i)); }
+
+  async function save() {
+    const valid = rows.filter((r) => r.exercise_name.trim() && (r.weight || r.reps));
+    if (valid.length === 0) { setMsg('Add at least one exercise with a weight or reps.'); return; }
+    setBusy(true); setMsg('');
+    try {
+      const { data: log, error } = await supabase.from('workout_logs')
+        .insert({ client_id: cid, day_id: dayId || null, note: note.trim() || null })
+        .select('id').single();
+      if (error) { setMsg(error.message); return; }
+      const sets = valid.map((r, idx) => ({
+        client_id: cid, log_id: log.id, exercise_name: r.exercise_name.trim(),
+        programme_exercise_id: r.pex || null, set_number: idx + 1,
+        weight: r.weight ? parseFloat(r.weight) : null, reps: r.reps ? parseInt(r.reps, 10) : null,
+      }));
+      const { error: e2 } = await supabase.from('logged_sets').insert(sets);
+      if (e2) { setMsg(e2.message); return; }
+      setMsg('Session saved 💪');
+      setRows([]); setDayId(''); setNote('');
+    } finally { setBusy(false); }
+  }
+
+  if (prog === undefined) return <div className="card">Loading…</div>;
+  return (
+    <div className="card">
+      <h4 style={{ marginTop: 0 }}>Log today's session</h4>
+      <div className="field">
+        <label className="label">Which day?</label>
+        <select className="select" value={dayId} onChange={(e) => pickDay(e.target.value)}>
+          <option value="">Freeform (no plan)</option>
+          {days.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
+      </div>
+
+      {rows.length === 0 ? <p className="subtle">Pick a day to load its exercises, or add one below.</p> : (
+        <div className="stack" style={{ gap: 8 }}>
+          {rows.map((r, i) => (
+            <div key={i} className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+              <input className="input" style={{ flex: 2, minWidth: 140 }} placeholder="Exercise"
+                value={r.exercise_name} onChange={(e) => setRow(i, 'exercise_name', e.target.value)} />
+              <input className="input" style={{ flex: 1, minWidth: 70 }} type="number" step="0.5" placeholder="kg"
+                value={r.weight} onChange={(e) => setRow(i, 'weight', e.target.value)} />
+              <input className="input" style={{ flex: 1, minWidth: 60 }} type="number" placeholder="reps"
+                value={r.reps} onChange={(e) => setRow(i, 'reps', e.target.value)} />
+              <button className="btn btn-ghost" style={{ minHeight: 40 }} onClick={() => delRow(i)}>✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <button className="btn btn-secondary" style={{ marginTop: 10 }} onClick={addRow}>+ Add exercise</button>
+
+      <div className="field" style={{ marginTop: 12 }}>
+        <label className="label">Note (optional)</label>
+        <input className="input" placeholder="How did it feel?" value={note} onChange={(e) => setNote(e.target.value)} />
+      </div>
+
+      <button className="btn btn-primary btn-block" style={{ marginTop: 8 }} disabled={busy} onClick={save}>
+        {busy ? 'Saving…' : 'Save session'}
+      </button>
+      {msg && <p style={{ color: msg.includes('saved') ? 'var(--success)' : 'var(--danger)', fontSize: 13, marginTop: 10 }}>{msg}</p>}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ Progress */
+function Progress({ cid }) {
+  const [rows, setRows] = useState(null);
+  const [w, setW] = useState('');
+  const [bf, setBf] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    const { data } = await supabase.from('body_metrics').select('*').eq('client_id', cid).order('metric_date', { ascending: false }).limit(60);
+    setRows(data || []);
+  }
+  useEffect(() => { load(); }, [cid]);
+
+  async function add(e) {
+    e.preventDefault();
+    if (!w) return;
+    setBusy(true);
+    try {
+      await supabase.from('body_metrics').upsert({
+        client_id: cid, metric_date: new Date().toISOString().slice(0, 10),
+        weight_kg: parseFloat(w), body_fat_pct: bf ? parseFloat(bf) : null,
+      }, { onConflict: 'client_id,metric_date' });
+      setW(''); setBf(''); load();
+    } finally { setBusy(false); }
+  }
+
+  const chrono = rows ? [...rows].reverse() : [];
+  const pts = chrono.map((r) => r.weight_kg).filter((x) => x != null);
+  const delta = pts.length > 1 ? pts[pts.length - 1] - pts[0] : null;
+
+  return (
+    <div className="stack">
+      <div className="card">
+        <div className="section-header"><h4 style={{ margin: 0 }}>Your weight</h4>
+          {delta != null && <span className={`badge ${delta <= 0 ? 'badge-success' : 'badge-warning'}`}>{delta > 0 ? '+' : ''}{delta.toFixed(1)}kg</span>}</div>
+        <Sparkline points={pts} />
+        <form onSubmit={add} className="row" style={{ gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+          <input className="input" style={{ maxWidth: 130 }} type="number" step="0.1" placeholder="Weight kg" value={w} onChange={(e) => setW(e.target.value)} />
+          <input className="input" style={{ maxWidth: 130 }} type="number" step="0.1" placeholder="Body fat %" value={bf} onChange={(e) => setBf(e.target.value)} />
+          <button className="btn btn-primary" disabled={busy || !w}>Log today</button>
+        </form>
+      </div>
+      <div className="card">
+        <h4 style={{ marginTop: 0 }}>History</h4>
+        {rows === null ? <p className="subtle">Loading…</p>
+         : rows.length === 0 ? <p className="subtle" style={{ margin: 0 }}>No entries yet.</p>
+         : <table className="table"><thead><tr><th>Date</th><th>Weight</th><th>Body fat</th></tr></thead>
+            <tbody>{rows.map((r) => <tr key={r.id}><td>{r.metric_date}</td><td>{r.weight_kg != null ? `${r.weight_kg}kg` : '—'}</td><td>{r.body_fat_pct != null ? `${r.body_fat_pct}%` : '—'}</td></tr>)}</tbody></table>}
+      </div>
+    </div>
+  );
+}
+
+function Sparkline({ points }) {
+  if (!points || points.length < 2) return <p className="subtle" style={{ fontSize: 12, margin: 0 }}>Log at least two entries to see a trend.</p>;
+  const w = 300, h = 60, min = Math.min(...points), max = Math.max(...points), range = max - min || 1;
+  const step = w / (points.length - 1);
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${(i * step).toFixed(1)} ${(h - ((p - min) / range) * h).toFixed(1)}`).join(' ');
+  return <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 60 }} preserveAspectRatio="none"><path d={d} fill="none" stroke="var(--green-600)" strokeWidth="2" /></svg>;
+}
+
+/* ----------------------------------------------------------------- Nutrition */
+function Nutrition({ cid }) {
+  const [plan, setPlan] = useState(undefined);
+  const [items, setItems] = useState([]);
+  const [today, setToday] = useState(null);
+  const [f, setF] = useState({ kcal: '', protein_g: '', carbs_g: '', fat_g: '' });
+  const dateStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  async function load() {
+    const { data: p } = await supabase.from('nutrition_plans').select('*').eq('client_id', cid).eq('is_active', true).limit(1);
+    const pl = p?.[0] || null;
+    setPlan(pl);
+    if (pl) { const { data: mi } = await supabase.from('meal_plan_items').select('*').eq('plan_id', pl.id).order('sort_order'); setItems(mi || []); }
+    const { data: fl } = await supabase.from('food_logs').select('*').eq('client_id', cid).eq('log_date', dateStr).limit(1);
+    const t = fl?.[0] || null;
+    setToday(t);
+    if (t) setF({ kcal: t.kcal ?? '', protein_g: t.protein_g ?? '', carbs_g: t.carbs_g ?? '', fat_g: t.fat_g ?? '' });
+  }
+  useEffect(() => { load(); }, [cid]);
+
+  async function saveLog(e) {
+    e.preventDefault();
+    const payload = {
+      client_id: cid, log_date: dateStr,
+      kcal: f.kcal ? parseInt(f.kcal, 10) : null, protein_g: f.protein_g ? parseInt(f.protein_g, 10) : null,
+      carbs_g: f.carbs_g ? parseInt(f.carbs_g, 10) : null, fat_g: f.fat_g ? parseInt(f.fat_g, 10) : null,
+    };
+    if (today) await supabase.from('food_logs').update(payload).eq('id', today.id);
+    else await supabase.from('food_logs').insert(payload);
+    load();
+  }
+
+  if (plan === undefined) return <div className="card">Loading…</div>;
+  return (
+    <div className="stack">
+      <div className="card">
+        <h4 style={{ marginTop: 0 }}>Daily targets</h4>
+        {plan ? (
+          <div className="grid grid-4">
+            <div className="kpi"><div className="kpi-label">Calories</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.daily_kcal ?? '—'}</div></div>
+            <div className="kpi"><div className="kpi-label">Protein</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.protein_g ?? '—'}g</div></div>
+            <div className="kpi"><div className="kpi-label">Carbs</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.carbs_g ?? '—'}g</div></div>
+            <div className="kpi"><div className="kpi-label">Fat</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.fat_g ?? '—'}g</div></div>
+          </div>
+        ) : <p className="subtle" style={{ margin: 0 }}>Your trainer hasn't set targets yet.</p>}
+      </div>
+
+      {items.length > 0 && (
+        <div className="card">
+          <h4 style={{ marginTop: 0 }}>Your meal plan</h4>
+          <div className="stack" style={{ gap: 6 }}>
+            {items.map((m) => (
+              <div key={m.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px' }}>
+                <strong>{m.meal}</strong> <span className="subtle">{m.description}</span>
+                {m.kcal != null && <div className="subtle" style={{ fontSize: 12 }}>{m.kcal} kcal</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <h4 style={{ marginTop: 0 }}>Log today's intake</h4>
+        <form onSubmit={saveLog} className="grid grid-4" style={{ gap: 10 }}>
+          {[['kcal', 'Calories'], ['protein_g', 'Protein g'], ['carbs_g', 'Carbs g'], ['fat_g', 'Fat g']].map(([k, label]) => (
+            <div className="field" key={k} style={{ margin: 0 }}>
+              <label className="label">{label}</label>
+              <input className="input" type="number" value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} />
+            </div>
+          ))}
+          <button className="btn btn-primary" style={{ gridColumn: '1 / -1' }}>{today ? 'Update today' : 'Save today'}</button>
+        </form>
+      </div>
+    </div>
   );
 }
