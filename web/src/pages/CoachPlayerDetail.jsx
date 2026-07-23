@@ -59,34 +59,136 @@ export default function CoachPlayerDetail() {
 function Overview({ clientId }) {
   const [d, setD] = useState(null);
   useEffect(() => { (async () => {
-    const [bm, prog, plan, logs] = await Promise.all([
-      supabase.from('body_metrics').select('weight_kg, metric_date').eq('client_id', clientId).order('metric_date', { ascending: false }).limit(1),
-      supabase.from('workout_programmes').select('name').eq('client_id', clientId).eq('is_active', true).limit(1),
-      supabase.from('nutrition_plans').select('daily_kcal, protein_g, carbs_g, fat_g').eq('client_id', clientId).eq('is_active', true).limit(1),
+    const nowIso = new Date().toISOString();
+    const [bm, prog, plan, logs, logCount, food, appt, notes] = await Promise.all([
+      supabase.from('body_metrics').select('*').eq('client_id', clientId).order('metric_date', { ascending: false }).limit(30),
+      supabase.from('workout_programmes').select('id, name').eq('client_id', clientId).eq('is_active', true).limit(1),
+      supabase.from('nutrition_plans').select('*').eq('client_id', clientId).eq('is_active', true).limit(1),
+      supabase.from('workout_logs').select('id, log_date, note, logged_sets(id)').eq('client_id', clientId).order('log_date', { ascending: false }).limit(5),
       supabase.from('workout_logs').select('id', { count: 'exact', head: true }).eq('client_id', clientId),
+      supabase.from('food_logs').select('*').eq('client_id', clientId).order('log_date', { ascending: false }).limit(1),
+      supabase.from('appointments').select('*').eq('client_id', clientId).gte('starts_at', nowIso).order('starts_at', { ascending: true }).limit(1),
+      supabase.from('client_notes').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(2),
     ]);
+
+    let progInfo = null;
+    if (prog.data?.[0]) {
+      const p = prog.data[0];
+      const [{ data: days }, { count: exCount }] = await Promise.all([
+        supabase.from('programme_days').select('id').eq('programme_id', p.id),
+        supabase.from('programme_exercises').select('id', { count: 'exact', head: true }).eq('client_id', clientId),
+      ]);
+      progInfo = { name: p.name, days: days?.length || 0, exercises: exCount || 0 };
+    }
+    let mealCount = 0;
+    if (plan.data?.[0]) {
+      const { count } = await supabase.from('meal_plan_items').select('id', { count: 'exact', head: true }).eq('plan_id', plan.data[0].id);
+      mealCount = count || 0;
+    }
+
     setD({
-      weight: bm.data?.[0]?.weight_kg ?? null,
-      weightDate: bm.data?.[0]?.metric_date ?? null,
-      programme: prog.data?.[0]?.name ?? null,
-      plan: plan.data?.[0] ?? null,
-      sessions: logs.count ?? 0,
+      metrics: bm.data || [],
+      prog: progInfo,
+      plan: plan.data?.[0] || null,
+      mealCount,
+      logs: logs.data || [],
+      logCount: logCount.count || 0,
+      food: food.data?.[0] || null,
+      appt: appt.data?.[0] || null,
+      notes: notes.data || [],
     });
   })(); }, [clientId]);
 
   if (!d) return <div className="card">Loading…</div>;
+
+  const latest = d.metrics[0];
+  const chronoW = [...d.metrics].reverse().map((m) => m.weight_kg).filter((x) => x != null);
+  const delta = chronoW.length > 1 ? chronoW[chronoW.length - 1] - chronoW[0] : null;
+  const apptWhen = d.appt ? new Date(d.appt.starts_at).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
+
   return (
-    <div className="grid grid-2">
-      <div className="kpi"><div className="kpi-label">Current weight</div>
-        <div className="kpi-value">{d.weight != null ? `${d.weight}kg` : '—'}</div>
-        <div className="subtle" style={{ fontSize: 12 }}>{d.weightDate || 'no entries yet'}</div></div>
-      <div className="kpi"><div className="kpi-label">Sessions logged</div>
-        <div className="kpi-value">{d.sessions}</div></div>
-      <div className="kpi"><div className="kpi-label">Active programme</div>
-        <div className="kpi-value" style={{ fontSize: 20 }}>{d.programme || '—'}</div></div>
-      <div className="kpi"><div className="kpi-label">Daily target</div>
-        <div className="kpi-value" style={{ fontSize: 20 }}>{d.plan?.daily_kcal ? `${d.plan.daily_kcal} kcal` : '—'}</div>
-        {d.plan && <div className="subtle" style={{ fontSize: 12 }}>P{d.plan.protein_g||0} · C{d.plan.carbs_g||0} · F{d.plan.fat_g||0}</div>}</div>
+    <div className="stack">
+      {/* headline stats */}
+      <div className="grid grid-4">
+        <div className="kpi"><div className="kpi-label">Current weight</div>
+          <div className="kpi-value">{latest?.weight_kg != null ? `${latest.weight_kg}kg` : '—'}</div>
+          {delta != null && <span className={`badge ${delta <= 0 ? 'badge-success' : 'badge-warning'}`}>{delta > 0 ? '+' : ''}{delta.toFixed(1)}kg</span>}</div>
+        <div className="kpi"><div className="kpi-label">Body fat</div>
+          <div className="kpi-value">{latest?.body_fat_pct != null ? `${latest.body_fat_pct}%` : '—'}</div></div>
+        <div className="kpi"><div className="kpi-label">Sessions logged</div>
+          <div className="kpi-value">{d.logCount}</div></div>
+        <div className="kpi"><div className="kpi-label">Last check-in</div>
+          <div className="kpi-value" style={{ fontSize: 18 }}>{latest?.metric_date || '—'}</div></div>
+      </div>
+
+      {/* weight trend */}
+      {d.metrics.length > 0 && (
+        <div className="card">
+          <div className="section-header"><h4 style={{ margin: 0 }}>Weight trend</h4><span className="subtle" style={{ fontSize: 12 }}>last {d.metrics.length} entries</span></div>
+          <Sparkline points={chronoW} />
+        </div>
+      )}
+
+      <div className="grid grid-2">
+        {/* programme */}
+        <div className="card">
+          <h4 style={{ marginTop: 0 }}>Programme</h4>
+          {d.prog ? (
+            <>
+              <strong>{d.prog.name}</strong>
+              <div className="subtle" style={{ fontSize: 13, marginTop: 4 }}>{d.prog.days} day{d.prog.days === 1 ? '' : 's'} · {d.prog.exercises} exercise{d.prog.exercises === 1 ? '' : 's'}</div>
+            </>
+          ) : <p className="subtle" style={{ margin: 0 }}>No active programme.</p>}
+        </div>
+        {/* nutrition */}
+        <div className="card">
+          <h4 style={{ marginTop: 0 }}>Nutrition</h4>
+          {d.plan ? (
+            <>
+              <strong>{d.plan.daily_kcal ? `${d.plan.daily_kcal} kcal / day` : 'Targets set'}</strong>
+              <div className="subtle" style={{ fontSize: 13, marginTop: 4 }}>P{d.plan.protein_g || 0} · C{d.plan.carbs_g || 0} · F{d.plan.fat_g || 0} · {d.mealCount} meal{d.mealCount === 1 ? '' : 's'}</div>
+              {d.food && <div className="subtle" style={{ fontSize: 12, marginTop: 6 }}>Last logged {d.food.log_date}: {d.food.kcal ?? '—'} kcal</div>}
+            </>
+          ) : <p className="subtle" style={{ margin: 0 }}>No nutrition plan.</p>}
+        </div>
+      </div>
+
+      {/* next session */}
+      <div className="card">
+        <h4 style={{ marginTop: 0 }}>Next session</h4>
+        {apptWhen ? <div><strong>{apptWhen}</strong><div className="subtle" style={{ fontSize: 13 }}>{d.appt.duration_min} min{d.appt.note ? ` · ${d.appt.note}` : ''}</div></div>
+         : <p className="subtle" style={{ margin: 0 }}>Nothing booked.</p>}
+      </div>
+
+      {/* recent sessions */}
+      <div className="card">
+        <h4 style={{ marginTop: 0 }}>Recent sessions</h4>
+        {d.logs.length === 0 ? <p className="subtle" style={{ margin: 0 }}>No sessions logged yet.</p> : (
+          <div className="stack" style={{ gap: 6 }}>
+            {d.logs.map((l) => (
+              <div key={l.id} className="row between" style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px' }}>
+                <div><strong>{l.log_date}</strong>{l.note && <span className="subtle" style={{ fontSize: 12 }}> · {l.note}</span>}</div>
+                <span className="badge badge-neutral">{l.logged_sets?.length || 0} sets</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* latest notes */}
+      {d.notes.length > 0 && (
+        <div className="card">
+          <h4 style={{ marginTop: 0 }}>Latest notes</h4>
+          <div className="stack" style={{ gap: 6 }}>
+            {d.notes.map((n) => (
+              <div key={n.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px' }}>
+                <div className="subtle" style={{ fontSize: 12 }}>{new Date(n.created_at).toLocaleDateString()}</div>
+                <p style={{ margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>{n.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
