@@ -64,7 +64,7 @@ export default function CoachSquad() {
           <button className="btn btn-primary" disabled={busy || !email.trim()}>{busy ? 'Adding…' : 'Add client'}</button>
         </form>
         <p className="subtle" style={{ fontSize: 12, margin: '8px 0 0' }}>
-          The client signs up as a Customer first, then you add them by their email.
+          The client signs up as a Client first, then you add them by their email.
         </p>
         {msg && <p style={{ color: 'var(--success)', fontSize: 13, margin: '8px 0 0' }}>{msg}</p>}
         {err && <p style={{ color: 'var(--danger)', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
@@ -78,7 +78,7 @@ export default function CoachSquad() {
         </div>
 
         {clients === null ? <p className="subtle" style={{ margin: 0 }}>Loading…</p>
-         : clients.length === 0 ? <p className="subtle" style={{ margin: 0 }}>No clients yet. Add one above once they've created a Customer account.</p>
+         : clients.length === 0 ? <p className="subtle" style={{ margin: 0 }}>No clients yet. Add one above once they've created a Client account.</p>
          : list.length === 0 ? <p className="subtle" style={{ margin: 0 }}>No clients match “{q}”.</p>
          : (
           <div className="stack" style={{ gap: 8 }}>

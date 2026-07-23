@@ -47,9 +47,9 @@
   --surface-2:     #1F242D;  /* subtle fills / inputs */
   --border:        #262C36;
   --border-strong: #333B47;
-  --ink:           #EEF1F5;  /* body + heading text (light) */
-  --text-muted:    #A0AAB8;
-  --text-subtle:   #6C7788;
+  --ink:           #F3F5F8;  /* body + heading text (light) */
+  --text-muted:    #B4BECC;  /* supporting text — lifted for dark-bg legibility */
+  --text-subtle:   #8B95A6;  /* captions / hints */
 
   /* ---------- Semantic (brightened for dark) ---------- */
   --success: #34D399;

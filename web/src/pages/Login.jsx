@@ -14,7 +14,7 @@ import { CONSENT_VERSION } from './Privacy.jsx';
 // (see migration 0056) — the enum values were left alone deliberately.
 const ROLES = [
   { key: 'trainer',  label: 'Trainer',  blurb: 'I train clients' },
-  { key: 'customer', label: 'Customer', blurb: 'I train with a trainer' },
+  { key: 'client', label: 'Client', blurb: 'I train with a trainer' },
 ];
 
 // role -> landing route after auth
@@ -52,7 +52,7 @@ export default function Login() {
           role,
           consent: true,
           consentVersion: CONSENT_VERSION,
-          inviteCode: role === 'customer' ? inviteCode.trim() : null,
+          inviteCode: role === 'client' ? inviteCode.trim() : null,
         });
         if (error) { setError(error); return; }
         if (needsConfirmation) {
@@ -135,10 +135,11 @@ export default function Login() {
                       borderRadius: 12,
                       background: role === r.key ? 'var(--green-100)' : 'transparent',
                       border: `1.5px solid ${role === r.key ? 'var(--green-600)' : 'var(--border)'}`,
+                      color: 'var(--ink)',
                     }}
                   >
-                    <span style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{r.label}</span>
-                    <span className="subtle" style={{ fontSize: 12 }}>{r.blurb}</span>
+                    <span style={{ display: 'block', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{r.label}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{r.blurb}</span>
                   </button>
                 ))}
               </div>
@@ -164,7 +165,7 @@ export default function Login() {
                 value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
 
-            {mode === 'register' && role === 'customer' && (
+            {mode === 'register' && role === 'client' && (
               <div className="field">
                 <label className="label">Trainer invite code <span className="subtle">(optional)</span></label>
                 <input className="input" placeholder="e.g. LZ4K9P"
