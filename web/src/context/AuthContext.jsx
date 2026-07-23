@@ -52,9 +52,12 @@ export function AuthProvider({ children }) {
     return data;
   }
 
+  // Never let a raw/empty error object reach the UI (it renders as "{}").
+  const errMsg = (e, fallback) => e?.message || e?.error_description || (typeof e === 'string' ? e : '') || fallback;
+
   async function signIn({ email, password }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
+    if (error) return { error: errMsg(error, 'Could not sign in. Check your email and password.') };
     const { data: prof } = await supabase.from('users').select('*').eq('id', data.user.id).single();
     setProfile(prof);
     return { role: prof?.role };
@@ -73,7 +76,13 @@ export function AuthProvider({ children }) {
         invite_code: inviteCode || null,
       } },
     });
-    if (error) return { error: error.message };
+    if (error) return { error: errMsg(error, 'Could not create your account.') };
+    // Supabase obfuscates an already-registered email: it returns a user with an
+    // empty identities array and no session, instead of an error. Detect that and
+    // tell the person to sign in rather than showing a confusing empty result.
+    if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      return { error: 'That email is already registered — please sign in instead.' };
+    }
     return { needsConfirmation: !data.session, role };
   }
 

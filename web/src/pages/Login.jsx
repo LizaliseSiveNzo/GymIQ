@@ -188,7 +188,7 @@ export default function Login() {
               </div>
             )}
 
-            {error &&  <p style={{ color: 'var(--danger)', fontSize: 13, margin: '0 0 12px' }}>{error}</p>}
+            {error &&  <p style={{ color: 'var(--danger)', fontSize: 13, margin: '0 0 12px' }}>{typeof error === 'string' ? error : (error?.message || 'Something went wrong. Please try again.')}</p>}
             {notice && <p style={{ color: 'var(--green-700)', fontSize: 13, margin: '0 0 12px' }}>{notice}</p>}
 
             <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={busy || (mode === 'register' && !consent)}>
