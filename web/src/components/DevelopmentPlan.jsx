@@ -100,7 +100,6 @@ export default function DevelopmentPlan({ playerId, coachId, canEdit = true }) {
   }
 
   async function removeGoal(goalId) {
-    if (!window.confirm('Delete this development goal and its milestones?')) return;
     await supabase.from('development_goals').delete().eq('id', goalId);
     await load();
   }

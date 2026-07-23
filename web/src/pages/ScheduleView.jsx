@@ -46,14 +46,8 @@ export default function ScheduleView() {
     }
   })(); }, []);
 
-  async function setRsvp(it, status) {
+  async function setRsvp(it, status, reason = null) {
     if (!playerId) return;
-    let reason = null;
-    if (status === 'absent') {
-      reason = window.prompt('Let the coach know why (optional):', rsvps[`${it.kind}:${it.rawId}`]?.reason || '') ;
-      if (reason === null) return; // cancelled
-      reason = reason.trim() || null;
-    }
     setBusyKey(it.key);
     try {
       await supabase.from('event_rsvps').upsert(

@@ -68,7 +68,6 @@ export default function InjuryTracker({ playerId, canEdit = true, onChange }) {
     await load();
   }
   async function remove(inj) {
-    if (!window.confirm('Delete this injury record?')) return;
     await supabase.from('injuries').delete().eq('id', inj.id);
     await load();
   }

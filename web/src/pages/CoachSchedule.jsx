@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
+import ConfirmButton from '../components/ConfirmButton.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams } from '../lib/coach.js';
@@ -102,10 +103,6 @@ export default function CoachSchedule() {
 
   async function removeEvent(u, e) {
     if (e) e.stopPropagation();
-    const label = u.kind === 'match' ? 'Cancel this match? Players will be notified, it disappears from their schedule, and its lineup is deleted.'
-      : u.kind === 'event' ? 'Cancel this event? Players will be notified.'
-      : 'Cancel this training session? Players will be notified and its attendance is removed.';
-    if (!window.confirm(label)) return;
     setErr('');
     const { error } = u.kind === 'match'
       ? await supabase.rpc('delete_match', { p_id: u.rawId })
@@ -185,7 +182,7 @@ export default function CoachSchedule() {
         <div className="row" style={{ gap: 6 }}>
           {isToday(u.when) && <span className="badge badge-warning">Today</span>}
           <span className={`badge ${u.kind === 'match' ? 'badge-info' : u.kind === 'event' ? 'badge-neutral' : 'badge-success'}`}>{u.kind === 'event' ? `📌 ${u.type}` : u.type}</span>
-          {canDelete && <button type="button" className="btn btn-ghost" style={{ minHeight: 26, padding: '2px 8px', color: 'var(--danger)' }} title="Delete" onClick={(e) => removeEvent(u, e)}>🗑</button>}
+          {canDelete && <ConfirmButton className="btn btn-ghost" style={{ minHeight: 26, padding: '2px 8px', color: 'var(--danger)' }} title="Delete" confirmLabel="Cancel?" onConfirm={() => removeEvent(u)}>🗑</ConfirmButton>}
         </div>
       </div>
       <div className="row between" style={{ marginTop: 6 }}>

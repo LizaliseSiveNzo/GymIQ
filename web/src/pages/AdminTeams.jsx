@@ -45,7 +45,6 @@ export default function AdminTeams() {
   }
 
   async function deleteTeam(teamId, teamName) {
-    if (!window.confirm(`Delete ${teamName}? Players stay in the academy (unassigned), but the team's schedule, matches, lineups, stats and announcements are removed. This cannot be undone.`)) return;
     setErr('');
     const { error } = await supabase.rpc('delete_team', { p_team: teamId });
     if (error) { setErr(error.message); return; }

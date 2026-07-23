@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
+import ConfirmButton from '../components/ConfirmButton.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
@@ -89,7 +90,6 @@ export default function CoachAnnouncements() {
   }
 
   async function remove(id) {
-    if (!window.confirm('Delete this announcement? It will also disappear from the players.')) return;
     const { error } = await supabase.rpc('delete_announcement', { p_id: id });
     if (error) { setErr(error.message); return; }
     load();
@@ -178,7 +178,7 @@ export default function CoachAnnouncements() {
                     <div className="row" style={{ gap: 4 }}>
                       <button className="btn btn-ghost" style={{ minHeight: 28, padding: '2px 8px' }} title={a.pinned ? 'Unpin' : 'Pin to top'} onClick={() => togglePin(a)}>{a.pinned ? '📌' : '📍'}</button>
                       <button className="btn btn-ghost" style={{ minHeight: 28, padding: '2px 8px' }} title="Edit" onClick={() => startEdit(a)}>✎</button>
-                      <button className="btn btn-ghost" style={{ minHeight: 28, padding: '2px 8px', color: 'var(--danger)' }} title="Delete" onClick={() => remove(a.id)}>🗑</button>
+                      <ConfirmButton className="btn btn-ghost" style={{ minHeight: 28, padding: '2px 8px', color: 'var(--danger)' }} title="Delete" onConfirm={() => remove(a.id)}>🗑</ConfirmButton>
                     </div>
                   </div>
 

@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
+import ConfirmButton from '../components/ConfirmButton.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { myTeams, teamPlayers } from '../lib/coach.js';
@@ -141,7 +142,6 @@ export default function CoachJournal() {
   }
 
   async function removeEntry(id) {
-    if (!window.confirm('Delete this journal entry?')) return;
     await supabase.from('coach_journal_entries').delete().eq('id', id);
     await load(teamId);
   }
@@ -310,7 +310,7 @@ export default function CoachJournal() {
                             {e.onCalendar ? '📅 Remove from calendar' : '📅 Add to calendar'}
                           </button>
                           <button type="button" className="btn btn-ghost" style={{ minHeight: 26, padding: '2px 8px' }} onClick={() => startEdit(e.raw)}>✏️ Edit</button>
-                          <button type="button" className="btn btn-ghost" style={{ minHeight: 26, padding: '2px 8px', color: 'var(--danger)' }} onClick={() => removeEntry(e.id)}>🗑</button>
+                          <ConfirmButton className="btn btn-ghost" style={{ minHeight: 26, padding: '2px 8px', color: 'var(--danger)' }} title="Delete" onConfirm={() => removeEntry(e.id)}>🗑</ConfirmButton>
                         </>
                       )}
                     </div>
