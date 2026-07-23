@@ -96,6 +96,9 @@ function Programme({ clientId }) {
   const [prog, setProg] = useState(undefined);
   const [days, setDays] = useState([]);
   const [ex, setEx] = useState({}); // dayId -> [exercises]
+  const [newProg, setNewProg] = useState('');
+  const [newDay, setNewDay] = useState('');
+  const [exForm, setExForm] = useState({}); // dayId -> {name,sets,reps,weight}
 
   async function load() {
     const { data: p } = await supabase.from('workout_programmes')
@@ -117,62 +120,64 @@ function Programme({ clientId }) {
   useEffect(() => { load(); }, [clientId]);
 
   async function createProgramme() {
-    const name = prompt('Programme name (e.g. "Push / Pull / Legs" or "Week 1")');
-    if (!name) return;
-    await supabase.from('workout_programmes').insert({ client_id: clientId, name: name.trim(), is_active: true });
-    load();
+    if (!newProg.trim()) return;
+    await supabase.from('workout_programmes').insert({ client_id: clientId, name: newProg.trim(), is_active: true });
+    setNewProg(''); load();
   }
   async function addDay() {
-    const name = prompt('Day name (e.g. "Push", "Legs", or "Week")');
-    if (!name) return;
-    await supabase.from('programme_days').insert({ client_id: clientId, programme_id: prog.id, name: name.trim(), sort_order: days.length });
-    load();
+    if (!newDay.trim()) return;
+    await supabase.from('programme_days').insert({ client_id: clientId, programme_id: prog.id, name: newDay.trim(), sort_order: days.length });
+    setNewDay(''); load();
   }
+  function exField(dayId, k, v) { setExForm((f) => ({ ...f, [dayId]: { ...(f[dayId] || {}), [k]: v } })); }
   async function addExercise(dayId) {
-    const name = prompt('Exercise name');
-    if (!name) return;
-    const sets = prompt('Target sets (e.g. 4)') || null;
-    const reps = prompt('Target reps (e.g. 8 or 8-12)') || null;
-    const weight = prompt('Target weight in kg (optional)') || null;
+    const form = exForm[dayId] || {};
+    if (!form.name?.trim()) return;
     await supabase.from('programme_exercises').insert({
-      client_id: clientId, day_id: dayId, name: name.trim(),
-      target_sets: sets ? parseInt(sets, 10) : null, target_reps: reps,
-      target_weight: weight ? parseFloat(weight) : null, sort_order: (ex[dayId]?.length || 0),
+      client_id: clientId, day_id: dayId, name: form.name.trim(),
+      target_sets: form.sets ? parseInt(form.sets, 10) : null,
+      target_reps: form.reps || null,
+      target_weight: form.weight ? parseFloat(form.weight) : null,
+      sort_order: (ex[dayId]?.length || 0),
     });
+    setExForm((f) => ({ ...f, [dayId]: {} }));
     load();
   }
   async function delExercise(id) { await supabase.from('programme_exercises').delete().eq('id', id); load(); }
-  async function delDay(id) { if (confirm('Delete this day and its exercises?')) { await supabase.from('programme_days').delete().eq('id', id); load(); } }
+  async function delDay(id) { await supabase.from('programme_days').delete().eq('id', id); load(); }
 
   if (prog === undefined) return <div className="card">Loading…</div>;
   if (!prog) return (
     <div className="card">
-      <p className="subtle">No active programme yet.</p>
-      <button className="btn btn-primary" onClick={createProgramme}>Create programme</button>
+      <h4 style={{ marginTop: 0 }}>Create a programme</h4>
+      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+        <input className="input" style={{ flex: 1, minWidth: 220 }} placeholder='e.g. "Push / Pull / Legs" or "Week 1"'
+          value={newProg} onChange={(e) => setNewProg(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && createProgramme()} />
+        <button className="btn btn-primary" disabled={!newProg.trim()} onClick={createProgramme}>Create</button>
+      </div>
     </div>
   );
 
   return (
     <div className="stack">
       <div className="card">
-        <div className="section-header">
-          <h4 style={{ margin: 0 }}>{prog.name}</h4>
-          <button className="btn btn-secondary" style={{ minHeight: 34 }} onClick={addDay}>+ Add day</button>
+        <h4 style={{ marginTop: 0 }}>{prog.name}</h4>
+        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <input className="input" style={{ flex: 1, minWidth: 180 }} placeholder='Add a day (e.g. "Push", "Legs", or "Week")'
+            value={newDay} onChange={(e) => setNewDay(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addDay()} />
+          <button className="btn btn-secondary" disabled={!newDay.trim()} onClick={addDay}>+ Add day</button>
         </div>
-        {days.length === 0 && <p className="subtle" style={{ margin: 0 }}>Add a day to start building the split. A simple weekly plan can be a single day called “Week”.</p>}
+        {days.length === 0 && <p className="subtle" style={{ margin: '10px 0 0' }}>Add a day to start. A simple weekly plan can be one day called “Week”.</p>}
       </div>
 
       {days.map((day) => (
         <div className="card" key={day.id}>
           <div className="section-header">
             <h4 style={{ margin: 0 }}>{day.name}</h4>
-            <div className="row" style={{ gap: 8 }}>
-              <button className="btn btn-secondary" style={{ minHeight: 30 }} onClick={() => addExercise(day.id)}>+ Exercise</button>
-              <button className="btn btn-ghost" style={{ minHeight: 30 }} onClick={() => delDay(day.id)}>Delete</button>
-            </div>
+            <button className="btn btn-ghost" style={{ minHeight: 30 }} onClick={() => delDay(day.id)}>Delete day</button>
           </div>
-          {(ex[day.id] || []).length === 0 ? <p className="subtle" style={{ margin: 0 }}>No exercises yet.</p> : (
-            <div className="stack" style={{ gap: 6 }}>
+          {(ex[day.id] || []).length > 0 && (
+            <div className="stack" style={{ gap: 6, marginBottom: 10 }}>
               {(ex[day.id] || []).map((e) => (
                 <div key={e.id} className="row between" style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px' }}>
                   <div><strong>{e.name}</strong>
@@ -185,6 +190,18 @@ function Programme({ clientId }) {
               ))}
             </div>
           )}
+          {/* inline add-exercise row — no popups */}
+          <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+            <input className="input" style={{ flex: 2, minWidth: 140 }} placeholder="Exercise"
+              value={exForm[day.id]?.name || ''} onChange={(e) => exField(day.id, 'name', e.target.value)} />
+            <input className="input" style={{ width: 70 }} type="number" placeholder="sets"
+              value={exForm[day.id]?.sets || ''} onChange={(e) => exField(day.id, 'sets', e.target.value)} />
+            <input className="input" style={{ width: 92 }} placeholder="reps"
+              value={exForm[day.id]?.reps || ''} onChange={(e) => exField(day.id, 'reps', e.target.value)} />
+            <input className="input" style={{ width: 78 }} type="number" placeholder="kg"
+              value={exForm[day.id]?.weight || ''} onChange={(e) => exField(day.id, 'weight', e.target.value)} />
+            <button className="btn btn-secondary" style={{ minHeight: 40 }} disabled={!exForm[day.id]?.name?.trim()} onClick={() => addExercise(day.id)}>Add</button>
+          </div>
         </div>
       ))}
     </div>
@@ -265,6 +282,8 @@ function Nutrition({ clientId }) {
   const [plan, setPlan] = useState(undefined);
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({ daily_kcal: '', protein_g: '', carbs_g: '', fat_g: '' });
+  const [meal, setMeal] = useState({ meal: '', description: '', kcal: '' });
+  const [savedMsg, setSavedMsg] = useState('');
 
   async function load() {
     const { data: p } = await supabase.from('nutrition_plans')
@@ -290,17 +309,18 @@ function Nutrition({ clientId }) {
     };
     if (plan) await supabase.from('nutrition_plans').update(payload).eq('id', plan.id);
     else await supabase.from('nutrition_plans').insert(payload);
+    setSavedMsg('Targets saved.'); setTimeout(() => setSavedMsg(''), 2000);
     load();
   }
   async function addMeal() {
-    if (!plan) { alert('Save daily targets first.'); return; }
-    const meal = prompt('Meal (e.g. Breakfast)'); if (!meal) return;
-    const description = prompt('What to eat') || '';
-    const kcal = prompt('Calories (optional)') || null;
+    if (!plan) { setSavedMsg('Save daily targets first.'); return; }
+    if (!meal.meal.trim()) return;
     await supabase.from('meal_plan_items').insert({
-      client_id: clientId, plan_id: plan.id, meal: meal.trim(), description,
-      kcal: kcal ? parseInt(kcal, 10) : null, sort_order: items.length,
+      client_id: clientId, plan_id: plan.id, meal: meal.meal.trim(),
+      description: meal.description.trim() || null,
+      kcal: meal.kcal ? parseInt(meal.kcal, 10) : null, sort_order: items.length,
     });
+    setMeal({ meal: '', description: '', kcal: '' });
     load();
   }
   async function delMeal(id) { await supabase.from('meal_plan_items').delete().eq('id', id); load(); }
@@ -319,13 +339,13 @@ function Nutrition({ clientId }) {
           ))}
           <button className="btn btn-primary" style={{ gridColumn: '1 / -1' }}>Save targets</button>
         </form>
+        {savedMsg && <p style={{ color: 'var(--success)', fontSize: 13, margin: '10px 0 0' }}>{savedMsg}</p>}
       </div>
 
       <div className="card">
-        <div className="section-header"><h4 style={{ margin: 0 }}>Meal plan</h4>
-          <button className="btn btn-secondary" style={{ minHeight: 34 }} onClick={addMeal}>+ Add meal</button></div>
-        {items.length === 0 ? <p className="subtle" style={{ margin: 0 }}>No meals yet.</p> : (
-          <div className="stack" style={{ gap: 6 }}>
+        <h4 style={{ marginTop: 0 }}>Meal plan</h4>
+        {items.length > 0 && (
+          <div className="stack" style={{ gap: 6, marginBottom: 10 }}>
             {items.map((m) => (
               <div key={m.id} className="row between" style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px' }}>
                 <div><strong>{m.meal}</strong> <span className="subtle">{m.description}</span>
@@ -335,6 +355,16 @@ function Nutrition({ clientId }) {
             ))}
           </div>
         )}
+        {/* inline add-meal row — no popups */}
+        <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+          <input className="input" style={{ width: 130 }} placeholder="Meal (Breakfast)"
+            value={meal.meal} onChange={(e) => setMeal({ ...meal, meal: e.target.value })} />
+          <input className="input" style={{ flex: 1, minWidth: 160 }} placeholder="What to eat"
+            value={meal.description} onChange={(e) => setMeal({ ...meal, description: e.target.value })} />
+          <input className="input" style={{ width: 90 }} type="number" placeholder="kcal"
+            value={meal.kcal} onChange={(e) => setMeal({ ...meal, kcal: e.target.value })} />
+          <button className="btn btn-secondary" style={{ minHeight: 40 }} disabled={!meal.meal.trim()} onClick={addMeal}>Add</button>
+        </div>
       </div>
     </div>
   );
