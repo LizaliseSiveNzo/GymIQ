@@ -53,7 +53,7 @@ export default function Calendar({ events = [], title = 'Calendar' }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5 }}>
         {DOW.map((d, i) => <div key={i} className="subtle" style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, padding: '2px 0' }}>{d}</div>)}
         {cells.map((d, i) => {
           if (d === null) return <div key={i} />;
@@ -61,24 +61,39 @@ export default function Calendar({ events = [], title = 'Calendar' }) {
           const evs = byDay[dayIso] || [];
           const isToday = dayIso === todayIso;
           const isSel = dayIso === sel;
-          const kinds = [...new Set(evs.map((e) => e.kind))].slice(0, 4);
+
+          // Ring reflects WORKOUTS that day: 1=quarter, 2=half, 3=three-quarter, 4+=full.
+          const workouts = evs.filter((e) => e.kind === 'appointment' || e.kind === 'session');
+          const frac = Math.min(workouts.length, 4) / 4;
+          const ringColor = evs.some((e) => e.kind === 'appointment') ? KIND.appointment.color : KIND.session.color;
+          const R = 15, C = 2 * Math.PI * R;
+          // other kinds (journal / check-in) shown as a small corner dot
+          const otherKind = evs.find((e) => e.kind === 'journal' || e.kind === 'metric')?.kind;
+
           return (
             <button
               key={i}
               type="button"
               onClick={() => setSel(isSel ? null : dayIso)}
               style={{
-                aspectRatio: '1 / 1', minHeight: 40, cursor: 'pointer', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: 3, borderRadius: 10, fontSize: 13,
-                background: isSel ? 'var(--green-100)' : evs.length ? 'var(--surface-2)' : 'transparent',
-                border: `1px solid ${isToday ? 'var(--green-600)' : 'transparent'}`,
+                position: 'relative', aspectRatio: '1 / 1', minHeight: 44, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, fontSize: 13,
+                background: isSel ? 'var(--green-100)' : 'transparent',
+                border: `1px solid ${isToday ? 'var(--green-600)' : 'var(--border)'}`,
                 color: 'var(--ink)', fontWeight: isToday ? 700 : 400,
               }}
             >
-              <span>{d}</span>
-              <span style={{ display: 'flex', gap: 3, height: 6 }}>
-                {kinds.map((k) => <span key={k} style={{ width: 6, height: 6, borderRadius: '50%', background: (KIND[k] || {}).color || 'var(--text-muted)' }} />)}
-              </span>
+              {frac > 0 && (
+                <svg viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                  <circle cx="20" cy="20" r={R} fill="none" stroke="var(--surface-2)" strokeWidth="2.5" />
+                  <circle cx="20" cy="20" r={R} fill="none" stroke={ringColor} strokeWidth="3" strokeLinecap="round"
+                    strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 20 20)" />
+                </svg>
+              )}
+              {otherKind && (
+                <span style={{ position: 'absolute', top: 4, right: 4, width: 6, height: 6, borderRadius: '50%', background: (KIND[otherKind] || {}).color }} />
+              )}
+              <span style={{ position: 'relative' }}>{d}</span>
             </button>
           );
         })}
@@ -94,6 +109,7 @@ export default function Calendar({ events = [], title = 'Calendar' }) {
           ))}
         </div>
       )}
+      <p className="subtle" style={{ fontSize: 11, margin: '8px 0 0' }}>The ring around each date fills up as more workouts are booked or logged that day (¼ → ½ → ¾ → full).</p>
 
       {/* selected day's events */}
       {sel && (

@@ -13,13 +13,13 @@ import Assistant from '../components/Assistant.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 
-const TABS = ['My plan', 'Log session', 'Progress', 'Nutrition', 'Form AI', 'Assistant', 'Calendar', 'Journal'];
+const TABS = ['Calendar', 'My plan', 'Log session', 'Progress', 'Nutrition', 'Form AI', 'Assistant', 'Journal'];
 
 // The client's own view. All reads/writes are scoped to their own client_id
 // (= auth.uid) by RLS, so no id needs to be passed around.
 export default function PlayerProfile() {
   const { session, profile } = useAuth();
-  const [tab, setTab] = useState('My plan');
+  const [tab, setTab] = useState('Calendar');
 
   if (session?.demo)
     return <AppShell role="player" active="Home" title="Home"><div className="card">Demo mode — sign in as a client to see your plan.</div></AppShell>;
