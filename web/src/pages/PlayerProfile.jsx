@@ -5,7 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
-import Calendar from '../components/Calendar.jsx';
+import WorkoutCalendar from '../components/WorkoutCalendar.jsx';
 import ProgrammeBuilder from '../components/ProgrammeBuilder.jsx';
 import NutritionPlanner from '../components/NutritionPlanner.jsx';
 import FormCheck from '../components/FormCheck.jsx';
@@ -42,7 +42,7 @@ export default function PlayerProfile() {
       {tab === 'Nutrition'   && <Nutrition cid={cid} />}
       {tab === 'Form AI'     && <FormCheck clientId={cid} />}
       {tab === 'Assistant'   && <Assistant />}
-      {tab === 'Calendar'    && <MyCalendar cid={cid} />}
+      {tab === 'Calendar'    && <WorkoutCalendar clientId={cid} />}
       {tab === 'Journal'     && <MyJournal cid={cid} />}
     </AppShell>
   );
@@ -277,61 +277,6 @@ function Nutrition({ cid }) {
           <button className="btn btn-primary" style={{ gridColumn: '1 / -1' }}>{today ? 'Update today' : 'Save today'}</button>
         </form>
       </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ Calendar */
-function MyCalendar({ cid }) {
-  const [events, setEvents] = useState(null);
-  const [form, setForm] = useState({ date: '', time: '', duration_min: 60, note: '' });
-  const [busy, setBusy] = useState(false);
-
-  async function load() {
-    const [appts, logs, journal, metrics] = await Promise.all([
-      supabase.from('appointments').select('starts_at, duration_min, note').eq('client_id', cid),
-      supabase.from('workout_logs').select('log_date, note, logged_sets(id)').eq('client_id', cid).limit(300),
-      supabase.from('client_journal').select('entry_date, body').eq('client_id', cid).limit(300),
-      supabase.from('body_metrics').select('metric_date, weight_kg').eq('client_id', cid).limit(300),
-    ]);
-    const ev = [];
-    (appts.data || []).forEach((a) => ev.push({ date: a.starts_at.slice(0, 10), kind: 'appointment', label: `Session · ${a.duration_min} min${a.note ? ` (${a.note})` : ''}` }));
-    (logs.data || []).forEach((l) => ev.push({ date: l.log_date, kind: 'session', label: `Workout · ${l.logged_sets?.length || 0} sets` }));
-    (journal.data || []).forEach((j) => ev.push({ date: j.entry_date, kind: 'journal', label: `Journal: ${j.body.slice(0, 60)}` }));
-    (metrics.data || []).forEach((m) => ev.push({ date: m.metric_date, kind: 'metric', label: `Check-in${m.weight_kg != null ? ` · ${m.weight_kg}kg` : ''}` }));
-    setEvents(ev);
-  }
-  useEffect(() => { load(); }, [cid]);
-
-  async function book(e) {
-    e.preventDefault();
-    if (!form.date || !form.time) return;
-    setBusy(true);
-    try {
-      const starts_at = new Date(`${form.date}T${form.time}`).toISOString();
-      await supabase.from('appointments').insert({
-        client_id: cid, trainer_id: null, starts_at,
-        duration_min: parseInt(form.duration_min, 10) || 60, note: form.note.trim() || null,
-      });
-      setForm({ date: '', time: '', duration_min: 60, note: '' });
-      load();
-    } finally { setBusy(false); }
-  }
-
-  if (events === null) return <div className="card">Loading…</div>;
-  return (
-    <div className="stack">
-      <div className="card">
-        <h4 style={{ marginTop: 0 }}>Schedule a workout</h4>
-        <form onSubmit={book} className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-          <input className="input" style={{ width: 150 }} type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-          <input className="input" style={{ width: 120 }} type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} />
-          <input className="input" style={{ width: 90 }} type="number" placeholder="min" value={form.duration_min} onChange={(e) => setForm({ ...form, duration_min: e.target.value })} />
-          <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder="Note (optional)" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-          <button className="btn btn-primary" disabled={busy || !form.date || !form.time}>Add</button>
-        </form>
-      </div>
-      <Calendar events={events} title="My month" />
     </div>
   );
 }

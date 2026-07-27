@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
-import Calendar from '../components/Calendar.jsx';
+import WorkoutCalendar from '../components/WorkoutCalendar.jsx';
 import FormCheck from '../components/FormCheck.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
@@ -53,7 +53,7 @@ export default function CoachPlayerDetail() {
       {tab === 'Nutrition' && <Nutrition clientId={id} />}
       {tab === 'Sessions'  && <Sessions  clientId={id} />}
       {tab === 'Form'      && <FormCheck clientId={id} readOnly />}
-      {tab === 'Calendar'  && <ClientCalendar clientId={id} />}
+      {tab === 'Calendar'  && <WorkoutCalendar clientId={id} />}
       {tab === 'Journal'   && <ClientJournalView clientId={id} />}
       {tab === 'Notes'     && <Notes     clientId={id} />}
     </AppShell>
@@ -556,28 +556,6 @@ function Notes({ clientId }) {
       ))}
     </div>
   );
-}
-
-/* ------------------------------------------------------------------ Calendar */
-function ClientCalendar({ clientId }) {
-  const [events, setEvents] = useState(null);
-  useEffect(() => { (async () => {
-    const [appts, logs, journal, metrics] = await Promise.all([
-      supabase.from('appointments').select('starts_at, duration_min, note').eq('client_id', clientId),
-      supabase.from('workout_logs').select('log_date, note, logged_sets(id)').eq('client_id', clientId).limit(300),
-      supabase.from('client_journal').select('entry_date, body').eq('client_id', clientId).limit(300),
-      supabase.from('body_metrics').select('metric_date, weight_kg').eq('client_id', clientId).limit(300),
-    ]);
-    const ev = [];
-    (appts.data || []).forEach((a) => ev.push({ date: a.starts_at.slice(0, 10), kind: 'appointment', label: `Session · ${a.duration_min} min${a.note ? ` (${a.note})` : ''}` }));
-    (logs.data || []).forEach((l) => ev.push({ date: l.log_date, kind: 'session', label: `Workout · ${l.logged_sets?.length || 0} sets${l.note ? ` (${l.note})` : ''}` }));
-    (journal.data || []).forEach((j) => ev.push({ date: j.entry_date, kind: 'journal', label: `Journal: ${j.body.slice(0, 60)}` }));
-    (metrics.data || []).forEach((m) => ev.push({ date: m.metric_date, kind: 'metric', label: `Check-in${m.weight_kg != null ? ` · ${m.weight_kg}kg` : ''}` }));
-    setEvents(ev);
-  })(); }, [clientId]);
-
-  if (events === null) return <div className="card">Loading…</div>;
-  return <Calendar events={events} title="Client month" />;
 }
 
 /* ---------------------------------------------------- Client journal (read) */

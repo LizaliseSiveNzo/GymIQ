@@ -8,8 +8,9 @@ import { useMemo, useState } from 'react';
 // Reusable month calendar.
 // events: [{ date: 'YYYY-MM-DD', label, kind }]  kind: appointment|session|journal|metric
 const KIND = {
-  appointment: { color: 'var(--green-600)', label: 'Session booked' },
+  plan:        { color: 'var(--green-600)', label: 'Planned workout' },
   session:     { color: 'var(--info)',      label: 'Workout logged' },
+  appointment: { color: 'var(--energy)',    label: 'Session with trainer' },
   journal:     { color: 'var(--warning)',   label: 'Journal note' },
   metric:      { color: 'var(--success)',   label: 'Check-in' },
 };
@@ -17,7 +18,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const iso = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-export default function Calendar({ events = [], title = 'Calendar' }) {
+export default function Calendar({ events = [], title = 'Calendar', resolveDay = null, onSelectDay = null }) {
   const today = new Date();
   const [y, setY] = useState(today.getFullYear());
   const [m, setM] = useState(today.getMonth());
@@ -61,20 +62,22 @@ export default function Calendar({ events = [], title = 'Calendar' }) {
           const evs = byDay[dayIso] || [];
           const isToday = dayIso === todayIso;
           const isSel = dayIso === sel;
+          const plan = resolveDay ? resolveDay(dayIso, new Date(y, m, d).getDay()) : null;
 
-          // Ring reflects WORKOUTS that day: 1=quarter, 2=half, 3=three-quarter, 4+=full.
-          const workouts = evs.filter((e) => e.kind === 'appointment' || e.kind === 'session');
-          const frac = Math.min(workouts.length, 4) / 4;
-          const ringColor = evs.some((e) => e.kind === 'appointment') ? KIND.appointment.color : KIND.session.color;
+          // Ring reflects WORKOUTS that day (planned exercises + logged/booked):
+          // 1=quarter, 2=half, 3=three-quarter, 4+=full.
+          const workoutCount = (plan?.count || 0) + evs.filter((e) => e.kind === 'appointment' || e.kind === 'session').length;
+          const frac = Math.min(workoutCount, 4) / 4;
+          const ringColor = plan ? KIND.plan.color : evs.some((e) => e.kind === 'appointment') ? KIND.appointment.color : KIND.session.color;
           const R = 15, C = 2 * Math.PI * R;
-          // other kinds (journal / check-in) shown as a small corner dot
           const otherKind = evs.find((e) => e.kind === 'journal' || e.kind === 'metric')?.kind;
 
           return (
             <button
               key={i}
               type="button"
-              onClick={() => setSel(isSel ? null : dayIso)}
+              onClick={() => (onSelectDay ? onSelectDay(dayIso) : setSel(isSel ? null : dayIso))}
+              title={plan?.title || undefined}
               style={{
                 position: 'relative', aspectRatio: '1 / 1', minHeight: 44, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, fontSize: 13,
@@ -111,8 +114,8 @@ export default function Calendar({ events = [], title = 'Calendar' }) {
       )}
       <p className="subtle" style={{ fontSize: 11, margin: '8px 0 0' }}>The ring around each date fills up as more workouts are booked or logged that day (¼ → ½ → ¾ → full).</p>
 
-      {/* selected day's events */}
-      {sel && (
+      {/* selected day's events (only when the parent isn't handling day clicks) */}
+      {sel && !onSelectDay && (
         <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
           <div className="subtle" style={{ fontSize: 12, marginBottom: 6 }}>{new Date(sel).toDateString()}</div>
           {selEvents.length === 0 ? <p className="subtle" style={{ margin: 0, fontSize: 13 }}>Nothing on this day.</p> : (
