@@ -18,6 +18,7 @@ import ClientProgress from './pages/ClientProgress.jsx';
 import ClientNutritionPage from './pages/ClientNutritionPage.jsx';
 import ClientForm from './pages/ClientForm.jsx';
 import ClientJournalPage from './pages/ClientJournalPage.jsx';
+import ClientExercises from './pages/ClientExercises.jsx';
 import CoachAnnouncements from './pages/CoachAnnouncements.jsx';
 import CoachPlayerDetail from './pages/CoachPlayerDetail.jsx';
 import Announcements from './pages/Announcements.jsx';
@@ -49,6 +50,7 @@ export default function App() {
       {/* Client */}
       <Route path="/customer" element={<ProtectedRoute roles={CLIENT}><PlayerProfile /></ProtectedRoute>} />
       <Route path="/player" element={<Navigate to="/customer" replace />} />
+      <Route path="/customer/exercises" element={<ProtectedRoute roles={CLIENT}><ClientExercises /></ProtectedRoute>} />
       <Route path="/customer/log" element={<ProtectedRoute roles={CLIENT}><ClientLog /></ProtectedRoute>} />
       <Route path="/customer/progress" element={<ProtectedRoute roles={CLIENT}><ClientProgress /></ProtectedRoute>} />
       <Route path="/customer/nutrition" element={<ProtectedRoute roles={CLIENT}><ClientNutritionPage /></ProtectedRoute>} />
