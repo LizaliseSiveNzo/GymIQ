@@ -6,6 +6,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
 import Calendar from '../components/Calendar.jsx';
+import ProgrammeBuilder from '../components/ProgrammeBuilder.jsx';
+import NutritionPlanner from '../components/NutritionPlanner.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 
@@ -32,7 +34,7 @@ export default function PlayerProfile() {
         </div>
       </div>
 
-      {tab === 'My plan'     && <MyPlan cid={cid} />}
+      {tab === 'My plan'     && <ProgrammeBuilder clientId={cid} />}
       {tab === 'Log session' && <LogSession cid={cid} />}
       {tab === 'Progress'    && <Progress cid={cid} />}
       {tab === 'Nutrition'   && <Nutrition cid={cid} />}
@@ -230,23 +232,17 @@ function Sparkline({ points }) {
 
 /* ----------------------------------------------------------------- Nutrition */
 function Nutrition({ cid }) {
-  const [plan, setPlan] = useState(undefined);
-  const [items, setItems] = useState([]);
   const [today, setToday] = useState(null);
   const [f, setF] = useState({ kcal: '', protein_g: '', carbs_g: '', fat_g: '' });
   const dateStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  async function load() {
-    const { data: p } = await supabase.from('nutrition_plans').select('*').eq('client_id', cid).eq('is_active', true).limit(1);
-    const pl = p?.[0] || null;
-    setPlan(pl);
-    if (pl) { const { data: mi } = await supabase.from('meal_plan_items').select('*').eq('plan_id', pl.id).order('sort_order'); setItems(mi || []); }
+  async function loadLog() {
     const { data: fl } = await supabase.from('food_logs').select('*').eq('client_id', cid).eq('log_date', dateStr).limit(1);
     const t = fl?.[0] || null;
     setToday(t);
     if (t) setF({ kcal: t.kcal ?? '', protein_g: t.protein_g ?? '', carbs_g: t.carbs_g ?? '', fat_g: t.fat_g ?? '' });
   }
-  useEffect(() => { load(); }, [cid]);
+  useEffect(() => { loadLog(); }, [cid]);
 
   async function saveLog(e) {
     e.preventDefault();
@@ -257,37 +253,13 @@ function Nutrition({ cid }) {
     };
     if (today) await supabase.from('food_logs').update(payload).eq('id', today.id);
     else await supabase.from('food_logs').insert(payload);
-    load();
+    loadLog();
   }
 
-  if (plan === undefined) return <div className="card">Loading…</div>;
   return (
     <div className="stack">
-      <div className="card">
-        <h4 style={{ marginTop: 0 }}>Daily targets</h4>
-        {plan ? (
-          <div className="grid grid-4">
-            <div className="kpi"><div className="kpi-label">Calories</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.daily_kcal ?? '—'}</div></div>
-            <div className="kpi"><div className="kpi-label">Protein</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.protein_g ?? '—'}g</div></div>
-            <div className="kpi"><div className="kpi-label">Carbs</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.carbs_g ?? '—'}g</div></div>
-            <div className="kpi"><div className="kpi-label">Fat</div><div className="kpi-value" style={{ fontSize: 22 }}>{plan.fat_g ?? '—'}g</div></div>
-          </div>
-        ) : <p className="subtle" style={{ margin: 0 }}>Your trainer hasn't set targets yet.</p>}
-      </div>
-
-      {items.length > 0 && (
-        <div className="card">
-          <h4 style={{ marginTop: 0 }}>Your meal plan</h4>
-          <div className="stack" style={{ gap: 6 }}>
-            {items.map((m) => (
-              <div key={m.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px' }}>
-                <strong>{m.meal}</strong> <span className="subtle">{m.description}</span>
-                {m.kcal != null && <div className="subtle" style={{ fontSize: 12 }}>{m.kcal} kcal</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Client can set their own targets + meal plan (same editor the trainer uses) */}
+      <NutritionPlanner clientId={cid} />
 
       <div className="card">
         <h4 style={{ marginTop: 0 }}>Log today's intake</h4>
@@ -308,7 +280,10 @@ function Nutrition({ cid }) {
 /* ------------------------------------------------------------------ Calendar */
 function MyCalendar({ cid }) {
   const [events, setEvents] = useState(null);
-  useEffect(() => { (async () => {
+  const [form, setForm] = useState({ date: '', time: '', duration_min: 60, note: '' });
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
     const [appts, logs, journal, metrics] = await Promise.all([
       supabase.from('appointments').select('starts_at, duration_min, note').eq('client_id', cid),
       supabase.from('workout_logs').select('log_date, note, logged_sets(id)').eq('client_id', cid).limit(300),
@@ -321,9 +296,40 @@ function MyCalendar({ cid }) {
     (journal.data || []).forEach((j) => ev.push({ date: j.entry_date, kind: 'journal', label: `Journal: ${j.body.slice(0, 60)}` }));
     (metrics.data || []).forEach((m) => ev.push({ date: m.metric_date, kind: 'metric', label: `Check-in${m.weight_kg != null ? ` · ${m.weight_kg}kg` : ''}` }));
     setEvents(ev);
-  })(); }, [cid]);
+  }
+  useEffect(() => { load(); }, [cid]);
+
+  async function book(e) {
+    e.preventDefault();
+    if (!form.date || !form.time) return;
+    setBusy(true);
+    try {
+      const starts_at = new Date(`${form.date}T${form.time}`).toISOString();
+      await supabase.from('appointments').insert({
+        client_id: cid, trainer_id: null, starts_at,
+        duration_min: parseInt(form.duration_min, 10) || 60, note: form.note.trim() || null,
+      });
+      setForm({ date: '', time: '', duration_min: 60, note: '' });
+      load();
+    } finally { setBusy(false); }
+  }
+
   if (events === null) return <div className="card">Loading…</div>;
-  return <Calendar events={events} title="My month" />;
+  return (
+    <div className="stack">
+      <div className="card">
+        <h4 style={{ marginTop: 0 }}>Schedule a workout</h4>
+        <form onSubmit={book} className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <input className="input" style={{ width: 150 }} type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+          <input className="input" style={{ width: 120 }} type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} />
+          <input className="input" style={{ width: 90 }} type="number" placeholder="min" value={form.duration_min} onChange={(e) => setForm({ ...form, duration_min: e.target.value })} />
+          <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder="Note (optional)" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+          <button className="btn btn-primary" disabled={busy || !form.date || !form.time}>Add</button>
+        </form>
+      </div>
+      <Calendar events={events} title="My month" />
+    </div>
+  );
 }
 
 /* ------------------------------------------------------------------- Journal */
