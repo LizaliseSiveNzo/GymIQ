@@ -36,6 +36,7 @@ export default function WorkoutCalendar({ clientId, readOnly = false, exercisesP
   const [addBlockId, setAddBlockId] = useState('');
   const [meal, setMeal] = useState('');
   const [openBlk, setOpenBlk] = useState({});
+  const [descOpen, setDescOpen] = useState({});
   const [loading, setLoading] = useState(true);
 
   async function load() {
@@ -151,9 +152,15 @@ export default function WorkoutCalendar({ clientId, readOnly = false, exercisesP
                     <div className="stack" style={{ gap: 6, marginTop: 8 }}>
                       {ab.block.exercises.length === 0 ? <p className="subtle" style={{ margin: 0, fontSize: 13 }}>This block has no exercises yet.</p>
                        : ab.block.exercises.map((e) => (
-                        <div key={e.id} className="row between" style={{ fontSize: 13 }}>
-                          <div>{e.name}<span className="subtle"> {e.target_sets ? `${e.target_sets}×` : ''}{e.target_reps || ''}{e.target_weight ? ` @ ${e.target_weight}kg` : ''}</span></div>
-                          <a href={watchUrl(e)} target="_blank" rel="noopener noreferrer" className="badge badge-info" style={{ textDecoration: 'none' }}>▶ Watch</a>
+                        <div key={e.id}>
+                          <div className="row between" style={{ fontSize: 13 }}>
+                            <div>{e.name}<span className="subtle"> {e.target_sets ? `${e.target_sets}×` : ''}{e.target_reps || ''}{e.target_weight ? ` @ ${e.target_weight}kg` : ''}</span></div>
+                            <div className="row" style={{ gap: 6 }}>
+                              {e.description && <button className="btn btn-ghost" style={{ minHeight: 24, padding: '0 6px' }} onClick={() => setDescOpen((s) => ({ ...s, [e.id]: !s[e.id] }))} title="How to perform">ⓘ</button>}
+                              <a href={watchUrl(e)} target="_blank" rel="noopener noreferrer" className="badge badge-info" style={{ textDecoration: 'none' }}>▶ Watch</a>
+                            </div>
+                          </div>
+                          {descOpen[e.id] && e.description && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>{e.description}</p>}
                         </div>
                       ))}
                     </div>
