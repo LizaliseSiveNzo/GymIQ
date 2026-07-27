@@ -8,10 +8,12 @@ import AppShell from '../components/AppShell.jsx';
 import Calendar from '../components/Calendar.jsx';
 import ProgrammeBuilder from '../components/ProgrammeBuilder.jsx';
 import NutritionPlanner from '../components/NutritionPlanner.jsx';
+import FormCheck from '../components/FormCheck.jsx';
+import Assistant from '../components/Assistant.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 
-const TABS = ['My plan', 'Log session', 'Progress', 'Nutrition', 'Calendar', 'Journal'];
+const TABS = ['My plan', 'Log session', 'Progress', 'Nutrition', 'Form AI', 'Assistant', 'Calendar', 'Journal'];
 
 // The client's own view. All reads/writes are scoped to their own client_id
 // (= auth.uid) by RLS, so no id needs to be passed around.
@@ -38,6 +40,8 @@ export default function PlayerProfile() {
       {tab === 'Log session' && <LogSession cid={cid} />}
       {tab === 'Progress'    && <Progress cid={cid} />}
       {tab === 'Nutrition'   && <Nutrition cid={cid} />}
+      {tab === 'Form AI'     && <FormCheck clientId={cid} />}
+      {tab === 'Assistant'   && <Assistant />}
       {tab === 'Calendar'    && <MyCalendar cid={cid} />}
       {tab === 'Journal'     && <MyJournal cid={cid} />}
     </AppShell>

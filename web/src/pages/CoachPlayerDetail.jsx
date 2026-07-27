@@ -7,11 +7,12 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell.jsx';
 import Calendar from '../components/Calendar.jsx';
+import FormCheck from '../components/FormCheck.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
 import { initials } from '../lib/format.js';
 
-const TABS = ['Overview', 'Programme', 'Progress', 'Nutrition', 'Sessions', 'Calendar', 'Journal', 'Notes'];
+const TABS = ['Overview', 'Programme', 'Progress', 'Nutrition', 'Sessions', 'Form', 'Calendar', 'Journal', 'Notes'];
 
 export default function CoachPlayerDetail() {
   const { id } = useParams();
@@ -51,6 +52,7 @@ export default function CoachPlayerDetail() {
       {tab === 'Progress'  && <Progress  clientId={id} />}
       {tab === 'Nutrition' && <Nutrition clientId={id} />}
       {tab === 'Sessions'  && <Sessions  clientId={id} />}
+      {tab === 'Form'      && <FormCheck clientId={id} readOnly />}
       {tab === 'Calendar'  && <ClientCalendar clientId={id} />}
       {tab === 'Journal'   && <ClientJournalView clientId={id} />}
       {tab === 'Notes'     && <Notes     clientId={id} />}
