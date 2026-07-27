@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabaseClient.js';
+import Assistant from './Assistant.jsx';
 
 // [label, icon, path|null]
 // GymIQ trainer↔client model. Internal roles stay 'coach'/'player'; labels are
@@ -15,7 +16,7 @@ import { supabase } from '../lib/supabaseClient.js';
 const NAV = {
   admin:  [['Dashboard','▚','/admin'],['Teams','👥','/admin/teams'],['Players','⚽','/admin/players'],['Coaches','🏃','/admin/coaches'],['Activity','📒','/admin/activity'],['Broadcast','📣','/admin/broadcast'],['Trials','📋','/admin/trials'],['Settings','⚙','/admin/settings']],
   coach:  [['Dashboard','▚','/coach'],['Clients','👥','/coach/squad'],['Schedule','📅','/coach/schedule'],['Announcements','📣','/coach/announcements'],['Journal','📓','/coach/journal']],
-  player: [['Home','▚','/customer'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements']],
+  player: [['Home','▚','/customer'],['Nutrition','🍎','/customer/nutrition'],['Log session','➕','/customer/log'],['Progress','📈','/customer/progress'],['Form AI','🎥','/customer/form'],['Journal','📓','/customer/journal'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements']],
 };
 
 const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -26,6 +27,7 @@ export default function AppShell({ active, title, children }) {
   const items = NAV[role] || [];
   const [unread, setUnread] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   useEffect(() => {
     if (!session || session.demo) return;
@@ -60,6 +62,10 @@ export default function AppShell({ active, title, children }) {
             <h3 style={{ margin: 0 }}>{title}</h3>
           </div>
           <div className="row">
+            {role === 'player' && (
+              <button className="btn btn-ghost" style={{ minHeight: 36, padding: '6px 10px' }}
+                onClick={() => setAssistantOpen((v) => !v)} title="Assistant">💬</button>
+            )}
             <button className="btn btn-ghost" style={{ position: 'relative', minHeight: 36, padding: '6px 10px' }}
               onClick={() => navigate('/notifications')} title="Notifications">
               🔔
@@ -89,6 +95,22 @@ export default function AppShell({ active, title, children }) {
             <div className="m-item exit" onClick={exit}><span style={{ width: 22, textAlign: 'center' }}>↩</span> Exit</div>
           </nav>
         </>
+      )}
+
+      {/* Floating AI assistant window (client) */}
+      {role === 'player' && assistantOpen && (
+        <div style={{
+          position: 'fixed', bottom: 20, right: 20, zIndex: 60,
+          width: 'min(380px, 92vw)', maxHeight: '76vh', overflowY: 'auto',
+          background: 'var(--surface)', border: '1px solid var(--border-strong)',
+          borderRadius: 16, boxShadow: 'var(--shadow-lg)',
+        }}>
+          <div className="row between" style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, background: 'var(--surface)' }}>
+            <strong>Assistant</strong>
+            <button className="btn btn-ghost" style={{ minHeight: 28, padding: '0 8px' }} onClick={() => setAssistantOpen(false)}>✕</button>
+          </div>
+          <div style={{ padding: 12 }}><Assistant /></div>
+        </div>
       )}
     </div>
   );
