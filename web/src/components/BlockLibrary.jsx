@@ -5,12 +5,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
+import { BLOCK_CATEGORIES, catColor } from '../lib/blockCategories.js';
 
 export const watchUrl = (ex) => (ex.video_url && ex.video_url.trim())
   ? ex.video_url.trim()
   : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${ex.name} proper form technique`)}`;
 
-const CATS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Full Body'];
+// Exercise-library filter tabs (the primary_category of a preset move).
+const CATS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Cardio', 'Full Body'];
 
 // Reusable library of workout blocks (Legs, Push, …), each holding exercises.
 // Exercises are added from the global preset library (pick, don't type) or by hand.
@@ -21,6 +23,7 @@ export default function BlockLibrary({ clientId, readOnly = false }) {
   const [presets, setPresets] = useState([]);
   const [open, setOpen] = useState({});        // blockId -> expanded
   const [newBlock, setNewBlock] = useState('');
+  const [newCat, setNewCat] = useState('');
   const [showDesc, setShowDesc] = useState({}); // exId -> reveal description
   const [pick, setPick] = useState({});        // blockId -> {cat, q}
   const [exForm, setExForm] = useState({});    // blockId -> {name,sets,reps,weight,video}
@@ -37,10 +40,12 @@ export default function BlockLibrary({ clientId, readOnly = false }) {
   }
   useEffect(() => { load(); }, [clientId]);
 
-  async function addBlock() {
-    if (!newBlock.trim()) return;
-    const { data } = await supabase.from('workout_blocks').insert({ client_id: clientId, name: newBlock.trim(), sort_order: (blocks?.length || 0) }).select('id').single();
-    setNewBlock(''); setOpen((o) => ({ ...o, [data.id]: true })); load();
+  async function createBlock(name, category) {
+    if (!name.trim()) return;
+    const { data } = await supabase.from('workout_blocks')
+      .insert({ client_id: clientId, name: name.trim(), category: category || null, sort_order: (blocks?.length || 0) })
+      .select('id').single();
+    setNewBlock(''); setNewCat(''); setOpen((o) => ({ ...o, [data.id]: true })); load();
   }
   async function delBlock(id) { await supabase.from('workout_blocks').delete().eq('id', id); load(); }
 
@@ -75,20 +80,37 @@ export default function BlockLibrary({ clientId, readOnly = false }) {
       {!readOnly && (
         <div className="card">
           <h4 style={{ marginTop: 0 }}>New block</h4>
+          <div className="subtle" style={{ fontSize: 12, marginBottom: 8 }}>Start from a category — it creates a colour-coded block you fill with exercises:</div>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="Block name (e.g. Legs, Push, Arms)"
-              value={newBlock} onChange={(e) => setNewBlock(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addBlock()} />
-            <button className="btn btn-primary" disabled={!newBlock.trim()} onClick={addBlock}>Add block</button>
+            {BLOCK_CATEGORIES.map((c) => (
+              <button key={c} type="button" onClick={() => createBlock(c, c)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 999,
+                  border: `1px solid ${catColor(c)}`, background: `${catColor(c)}22`, color: 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: catColor(c) }} /> {c}
+              </button>
+            ))}
           </div>
-          <p className="subtle" style={{ fontSize: 12, margin: '8px 0 0' }}>Build a block once, then drop it onto any day in the calendar — it brings all its exercises. Add moves from the {presets.length}-exercise library below, or type your own.</p>
+          <div className="subtle" style={{ fontSize: 12, margin: '14px 0 6px' }}>Or make a custom block:</div>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <input className="input" style={{ flex: 1, minWidth: 160 }} placeholder="Block name (e.g. Upper A, Leg Day)"
+              value={newBlock} onChange={(e) => setNewBlock(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && createBlock(newBlock, newCat)} />
+            <select className="select" style={{ minWidth: 130 }} value={newCat} onChange={(e) => setNewCat(e.target.value)}>
+              <option value="">Colour…</option>
+              {BLOCK_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button className="btn btn-primary" disabled={!newBlock.trim()} onClick={() => createBlock(newBlock, newCat)}>Add block</button>
+          </div>
+          <p className="subtle" style={{ fontSize: 12, margin: '8px 0 0' }}>Build a block once, then drop it onto any day in the calendar — it brings all its exercises. Add moves from the {presets.length}-exercise library, or type your own.</p>
         </div>
       )}
 
       {blocks.length === 0 ? <div className="card"><p className="subtle" style={{ margin: 0 }}>No blocks yet. Create one above (e.g. “Legs”) and add its exercises.</p></div>
        : blocks.map((b) => (
-        <div className="card" key={b.id}>
+        <div className="card" key={b.id} style={{ borderLeft: `4px solid ${catColor(b.category)}` }}>
           <div className="row between" style={{ cursor: 'pointer' }} onClick={() => setOpen((o) => ({ ...o, [b.id]: !o[b.id] }))}>
-            <h4 style={{ margin: 0 }}>{b.name} <span className="subtle" style={{ fontSize: 12, fontWeight: 400 }}>· {(ex[b.id] || []).length} exercise{(ex[b.id] || []).length === 1 ? '' : 's'}</span></h4>
+            <h4 style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: catColor(b.category), flexShrink: 0 }} />
+              {b.name} <span className="subtle" style={{ fontSize: 12, fontWeight: 400 }}>{b.category ? `· ${b.category} ` : ''}· {(ex[b.id] || []).length} exercise{(ex[b.id] || []).length === 1 ? '' : 's'}</span></h4>
             <div className="row" style={{ gap: 8 }}>
               {!readOnly && <button className="btn btn-ghost" style={{ minHeight: 28, padding: '0 8px' }} onClick={(e) => { e.stopPropagation(); delBlock(b.id); }}>Delete</button>}
               <span className="subtle">{open[b.id] ? '▾' : '▸'}</span>

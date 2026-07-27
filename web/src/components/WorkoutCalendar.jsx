@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Calendar from './Calendar.jsx';
 import { watchUrl } from './BlockLibrary.jsx';
+import { catColor } from '../lib/blockCategories.js';
 import { supabase } from '../lib/supabaseClient.js';
 
 const WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -140,9 +141,11 @@ export default function WorkoutCalendar({ clientId, readOnly = false, exercisesP
           ) : (
             <div className="stack" style={{ gap: 8, marginBottom: 10 }}>
               {activeBlocks.map((ab) => (
-                <div key={ab.id} style={{ border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
+                <div key={ab.id} style={{ border: '1px solid var(--border)', borderLeft: `4px solid ${catColor(ab.block.category)}`, borderRadius: 12, padding: '10px 12px' }}>
                   <div className="row between" style={{ cursor: 'pointer' }} onClick={() => setOpenBlk((o) => ({ ...o, [ab.id]: !o[ab.id] }))}>
-                    <strong>{ab.block.name} <span className="subtle" style={{ fontSize: 12, fontWeight: 400 }}>· {ab.block.exercises.length} exercise{ab.block.exercises.length === 1 ? '' : 's'}</span></strong>
+                    <strong style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: catColor(ab.block.category), flexShrink: 0 }} />
+                      {ab.block.name} <span className="subtle" style={{ fontSize: 12, fontWeight: 400 }}>· {ab.block.exercises.length} exercise{ab.block.exercises.length === 1 ? '' : 's'}</span></strong>
                     <div className="row" style={{ gap: 8 }}>
                       {!readOnly && <button className="btn btn-ghost" style={{ minHeight: 26, padding: '0 8px' }} onClick={(e) => { e.stopPropagation(); removeBlock(ab.id); }}>Remove</button>}
                       <span className="subtle">{openBlk[ab.id] ? '▾' : '▸'}</span>
