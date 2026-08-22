@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { setRemember } from '../lib/supabaseClient.js';
 // Supabase auth + role demo entry.
 
 import { CONSENT_VERSION } from './Privacy.jsx';
@@ -30,6 +31,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [remember, setRememberMe] = useState(true);
   const [busy, setBusy] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +42,7 @@ export default function Login() {
     setBusy(true);
     try {
       if (mode === 'login') {
+        setRemember(remember); // choose session persistence before authenticating
         // usernames work too: "coach" -> coach@gymiq.app
         const loginEmail = email.includes('@') ? email.trim() : `${email.trim().toLowerCase()}@gymiq.app`;
         const { error, role: r } = await signIn({ email: loginEmail, password });
@@ -164,6 +167,13 @@ export default function Login() {
               <input className="input" type="password" placeholder="••••••••"
                 value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
+
+            {mode === 'login' && (
+              <label className="row" style={{ gap: 8, alignItems: 'center', cursor: 'pointer', margin: '2px 0 14px' }}>
+                <input type="checkbox" checked={remember} onChange={(e) => setRememberMe(e.target.checked)} />
+                <span style={{ fontSize: 13 }}>Keep me signed in</span>
+              </label>
+            )}
 
             {mode === 'register' && role === 'client' && (
               <div className="field">
