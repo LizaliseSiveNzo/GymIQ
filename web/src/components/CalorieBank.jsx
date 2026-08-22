@@ -136,13 +136,28 @@ export default function CalorieBank({ clientId }) {
 
   // ---- Bank dashboard ----
   const allowance = monthlyAllowance(settings.daily_target);
-  const overdrawn = balance < 0;
+  const overdrawn = balance <= 0;
+  const frac = allowance > 0 ? Math.max(0, Math.min(1, balance / allowance)) : 0;
+  const low = !overdrawn && frac < 0.15;
+  const ringColor = overdrawn ? 'var(--danger)' : low ? 'var(--warning)' : 'var(--green-600)';
+  const R = 96, C = 2 * Math.PI * R;
+  const off = C * (1 - (overdrawn ? 1 : frac));
   return (
     <div className="stack">
       <div className="card" style={{ textAlign: 'center' }}>
-        <div className="subtle" style={{ fontSize: 13 }}>Calorie balance</div>
-        <div style={{ fontSize: 44, fontWeight: 800, lineHeight: 1.1, color: overdrawn ? 'var(--danger)' : 'var(--green-600)' }}>{fmt(balance)}</div>
-        <div className="subtle" style={{ fontSize: 12 }}>kcal {overdrawn ? 'overdrawn' : 'available'}</div>
+        <div style={{ position: 'relative', width: 220, height: 220, margin: '2px auto 0' }}>
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r={R} fill="none" stroke="var(--border)" strokeWidth="16" />
+            <circle cx="110" cy="110" r={R} fill="none" stroke={ringColor} strokeWidth="16" strokeLinecap="round"
+              strokeDasharray={C} strokeDashoffset={off} transform="rotate(-90 110 110)"
+              style={{ transition: 'stroke-dashoffset .6s ease, stroke .3s' }} />
+          </svg>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ fontSize: 42, fontWeight: 800, lineHeight: 1, color: ringColor }}>{fmt(balance)}</div>
+            <div className="subtle" style={{ fontSize: 12, marginTop: 4 }}>kcal {overdrawn ? 'over budget' : 'available'}</div>
+            <div className="subtle" style={{ fontSize: 11, marginTop: 2 }}>of {fmt(allowance)} this month</div>
+          </div>
+        </div>
         <div className="grid grid-3" style={{ gap: 8, marginTop: 14 }}>
           <div className="kpi"><div className="kpi-label">Deposited</div><div className="kpi-value" style={{ fontSize: 18 }}>{fmt(month.deposited)}</div></div>
           <div className="kpi"><div className="kpi-label">Eaten</div><div className="kpi-value" style={{ fontSize: 18 }}>{fmt(month.spent)}</div></div>
