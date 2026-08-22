@@ -1,0 +1,16 @@
+-- 0078_gymiq_user_owned_schema
+-- Recreates the fitness tables on the Aster project, now USER-OWNED. Table and
+-- column shapes match the previous project (see 0058_fitness_model and
+-- 0071–0076), with two changes for the user-centric model:
+--   • ownership is the user themselves: every policy is
+--       using (client_id = auth.uid()) with check (client_id = auth.uid())
+--     (the old trainer/fn_is_my_client policies are dropped; coaching shelved).
+--   • coach-facing tables (trainer_clients, appointments, journal_entries,
+--     trainer_announcements) are kept but inert, so existing pages don't error.
+-- Tables: exercise_presets (global read), trainer_clients, workout_programmes,
+-- programme_days, programme_exercises, workout_logs, logged_sets, body_metrics,
+-- nutrition_plans, meal_plan_items, food_logs, client_journal, journal_entries,
+-- appointments, trainer_announcements, form_checks, day_plans, workout_blocks,
+-- block_exercises, day_plan_blocks. Exercise library seeded from 0074 + 0075
+-- (88 moves). Full DDL was applied via the Supabase migration
+-- "gymiq_fitness_schema" on project brnshmmsyfitmotauaud.
