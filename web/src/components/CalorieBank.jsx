@@ -22,6 +22,8 @@ export default function CalorieBank({ clientId }) {
   const [form, setForm] = useState({ sex: 'male', age: '', height_cm: '', weight_kg: '', goal_weight_kg: '', activity_level: 'moderate', rate_kg_per_week: '0.5' });
   const [food, setFood] = useState({ label: '', kcal: '' });
   const [ex, setEx] = useState({ activity: 'Running', minutes: '', kcal: '' });
+  const [metrics, setMetrics] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [busy, setBusy] = useState(false);
 
   async function load() {
@@ -34,6 +36,12 @@ export default function CalorieBank({ clientId }) {
     }
     const { data: t } = await supabase.from('calorie_transactions').select('*').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(100);
     setTxns(t || []);
+    const since = new Date(Date.now() - 40 * 864e5).toISOString().slice(0, 10);
+    const [{ data: bm }, { data: wl }] = await Promise.all([
+      supabase.from('body_metrics').select('metric_date, weight_kg').eq('client_id', clientId).gte('metric_date', since).order('metric_date'),
+      supabase.from('workout_logs').select('log_date').eq('client_id', clientId).gte('log_date', since),
+    ]);
+    setMetrics(bm || []); setLogs(wl || []);
   }
   useEffect(() => { load(); }, [clientId]);
 
@@ -47,6 +55,22 @@ export default function CalorieBank({ clientId }) {
     const earned = m.filter((t) => t.kind === 'exercise').reduce((a, t) => a + t.kcal, 0);
     return { deposited, spent, earned };
   }, [txns]);
+
+  const insights = useMemo(() => {
+    const weights = metrics.filter((m) => m.weight_kg != null);
+    const series = weights.slice(-7).map((m) => Number(m.weight_kg));
+    const latestW = series.length ? series[series.length - 1] : null;
+    const dayKey = (d) => d.toISOString().slice(0, 10);
+    const today = new Date();
+    const last7 = [...Array(7)].map((_, i) => dayKey(new Date(today - (6 - i) * 864e5)));
+    const logDates = logs.map((l) => l.log_date);
+    const weekBars = last7.map((d) => logDates.filter((x) => x === d).length);
+    const workoutsWeek = weekBars.reduce((a, b) => a + b, 0);
+    const metricDays = new Set(metrics.map((m) => m.metric_date));
+    const grid = [...Array(35)].map((_, i) => metricDays.has(dayKey(new Date(today - (34 - i) * 864e5))));
+    const weighWeek = last7.filter((d) => metricDays.has(d)).length;
+    return { series, latestW, weekBars, workoutsWeek, grid, weighWeek };
+  }, [metrics, logs]);
 
   async function saveSettings(e) {
     e.preventDefault();
@@ -158,10 +182,10 @@ export default function CalorieBank({ clientId }) {
             <div className="subtle" style={{ fontSize: 11, marginTop: 2 }}>of {fmt(allowance)} this month</div>
           </div>
         </div>
-        <div className="grid grid-3" style={{ gap: 8, marginTop: 14 }}>
-          <div className="kpi"><div className="kpi-label">Deposited</div><div className="kpi-value" style={{ fontSize: 18 }}>{fmt(month.deposited)}</div></div>
-          <div className="kpi"><div className="kpi-label">Eaten</div><div className="kpi-value" style={{ fontSize: 18 }}>{fmt(month.spent)}</div></div>
-          <div className="kpi"><div className="kpi-label">Earned</div><div className="kpi-value" style={{ fontSize: 18, color: 'var(--green-600)' }}>+{fmt(month.earned)}</div></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 14 }}>
+          <div className="kpi" style={{ padding: 12 }}><div className="kpi-label">Deposited</div><div className="kpi-value" style={{ fontSize: 18 }}>{fmt(month.deposited)}</div></div>
+          <div className="kpi" style={{ padding: 12 }}><div className="kpi-label">Eaten</div><div className="kpi-value" style={{ fontSize: 18 }}>{fmt(month.spent)}</div></div>
+          <div className="kpi" style={{ padding: 12 }}><div className="kpi-label">Earned</div><div className="kpi-value" style={{ fontSize: 18, color: 'var(--green-600)' }}>+{fmt(month.earned)}</div></div>
         </div>
         <div className="subtle" style={{ fontSize: 12, marginTop: 10 }}>
           Monthly allowance {fmt(allowance)} kcal ({fmt(settings.daily_target)}/day) · goal {settings.goal_weight_kg}kg
@@ -169,7 +193,36 @@ export default function CalorieBank({ clientId }) {
         </div>
       </div>
 
-      <div className="grid grid-2" style={{ gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+        <div className="card" style={{ padding: 14 }}>
+          <strong style={{ fontSize: 14 }}>Weight trend</strong>
+          <div className="subtle" style={{ fontSize: 11 }}>Last 7 entries</div>
+          <Spark points={insights.series} />
+          <div style={{ fontSize: 17, fontWeight: 700, marginTop: 2 }}>{insights.latestW != null ? insights.latestW : '—'}<span className="subtle" style={{ fontSize: 12 }}> kg</span></div>
+        </div>
+        <div className="card" style={{ padding: 14 }}>
+          <strong style={{ fontSize: 14 }}>Workouts</strong>
+          <div className="subtle" style={{ fontSize: 11 }}>This week</div>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 34, marginTop: 8 }}>
+            {insights.weekBars.map((n, i) => (
+              <div key={i} style={{ flex: 1, height: `${n ? 30 + n * 34 : 12}%`, background: n ? 'var(--green-600)' : 'var(--surface-2)', borderRadius: 3 }} />
+            ))}
+          </div>
+          <div style={{ fontSize: 17, fontWeight: 700, marginTop: 6 }}>{insights.workoutsWeek}<span className="subtle" style={{ fontSize: 12 }}> session{insights.workoutsWeek === 1 ? '' : 's'}</span></div>
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 14 }}>
+        <strong style={{ fontSize: 14 }}>Weigh-in streak</strong>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(18, 1fr)', gap: 4, marginTop: 10 }}>
+          {insights.grid.map((on, i) => (
+            <div key={i} style={{ aspectRatio: '1', borderRadius: 3, background: on ? 'var(--green-600)' : 'var(--surface-2)' }} />
+          ))}
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, marginTop: 10 }}>{insights.weighWeek}<span className="subtle" style={{ fontWeight: 400 }}> / 7 this week</span></div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
         <div className="card">
           <h4 style={{ marginTop: 0 }}>🍽️ Log food</h4>
           <div className="subtle" style={{ fontSize: 12, marginBottom: 8 }}>Withdraws from your bank.</div>
@@ -220,5 +273,18 @@ export default function CalorieBank({ clientId }) {
         )}
       </div>
     </div>
+  );
+}
+
+// Tiny inline sparkline for the weight-trend card.
+function Spark({ points }) {
+  if (!points || points.length < 2) return <div style={{ height: 34, marginTop: 8, display: 'flex', alignItems: 'center' }}><span className="subtle" style={{ fontSize: 11 }}>Log 2+ weigh-ins</span></div>;
+  const w = 120, h = 34, min = Math.min(...points), max = Math.max(...points), range = max - min || 1;
+  const step = w / (points.length - 1);
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${(i * step).toFixed(1)} ${(h - ((p - min) / range) * (h - 4) - 2).toFixed(1)}`).join(' ');
+  return (
+    <svg width="100%" height="34" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ marginTop: 8 }}>
+      <path d={d} fill="none" stroke="var(--info)" strokeWidth="2.5" />
+    </svg>
   );
 }

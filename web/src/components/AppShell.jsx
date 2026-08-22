@@ -28,6 +28,8 @@ export default function AppShell({ active, title, children }) {
   const [unread, setUnread] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [qaOpen, setQaOpen] = useState(false);
+  const go = (path) => { setQaOpen(false); navigate(path); };
 
   useEffect(() => {
     if (!session || session.demo) return;
@@ -94,6 +96,32 @@ export default function AppShell({ active, title, children }) {
             ))}
             <div className="m-item exit" onClick={exit}><span style={{ width: 22, textAlign: 'center' }}>↩</span> Exit</div>
           </nav>
+        </>
+      )}
+
+      {/* Mobile bottom tab bar + quick-add (client) */}
+      {role === 'player' && (
+        <>
+          <nav className="tabbar">
+            <button className={`tab ${active === 'Home' ? 'active' : ''}`} onClick={() => go('/customer')}><span className="ic">🏦</span>Home</button>
+            <button className={`tab ${active === 'Schedule' ? 'active' : ''}`} onClick={() => go('/schedule')}><span className="ic">📅</span>Schedule</button>
+            <button className="fab" aria-label="Quick add" onClick={() => setQaOpen(true)}>+</button>
+            <button className={`tab ${active === 'Exercises' ? 'active' : ''}`} onClick={() => go('/customer/exercises')}><span className="ic">🏋</span>Train</button>
+            <button className="tab" onClick={() => setMenuOpen(true)}><span className="ic">☰</span>More</button>
+          </nav>
+
+          {qaOpen && (
+            <>
+              <div className="qa-backdrop" style={{ display: 'block' }} onClick={() => setQaOpen(false)} />
+              <div className="qa-sheet">
+                <div className="qa-grip" />
+                <button className="qa-item" onClick={() => go('/customer')}><span className="ic">🍽️</span> Log food or exercise</button>
+                <button className="qa-item" onClick={() => go('/customer/log')}><span className="ic">➕</span> Log a workout</button>
+                <button className="qa-item" onClick={() => go('/customer/progress')}><span className="ic">⚖️</span> Log a weigh-in</button>
+                <button className="qa-item" onClick={() => go('/customer/form')}><span className="ic">🎥</span> AI form check</button>
+              </div>
+            </>
+          )}
         </>
       )}
 
