@@ -16,7 +16,7 @@ import Assistant from './Assistant.jsx';
 const NAV = {
   admin:  [['Dashboard','▚','/admin'],['Teams','👥','/admin/teams'],['Players','⚽','/admin/players'],['Coaches','🏃','/admin/coaches'],['Activity','📒','/admin/activity'],['Broadcast','📣','/admin/broadcast'],['Trials','📋','/admin/trials'],['Settings','⚙','/admin/settings']],
   coach:  [['Dashboard','▚','/coach'],['Clients','👥','/coach/squad'],['Schedule','📅','/coach/schedule'],['Announcements','📣','/coach/announcements'],['Journal','📓','/coach/journal']],
-  player: [['Home','▚','/customer'],['Exercises','🏋','/customer/exercises'],['Nutrition','🍎','/customer/nutrition'],['Log session','➕','/customer/log'],['Progress','📈','/customer/progress'],['Form AI','🎥','/customer/form'],['Journal','📓','/customer/journal'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements']],
+  player: [['Home','▚','/customer'],['Exercises','🏋','/customer/exercises'],['Nutrition','🍎','/customer/nutrition'],['Calorie Bank','🏦','/customer/calorie-bank'],['Log session','➕','/customer/log'],['Progress','📈','/customer/progress'],['Form AI','🎥','/customer/form'],['Journal','📓','/customer/journal'],['Schedule','📅','/schedule'],['Announcements','📣','/announcements']],
 };
 
 const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();

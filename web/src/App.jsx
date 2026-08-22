@@ -19,6 +19,7 @@ import ClientNutritionPage from './pages/ClientNutritionPage.jsx';
 import ClientForm from './pages/ClientForm.jsx';
 import ClientJournalPage from './pages/ClientJournalPage.jsx';
 import ClientExercises from './pages/ClientExercises.jsx';
+import ClientCalorieBank from './pages/ClientCalorieBank.jsx';
 import CoachAnnouncements from './pages/CoachAnnouncements.jsx';
 import CoachPlayerDetail from './pages/CoachPlayerDetail.jsx';
 import Announcements from './pages/Announcements.jsx';
@@ -54,6 +55,7 @@ export default function App() {
       <Route path="/customer/log" element={<ProtectedRoute roles={CLIENT}><ClientLog /></ProtectedRoute>} />
       <Route path="/customer/progress" element={<ProtectedRoute roles={CLIENT}><ClientProgress /></ProtectedRoute>} />
       <Route path="/customer/nutrition" element={<ProtectedRoute roles={CLIENT}><ClientNutritionPage /></ProtectedRoute>} />
+      <Route path="/customer/calorie-bank" element={<ProtectedRoute roles={CLIENT}><ClientCalorieBank /></ProtectedRoute>} />
       <Route path="/customer/form" element={<ProtectedRoute roles={CLIENT}><ClientForm /></ProtectedRoute>} />
       <Route path="/customer/journal" element={<ProtectedRoute roles={CLIENT}><ClientJournalPage /></ProtectedRoute>} />
       <Route path="/announcements" element={<ProtectedRoute roles={CLIENT}><Announcements /></ProtectedRoute>} />
