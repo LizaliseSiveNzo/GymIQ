@@ -1,0 +1,181 @@
+/*
+  GymIQ — MF-rebuild shell styles (Phase 0)
+  Copyright © 2026 Lizalise Nzo. All rights reserved.
+
+  Scope: the NEW five-tab experience only (Today · Workout · (+) · Levels · More).
+  Consumes tokens from design-system.css; adds a few shell-local ones.
+*/
+
+:root {
+  --tabbar-h: 64px;
+  --accent: var(--green-500);
+}
+
+/* ---------- App frame ---------- */
+.mf-app {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+}
+
+.mf-header { padding: calc(20px + env(safe-area-inset-top)) 20px 12px; }
+
+.mf-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.mf-title {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 8vw, 42px);
+  font-weight: 800;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+  margin: 2px 0 0;
+}
+
+.mf-content { max-width: 720px; margin: 0 auto; padding: 0 16px 24px; }
+
+/* ---------- Cards / shared bits ---------- */
+.mf-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: block;
+  color: inherit;
+}
+.mf-card h4 { margin: 0; }
+a.mf-card { text-decoration: none; }
+.mf-card:hover { border-color: var(--border-strong); }
+
+.sec-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--text-subtle);
+  margin: 22px 2px 8px;
+}
+.list-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.list-row {
+  width: 100%; display: flex; align-items: center; gap: 12px;
+  padding: 13px 14px; background: none; border: 0; border-bottom: 1px solid var(--border);
+  color: var(--ink); font: inherit; font-size: 14.5px; text-align: left; text-decoration: none;
+  cursor: pointer;
+}
+.list-row:last-child { border-bottom: 0; }
+.list-row:hover { background: var(--surface-2); }
+.list-row .ic { width: 20px; text-align: center; opacity: .9; }
+.list-row .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-row .chev { color: var(--text-subtle); font-size: 18px; line-height: 1; }
+.list-row[disabled] { opacity: .55; cursor: default; }
+
+.soon {
+  font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-subtle); border: 1px solid var(--border-strong);
+  padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+}
+
+.chiprow { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chiprow::-webkit-scrollbar { display: none; }
+.chip {
+  flex: 0 0 auto; padding: 7px 13px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid transparent;
+  color: var(--text-muted); font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.chip.on { color: var(--ink); border-color: var(--accent); background: var(--green-100); }
+
+.avatar-lg {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--navy-600); color: var(--ink);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800; letter-spacing: .04em;
+}
+
+/* ---------- Bottom tab bar + FAB ---------- */
+.mf-tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  display: grid; grid-template-columns: repeat(5, 1fr); align-items: end;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding: 0 6px env(safe-area-inset-bottom);
+  background: rgba(11, 11, 11, .94);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+}
+.mf-tab {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  height: 54px; display: flex; flex-direction: column; gap: 3px;
+  align-items: center; justify-content: center;
+  color: var(--text-subtle); font: inherit; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .03em;
+}
+.mf-tab .ic { font-size: 20px; line-height: 1; filter: grayscale(1) opacity(.7); }
+.mf-tab.active { color: var(--accent); }
+.mf-tab.active .ic { filter: none; }
+
+.mf-fabwrap { display: flex; justify-content: center; }
+.mf-fab {
+  width: 56px; height: 56px; margin-top: -20px; border: 0; cursor: pointer;
+  border-radius: 50%; background: var(--green-600); color: var(--on-accent);
+  font-size: 30px; font-weight: 700; line-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(198, 255, 58, .28), 0 0 0 6px var(--bg);
+}
+.mf-fab:active { transform: scale(.95); }
+
+/* ---------- Bottom sheet (Shortcuts) ---------- */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .55); }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
+  max-width: 720px; margin: 0 auto;
+  background: var(--surface); border: 1px solid var(--border-strong); border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+  padding: 10px 18px calc(20px + env(safe-area-inset-bottom));
+  animation: sheet-up 180ms ease-out;
+}
+@keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-grip { width: 44px; height: 5px; border-radius: 999px; background: var(--border-strong); margin: 0 auto 14px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sheet-head strong { font-family: var(--font-display); letter-spacing: .02em; }
+
+.ring-actions { display: flex; gap: 18px; justify-content: space-between; padding: 4px 2px 14px; }
+.ring-action {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--ink); font: inherit; font-size: 11px; font-weight: 600;
+}
+.ring-action .orb {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.ring-action[disabled] { opacity: .5; cursor: default; }
+
+/* ---------- Dashboard scaffold bits ---------- */
+.rings-row { display: flex; gap: 14px; }
+.ring-ph {
+  flex: 1; aspect-ratio: 1; border-radius: 50%;
+  border: 5px solid var(--surface-2);
+  display: flex; align-items: center; justify-content: center; text-align: center;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.habit-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 10px; }
+.habit-cell { aspect-ratio: 1; border-radius: 3px; background: var(--surface-2); }
+.habit-cell.lit { background: var(--green-500); }
+
+/* ---------- Workout tab scaffold ---------- */
+.daystrip { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.daystrip::-webkit-scrollbar { display: none; }
+.day-pill {
+  flex: 0 0 auto; width: 46px; padding: 8px 0 7px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: var(--text-muted); font: inherit; font-size: 12px;
+}
+.day-pill .d { font-size: 14px; font-weight: 800; color: var(--ink); }
+.day-pill.today { border-color: var(--accent); }
+.day-dot { width: 4px; height: 4px; border-radius: 50%; background: transparent; }
+.day-pill.done .day-dot { background: var(--green-500); }

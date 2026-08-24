@@ -50,6 +50,11 @@ export default function AppShell({ active, title, children }) {
             ? <Link key={label} to={path} className={cls}>{inner}</Link>
             : <div key={label} className={cls} style={{ opacity: .55, cursor: 'default' }} title="Coming soon">{inner}</div>;
         })}
+        {import.meta.env.VITE_LEGACY_UI !== '1' && (
+          <Link className="nav-item" to="/today">
+            <span style={{ width: 18, textAlign: 'center' }}>✦</span> New app preview
+          </Link>
+        )}
         <div style={{ marginTop: 'auto' }}>
           <div className="nav-item" onClick={exit}><span style={{ width: 18, textAlign: 'center' }}>↩</span> Exit</div>
         </div>
@@ -94,6 +99,11 @@ export default function AppShell({ active, title, children }) {
                     <span style={{ width: 22, textAlign: 'center' }}>{icon}</span> {label} <span className="subtle" style={{ fontSize: 12 }}>· soon</span>
                   </div>
             ))}
+            {import.meta.env.VITE_LEGACY_UI !== '1' && (
+              <Link className="m-item" to="/today" onClick={() => setMenuOpen(false)}>
+                <span style={{ width: 22, textAlign: 'center' }}>✦</span> New app preview
+              </Link>
+            )}
             <div className="m-item exit" onClick={exit}><span style={{ width: 22, textAlign: 'center' }}>↩</span> Exit</div>
           </nav>
         </>

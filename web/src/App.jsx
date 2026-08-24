@@ -5,6 +5,14 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
+
+// ---- MF-rebuild shell (Phases 0–7). Rollback: set VITE_LEGACY_UI=1 in web/.env ----
+import Today from './pages/mf/Today.jsx';
+import WorkoutTab from './pages/mf/WorkoutTab.jsx';
+import SetLevels from './pages/mf/SetLevels.jsx';
+import MoreMenu from './pages/mf/MoreMenu.jsx';
+
+// ---- Legacy app (trainer↔client). Mounted until Phase 7 cutover; kept working. ----
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 import Privacy from './pages/Privacy.jsx';
@@ -26,6 +34,9 @@ import Announcements from './pages/Announcements.jsx';
 import ScheduleView from './pages/ScheduleView.jsx';
 import Notifications from './pages/Notifications.jsx';
 
+// VITE_LEGACY_UI=1 hides the new MF experience entirely (rollback hatch).
+const LEGACY_ONLY = import.meta.env.VITE_LEGACY_UI === '1';
+
 // Two-role model (0056): internal 'coach' shows as Trainer, 'player' as Client.
 const TRAINER = ['coach', 'admin'];
 const CLIENT = ['player', 'admin'];
@@ -37,6 +48,16 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/privacy" element={<Privacy />} />
+
+      {!LEGACY_ONLY && (
+        <>
+          {/* MF-rebuild five-tab experience */}
+          <Route path="/today" element={<ProtectedRoute roles={ANY}><Today /></ProtectedRoute>} />
+          <Route path="/workout" element={<ProtectedRoute roles={ANY}><WorkoutTab /></ProtectedRoute>} />
+          <Route path="/levels" element={<ProtectedRoute roles={ANY}><SetLevels /></ProtectedRoute>} />
+          <Route path="/more" element={<ProtectedRoute roles={ANY}><MoreMenu /></ProtectedRoute>} />
+        </>
+      )}
 
       {/* Trainer */}
       <Route path="/trainer" element={<ProtectedRoute roles={TRAINER}><CoachDashboard /></ProtectedRoute>} />
