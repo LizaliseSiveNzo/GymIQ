@@ -13,6 +13,9 @@ import SetLevels from './pages/mf/SetLevels.jsx';
 import MoreMenu from './pages/mf/MoreMenu.jsx';
 import ExercisesBrowse from './pages/mf/ExercisesBrowse.jsx';
 import Onboard from './pages/onboarding/Onboard.jsx';
+import SessionPlayer from './pages/mf/SessionPlayer.jsx';
+import { HistoryList } from './pages/mf/HistoryList.jsx';
+import { HistoryDetail } from './pages/mf/HistoryDetail.jsx';
 
 // ---- Legacy app (trainer↔client). Mounted until Phase 7 cutover; kept working. ----
 import Landing from './pages/Landing.jsx';
@@ -57,6 +60,10 @@ export default function App() {
           <Route path="/onboarding" element={<ProtectedRoute roles={ANY}><Onboard /></ProtectedRoute>} />
           <Route path="/today" element={<ProtectedRoute roles={ANY}><Today /></ProtectedRoute>} />
           <Route path="/workout" element={<ProtectedRoute roles={ANY}><WorkoutTab /></ProtectedRoute>} />
+          <Route path="/workout/session/free" element={<ProtectedRoute roles={ANY}><SessionPlayer /></ProtectedRoute>} />
+          <Route path="/workout/session/:dayId" element={<ProtectedRoute roles={ANY}><SessionPlayer /></ProtectedRoute>} />
+          <Route path="/workout/history" element={<ProtectedRoute roles={ANY}><HistoryList /></ProtectedRoute>} />
+          <Route path="/workout/history/:logId" element={<ProtectedRoute roles={ANY}><HistoryDetail /></ProtectedRoute>} />
           <Route path="/levels" element={<ProtectedRoute roles={ANY}><SetLevels /></ProtectedRoute>} />
           <Route path="/more" element={<ProtectedRoute roles={ANY}><MoreMenu /></ProtectedRoute>} />
           <Route path="/exercises" element={<ProtectedRoute roles={ANY}><ExercisesBrowse /></ProtectedRoute>} />

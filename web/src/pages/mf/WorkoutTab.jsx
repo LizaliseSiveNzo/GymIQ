@@ -4,20 +4,23 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 // WORKOUT tab — week strip, active program card, expandable day list.
-// Live session player: Phase 4.
+// "Start" rotates through the split by sessions completed this week.
 export default function WorkoutTab() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const todayDow = (new Date().getDay() + 6) % 7; // Monday-first index
 
   const [program, setProgram] = useState(undefined); // undefined=loading, null=none
   const [days, setDays] = useState([]);
   const [exByDay, setExByDay] = useState({});
   const [openDay, setOpenDay] = useState(null);
+  const [weekCount, setWeekCount] = useState(0);
 
   useEffect(() => {
     if (!profile?.id || profile.demo) { setProgram(null); return; }
@@ -46,6 +49,21 @@ export default function WorkoutTab() {
       setExByDay(map);
     })();
     return () => { cancelled = true; };
+  }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sessions finished since Monday → which day is up next in the rotation.
+  useEffect(() => {
+    if (!profile?.id || profile.demo) return;
+    (async () => {
+      const now = new Date();
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+      const { count } = await supabase.from('workout_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('client_id', profile.id)
+        .not('completed_at', 'is', null)
+        .gte('completed_at', monday.toISOString());
+      if (typeof count === 'number') setWeekCount(count);
+    })();
   }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -94,7 +112,16 @@ export default function WorkoutTab() {
                 {program.goal ? ` · ${program.goal}` : ''}
               </div>
             </div>
-            <button className="btn btn-primary" disabled title="Live session tracking lands in Phase 4">Start</button>
+            <button
+              className="btn btn-primary"
+              disabled={!days.length}
+              onClick={() => {
+                const next = days.length ? days[weekCount % days.length] : null;
+                if (next) navigate(`/workout/session/${next.id}`);
+              }}
+            >
+              Start{days.length ? ` ${days[weekCount % days.length]?.label || ''}` : ''}
+            </button>
           </div>
 
           <div className="sec-label">Workouts</div>
@@ -143,8 +170,7 @@ export default function WorkoutTab() {
           </div>
 
           <p className="subtle" style={{ fontSize: 12.5, marginTop: 14 }}>
-            Per-set Auto targets, RIR badges and rest timers arrive with the live session
-            tracker in <strong>Phase&nbsp;4</strong>.
+            Sets log live with RIR, set types and rest timers — history keeps every session.
           </p>
         </>
       )}

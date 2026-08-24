@@ -15,12 +15,12 @@ export default function ShortcutsSheet({ onClose }) {
     { icon: '⚖️', label: 'Weight', go: () => navigate('/customer/progress') },
     { icon: '📷', label: 'Photos', soon: 'phase 6' },
     { icon: '📏', label: 'Metrics', go: () => navigate('/customer/progress') },
-    { icon: '🕘', label: 'History', soon: 'phase 4' },
+    { icon: '🕘', label: 'History', go: () => navigate('/workout/history') },
   ];
   const rows = [
-    { icon: '📝', label: 'Empty Workout', soon: 'phase 4' },
-    { icon: '🧩', label: 'New Program', soon: 'phase 3' },
-    { icon: '🏋', label: 'New Workout', soon: 'phase 4' },
+    { icon: '📝', label: 'Empty Workout', go: () => navigate('/workout/session/free') },
+    { icon: '🧩', label: 'New Program', soon: 'soon' },
+    { icon: '🏋', label: 'New Workout', go: () => navigate('/workout/session/free') },
   ];
 
   return (
