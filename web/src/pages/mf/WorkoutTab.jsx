@@ -44,7 +44,8 @@ export default function WorkoutTab() {
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-primary" disabled>Generate my program</button>
-          <a className="btn btn-secondary" href="/customer/exercises">Manual blocks (legacy)</a>
+          <a className="btn btn-secondary" href="/exercises">Browse exercise library</a>
+          <a className="btn btn-ghost" href="/customer/exercises">Manual blocks (legacy)</a>
         </div>
       </div>
 

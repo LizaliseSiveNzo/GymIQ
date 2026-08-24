@@ -11,6 +11,7 @@ import Today from './pages/mf/Today.jsx';
 import WorkoutTab from './pages/mf/WorkoutTab.jsx';
 import SetLevels from './pages/mf/SetLevels.jsx';
 import MoreMenu from './pages/mf/MoreMenu.jsx';
+import ExercisesBrowse from './pages/mf/ExercisesBrowse.jsx';
 
 // ---- Legacy app (trainer↔client). Mounted until Phase 7 cutover; kept working. ----
 import Landing from './pages/Landing.jsx';
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/workout" element={<ProtectedRoute roles={ANY}><WorkoutTab /></ProtectedRoute>} />
           <Route path="/levels" element={<ProtectedRoute roles={ANY}><SetLevels /></ProtectedRoute>} />
           <Route path="/more" element={<ProtectedRoute roles={ANY}><MoreMenu /></ProtectedRoute>} />
+          <Route path="/exercises" element={<ProtectedRoute roles={ANY}><ExercisesBrowse /></ProtectedRoute>} />
         </>
       )}
 
