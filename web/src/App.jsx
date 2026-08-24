@@ -12,6 +12,7 @@ import WorkoutTab from './pages/mf/WorkoutTab.jsx';
 import SetLevels from './pages/mf/SetLevels.jsx';
 import MoreMenu from './pages/mf/MoreMenu.jsx';
 import ExercisesBrowse from './pages/mf/ExercisesBrowse.jsx';
+import Onboard from './pages/onboarding/Onboard.jsx';
 
 // ---- Legacy app (trainer↔client). Mounted until Phase 7 cutover; kept working. ----
 import Landing from './pages/Landing.jsx';
@@ -53,6 +54,7 @@ export default function App() {
       {!LEGACY_ONLY && (
         <>
           {/* MF-rebuild five-tab experience */}
+          <Route path="/onboarding" element={<ProtectedRoute roles={ANY}><Onboard /></ProtectedRoute>} />
           <Route path="/today" element={<ProtectedRoute roles={ANY}><Today /></ProtectedRoute>} />
           <Route path="/workout" element={<ProtectedRoute roles={ANY}><WorkoutTab /></ProtectedRoute>} />
           <Route path="/levels" element={<ProtectedRoute roles={ANY}><SetLevels /></ProtectedRoute>} />

@@ -3,11 +3,12 @@
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function ProtectedRoute({ roles, children }) {
   const { session, profile, profileError, role, loading, logout } = useAuth();
+  const location = useLocation();
 
   if (loading) return <div className="container">Loading…</div>;
   if (!session) return <Navigate to="/login" replace />;
@@ -27,5 +28,11 @@ export default function ProtectedRoute({ roles, children }) {
   if (!session.demo && !profile) return <div className="container">Loading…</div>;
 
   if (roles && !roles.includes(role)) return <Navigate to="/login" replace />;
+
+  // MF-rebuild gate (Phase 2): every real account completes the onboarding
+  // wizard exactly once before reaching any app surface.
+  if (!session.demo && profile && !profile.onboarded_at && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
   return children;
 }
