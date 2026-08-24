@@ -78,7 +78,7 @@ export default function Onboard() {
     const nextStep = Math.min(step + 1, TOTAL - 1);
     const payload = {
       ...patch,
-      onboarding_state: { phase: STEPS[nextStep].phase, step: nextStep, draft: { ...form, ...patch } },
+      onboarding_state: { phase: S[nextStep].phase, step: nextStep, draft: { ...form, ...patch } },
     };
     const { error } = await supabase.from('users').update(payload).eq('id', profile.id);
     if (error) throw error;
