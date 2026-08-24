@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Wizard, OptionCard, StepperControl } from '../../onboarding/wizard.jsx';
+import { generateProgram } from '../../lib/engines/generator.js';
+import { persistProgram } from '../../lib/engines/persistProgram.js';
 
 const DISCLAIMER_VERSION = '2026-08-v1';
 const COLORS = ['#C6FF3A', '#FF6A3D', '#60A5FA', '#C084FC', '#F472B6', '#2DD4BF'];
@@ -30,6 +32,9 @@ export default function Onboard() {
 
   const [muscles, setMuscles] = useState([]);
   const [equipmentItems, setEquipmentItems] = useState([]);
+  const [catalog, setCatalog] = useState([]);
+  const gymProfileIdRef = useRef(null);
+  const persistedProgramRef = useRef(null);
   const [form, setForm] = useState(EMPTY);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -49,12 +54,16 @@ export default function Onboard() {
 
   useEffect(() => {
     (async () => {
-      const [m, e] = await Promise.all([
+      const [m, e, x] = await Promise.all([
         supabase.from('muscles').select('id,name,region').order('sort_order'),
         supabase.from('equipment_items').select('*').order('sort_order'),
+        supabase.from('exercises').select(
+          'id,name,primary_muscle_id,secondary_muscle_fraction,movement_pattern,equipment_ids,difficulty,stability_demand,sort_order',
+        ).is('owner_user_id', null),
       ]);
       setMuscles(m.data || []);
       setEquipmentItems(e.data || []);
+      setCatalog(x.data || []);
     })();
   }, []);
 
@@ -90,6 +99,7 @@ export default function Onboard() {
     } else {
       await supabase.from('gym_profiles').update({ name }).eq('id', profileId);
     }
+    gymProfileIdRef.current = profileId;
     const rows = equipmentItems.map((it) => {
       const sel = form.equipment[it.id] || {};
       return {
@@ -338,10 +348,30 @@ export default function Onboard() {
     ) });
 
   // ---- PREVIEW / PAYWALL / LEGAL / FINISH ----
-  add({ key: 'preview', phase: 'preview', title: 'Your program awaits',
-    sub: 'Everything can be customized after generation. The rule-based engine lands in Phase 3 — your spec is saved.',
-    valid: () => true, nextLabel: 'Continue',
-    node: (f) => <PreviewSummary f={f} muscles={muscles} count={equipmentCount(f)} /> });
+  add({ key: 'preview', phase: 'preview', title: 'Your program, generated',
+    sub: 'Built by transparent rules from your answers — not AI. Everything stays editable.',
+    valid: () => true, nextLabel: 'Save & continue',
+    node: (f) => (
+      <>
+        <PreviewSummary f={f} muscles={muscles} count={equipmentCount(f)} />
+        <GeneratedPreview program={previewProgram} />
+      </>
+    ),
+    save: async () => {
+      if (!profile || profile.demo) return;
+      if (!previewProgram || previewProgram.error) {
+        throw new Error(previewProgram?.error || 'No program drafted yet — go back one step and retry.');
+      }
+      if (persistedProgramRef.current) return;
+      const id = await persistProgram(previewProgram, {
+        clientId: profile.id,
+        gymProfileId: gymProfileIdRef.current,
+        name: form.programme_name || `${(form.split === 'auto' ? 'Auto' : form.split).replace('_', ' ')} Program`,
+        color: form.color,
+        icon: form.icon,
+      });
+      persistedProgramRef.current = id;
+    } });
 
   add({ key: 'paywall', phase: 'preview', title: 'Choose your plan',
     sub: 'Structure preview — real billing arrives post-Phase 7. Trials activate instantly.',
@@ -385,6 +415,13 @@ export default function Onboard() {
   const TOTAL = S.length;
   const cur = S[Math.min(step, TOTAL - 1)];
   const valid = useMemo(() => (cur?.valid ? cur.valid(form) : true), [cur, form]);
+
+  // Live-draft the program while sitting on the preview step ("the aha").
+  const previewProgram = useMemo(() => {
+    if (!cur || cur.key !== 'preview') return null;
+    return safeGenerate(form, catalog);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cur?.key, form, catalog]);
 
   async function next() {
     if (!valid || busy) return;
@@ -588,5 +625,82 @@ function FirstThirty() {
         </div>
       ))}
     </div>
+  );
+}
+
+/* --------------------------- live generation --------------------------- */
+
+const prettyMuscle = (id) => (id || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+function safeGenerate(f, catalogRows) {
+  try {
+    return generateProgram({
+      goal: f.goal || 'hypertrophy',
+      daysPerWeek: f.days_per_week || 4,
+      sessionMinutes: Number(f.session_minutes) || 60,
+      split: f.split || 'auto',
+      experience: f.training_experience || 'intermediate',
+      focus: f.focus || [],
+      deprioritized: f.deprioritized || [],
+      equipmentIds: Object.entries(f.equipment || {}).filter(([, v]) => v.selected).map(([id]) => id),
+      name: f.programme_name || '',
+    }, { exercises: catalogRows });
+  } catch (e) {
+    return { error: e?.message || 'Generation failed' };
+  }
+}
+
+function GeneratedPreview({ program }) {
+  if (!program) {
+    return (
+      <div className="prev-card" style={{ opacity: .6 }}>
+        <h4>⏳ Drafting your program…</h4>
+        <div className="subtle" style={{ fontSize: 13 }}>Loading the exercise catalog.</div>
+      </div>
+    );
+  }
+  if (program.error) {
+    return (
+      <div className="prev-card">
+        <h4>⚠️ Couldn&apos;t draft a program</h4>
+        <div className="subtle" style={{ fontSize: 13 }}>{program.error} — check your equipment selection has at least one item.</div>
+      </div>
+    );
+  }
+  const weekly = Object.entries(program.weeklySets)
+    .filter(([, v]) => v >= 1)
+    .sort((a, b) => b[1] - a[1]);
+  const deloads = program.weeks.filter((w) => w.kind === 'deload').map((w) => `W${w.weekNumber}`);
+
+  return (
+    <>
+      {program.days.map((d) => (
+        <div key={d.label} className="prev-card">
+          <h4>{d.label} · {d.name}</h4>
+          <div className="chiprow" style={{ margin: '7px 0 9px' }}>
+            {(d.focusSummary || []).map((m) => <span key={m} className="chip on">{prettyMuscle(m)}</span>)}
+          </div>
+          {d.exercises.map((x) => (
+            <div key={x.exerciseId} className="prev-row">
+              <b>{x.sets} × {x.repMin}–{x.repMax}</b>
+              <span>{x.name}{x.role === 'main' ? ' · main lift' : ''} · RIR {x.rir}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+
+      <div className="prev-card">
+        <h4>📊 Weekly sets per muscle</h4>
+        {weekly.map(([m, v]) => (
+          <div key={m} className="prev-row">
+            <span style={{ textAlign: 'left' }}>{prettyMuscle(m)}</span>
+            <b>{Math.round(v)}</b>
+          </div>
+        ))}
+        <div className="subtle" style={{ fontSize: 12, marginTop: 8 }}>
+          Deload weeks: {deloads.length ? deloads.join(' · ') : 'none'}
+        </div>
+      </div>
+    </>
   );
 }
