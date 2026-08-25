@@ -5,6 +5,8 @@
 
 import { Link } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
+import CalorieBankCard from '../../components/ui/CalorieBankCard.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 function HabitGrid({ lit = 0 }) {
   return (
@@ -19,9 +21,13 @@ function HabitGrid({ lit = 0 }) {
 // TODAY — customizable widget dashboard (layout scaffold).
 // Widget framework + real data + Customize editor: Phase 6.
 export default function Today() {
+  const { profile } = useAuth();
   return (
     <TabShell active="today" title="Today">
-      <p className="subtle" style={{ marginTop: -4 }}>
+      {/* Calorie Bank — the heart of the app, front and centre on Home */}
+      <CalorieBankCard userId={profile?.id} />
+
+      <p className="subtle" style={{ marginTop: 12 }}>
         Widget scaffold — live data and the Customize editor arrive in{' '}
         <strong>Phase&nbsp;6</strong>.
       </p>

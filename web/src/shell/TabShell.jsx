@@ -13,6 +13,7 @@ const TABS = [
   { key: 'today', label: 'Today', icon: '▚', path: '/today' },
   { key: 'workout', label: 'Workout', icon: '🏋', path: '/workout' },
   { key: '__fab__' },
+  { key: 'bank', label: 'Bank', icon: '🏦', path: '/bank' },
   { key: 'levels', label: 'Levels', icon: '🚀', path: '/levels' },
   { key: 'more', label: 'More', icon: '⋯', path: '/more' },
 ];
