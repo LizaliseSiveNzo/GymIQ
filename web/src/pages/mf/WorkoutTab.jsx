@@ -19,8 +19,8 @@ export default function WorkoutTab() {
   const [program, setProgram] = useState(undefined); // undefined=loading, null=none
   const [days, setDays] = useState([]);
   const [exByDay, setExByDay] = useState({});
-  const [openDay, setOpenDay] = useState(null);
   const [weekCount, setWeekCount] = useState(0);
+  const [completed, setCompleted] = useState(new Set());
 
   useEffect(() => {
     if (!profile?.id || profile.demo) { setProgram(null); return; }
@@ -57,12 +57,14 @@ export default function WorkoutTab() {
     (async () => {
       const now = new Date();
       const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
-      const { count } = await supabase.from('workout_logs')
-        .select('id', { count: 'exact', head: true })
+      const { data } = await supabase.from('workout_logs')
+        .select('id,day_id')
         .eq('client_id', profile.id)
         .not('completed_at', 'is', null)
         .gte('completed_at', monday.toISOString());
-      if (typeof count === 'number') setWeekCount(count);
+      const rows = data || [];
+      setWeekCount(rows.length);
+      setCompleted(new Set(rows.map((r) => r.day_id).filter(Boolean)));
     })();
   }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -117,7 +119,7 @@ export default function WorkoutTab() {
               disabled={!days.length}
               onClick={() => {
                 const next = days.length ? days[weekCount % days.length] : null;
-                if (next) navigate(`/workout/session/${next.id}`);
+                if (next) navigate(`/workout/day/${next.id}`);
               }}
             >
               Start{days.length ? ` ${days[weekCount % days.length]?.label || ''}` : ''}
@@ -128,42 +130,25 @@ export default function WorkoutTab() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {days.map((d) => {
               const list = exByDay[d.id] || [];
-              const open = openDay === d.id;
+              const isDone = completed.has(d.id);
               return (
-                <div key={d.id} className="mf-card" style={{ padding: '13px 15px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setOpenDay(open ? null : d.id)}
-                    style={{
-                      all: 'unset', cursor: 'pointer', display: 'flex',
-                      width: '100%', alignItems: 'center', gap: 12,
-                    }}
-                  >
-                    <span style={{
-                      width: 34, height: 34, borderRadius: 50, flex: '0 0 auto',
-                      background: 'var(--surface-2)', display: 'inline-flex',
-                      alignItems: 'center', justifyContent: 'center', fontWeight: 800,
-                    }}>{d.label || d.name[0]}</span>
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <b style={{ fontSize: 14.5 }}>{d.name}</b>
-                      <div className="subtle" style={{ fontSize: 12.5 }}>
-                        {list.length} exercises{list[0]
-                          ? ` · ${list.slice(0, 2).map((x) => x.name).join(', ')}${list.length > 2 ? '…' : ''}`
-                          : ''}
-                      </div>
-                    </span>
-                    <span style={{ color: 'var(--text-subtle)', fontSize: 18 }}>{open ? '⌃' : '⌄'}</span>
-                  </button>
-                  {open && !!list.length && (
-                    <div style={{ marginTop: 8 }}>
-                      {list.map((x) => (
-                        <div key={x.id} className="prev-row">
-                          <b>{x.target_sets} × {x.target_reps}{x.target_rir != null ? ` @ RIR ${x.target_rir}` : ''}</b>
-                          <span>{x.name}</span>
-                        </div>
-                      ))}
+                <div key={d.id} role="button" tabIndex={0}
+                  onClick={() => navigate(`/workout/day/${d.id}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/workout/day/${d.id}`); }}
+                  className="mf-card" style={{ padding: '13px 15px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, opacity: isDone ? 0.5 : 1 }}
+                >
+                  <span style={{
+                    width: 34, height: 34, borderRadius: 50, flex: '0 0 auto',
+                    background: isDone ? 'var(--green-100)' : 'var(--surface-2)', color: isDone ? 'var(--green-600)' : 'var(--ink)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800,
+                  }}>{isDone ? '✓' : (d.label || d.name[0])}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <b style={{ fontSize: 14.5, textDecoration: isDone ? 'line-through' : 'none' }}>{d.name}</b>
+                    <div className="subtle" style={{ fontSize: 12.5 }}>
+                      {isDone ? 'Completed this week' : `${list.length} exercises${list[0] ? ` · ${list.slice(0, 2).map((x) => x.name).join(', ')}${list.length > 2 ? '…' : ''}` : ''}`}
                     </div>
-                  )}
+                  </span>
+                  <span style={{ color: 'var(--text-subtle)', fontSize: 18 }}>›</span>
                 </div>
               );
             })}

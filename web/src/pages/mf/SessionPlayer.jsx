@@ -36,6 +36,7 @@ export default function SessionPlayer() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showFinish, setShowFinish] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(0);
   const [barDenoms, setBarDenoms] = useState([1.25, 2.5, 5, 10, 20, 25]);
   const priorPrRef = useRef({});
   const logIdRef = useRef(null);
@@ -258,6 +259,11 @@ export default function SessionPlayer() {
   if (status === 'error') return <TabShell active="workout" title="Session"><div className="mf-card"><h4>⚠️ {errText}</h4></div></TabShell>;
 
   const elapsed = Math.max(0, Math.round((nowTick - startedAt) / 1000));
+  const initials = (name = '') => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').slice(0, 3).toUpperCase() || '?';
+  const workingDone = (item) => (done[item.key] || []).filter((s) => s.set_type !== 'warmup').length;
+  const targetMet = (item) => workingDone(item) >= (item.scheme.sets || 0);
+  const allMet = plan.length > 0 && plan.every(targetMet);
+  const active = plan[Math.min(activeIdx, Math.max(0, plan.length - 1))] || null;
 
   return (
     <TabShell active="workout" title={isFree ? 'Empty Workout' : 'Session'}>
@@ -276,50 +282,82 @@ export default function SessionPlayer() {
           </>
         )}
         <span style={{ flex: 1 }} />
-        <button className="btn btn-primary" style={{ minHeight: 36 }} disabled={summary.sets === 0} onClick={() => setShowFinish(true)}>
-          Finish
-        </button>
+        {plan.length > 0 && <span className="subtle" style={{ fontSize: 12 }}>{plan.filter(targetMet).length}/{plan.length} done</span>}
       </div>
 
-      {isFree && (
-        <button className="btn btn-secondary btn-block" style={{ marginBottom: 12 }} onClick={() => setPickerOpen((v) => !v)}>
-          {pickerOpen ? 'Close library' : '+ Add exercise'}
-        </button>
+      {/* exercise filmstrip — tap a card to jump to that exercise */}
+      {plan.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6, marginBottom: 14 }}>
+          {plan.map((item, idx) => {
+            const on = idx === activeIdx;
+            const met = targetMet(item);
+            return (
+              <button key={item.key} type="button" onClick={() => setActiveIdx(idx)} style={{
+                all: 'unset', cursor: 'pointer', position: 'relative', flex: '0 0 auto',
+                width: 68, height: 78, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'var(--surface-2)',
+                border: `2px solid ${on ? 'var(--green-600)' : 'var(--border)'}`,
+                color: met && !on ? 'var(--text-subtle)' : 'var(--ink)',
+                fontWeight: 800, fontSize: 20, letterSpacing: '.02em',
+              }}>
+                {initials(item.name)}
+                {met && (
+                  <span style={{
+                    position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 999,
+                    background: 'var(--green-600)', color: 'var(--on-accent)', fontSize: 12, fontWeight: 800,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>✓</span>
+                )}
+              </button>
+            );
+          })}
+          {isFree && (
+            <button type="button" onClick={() => setPickerOpen((v) => !v)} style={{
+              all: 'unset', cursor: 'pointer', flex: '0 0 auto', width: 68, height: 78, borderRadius: 12,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)',
+              border: '2px dashed var(--border-strong)', color: 'var(--text-muted)', fontSize: 26, fontWeight: 700,
+            }}>+</button>
+          )}
+        </div>
       )}
+
       {pickerOpen && (
         <div style={{ marginBottom: 14 }}>
           <ExercisePicker mode="pick" onPick={addFreeExercise} addedIds={plan.map((p) => p.exerciseId)} />
         </div>
       )}
 
-      {!isFree && !plan.length && (
-        <div className="mf-card"><h4>Rest day</h4><div className="subtle">This program day has no exercises.</div></div>
+      {!plan.length && (
+        <div className="mf-card">
+          <h4>{isFree ? 'Empty workout' : 'Rest day'}</h4>
+          <div className="subtle">{isFree ? 'Tap + above to add your first exercise.' : 'This program day has no exercises.'}</div>
+        </div>
       )}
 
-      {plan.map((item, idx) => {
+      {/* the ACTIVE exercise only */}
+      {active && (() => {
+        const item = active;
         const rows = done[item.key] || [];
         const d = draftFor(item);
         const uni = unilateral(item);
         const plates = plateBreakdown(parseFloat(d.weightR) || 0, 20, barDenoms);
         const showPlates = (item.equipmentIds || []).includes('barbell') && plates.length > 0;
+        const nextIdx = plan.findIndex((p, i) => i > activeIdx && !targetMet(p));
         return (
-          <div key={item.key} className="mf-card" style={{ marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{
-                width: 30, height: 30, borderRadius: 8, background: 'var(--surface-2)',
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 800, fontSize: 13, flex: '0 0 auto',
-              }}>{String.fromCharCode(65 + idx)}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <b style={{ fontSize: 14.5 }}>{item.name}</b>
-                <div className="subtle" style={{ fontSize: 12 }}>
-                  Target {item.scheme.sets} × {item.scheme.repMin}–{item.scheme.repMax} @ RIR {item.scheme.rir}
-                  {lastPerf[item.name] ? ` · last: ${lastPerf[item.name].weight} kg` : ''}
+          <div className="mf-card" style={{ marginBottom: 90 }}>
+            <div className="row between" style={{ alignItems: 'flex-start' }}>
+              <div style={{ minWidth: 0 }}>
+                <b style={{ fontSize: 18 }}>{item.name}</b>
+                <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
+                  Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
+                  {lastPerf[item.name] ? ` · last ${lastPerf[item.name].weight} kg` : ''}
                 </div>
               </div>
+              <span className="badge badge-neutral" style={{ fontSize: 11 }}>
+                {item.scheme.repMin}–{item.scheme.repMax} @ RIR {item.scheme.rir}
+              </span>
             </div>
 
-            {/* completed sets */}
             {rows.map((s, i) => (
               <div key={s.id} className="prev-row">
                 <b>{i + 1}. {s.set_type !== 'normal' ? `${s.set_type} · ` : ''}
@@ -332,7 +370,6 @@ export default function SessionPlayer() {
               </div>
             ))}
 
-            {/* draft row */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
               <NumIn label="kg" value={d.weightR} onChange={(v) => setDraft(item, { weightR: v })} />
               <NumIn label="reps" value={d.repsR} onChange={(v) => setDraft(item, { repsR: v })} />
@@ -353,13 +390,27 @@ export default function SessionPlayer() {
               </button>
             </div>
             {showPlates && (
-              <div className="subtle" style={{ fontSize: 11.5, marginTop: 6 }}>
-                Per side: {plates.join(' + ')} kg
-              </div>
+              <div className="subtle" style={{ fontSize: 11.5, marginTop: 6 }}>Per side: {plates.join(' + ')} kg</div>
+            )}
+
+            {activeIdx < plan.length - 1 && (
+              <button className="btn btn-secondary btn-block" style={{ marginTop: 12 }}
+                onClick={() => setActiveIdx(nextIdx >= 0 ? nextIdx : activeIdx + 1)}>
+                Next exercise →
+              </button>
             )}
           </div>
         );
-      })}
+      })()}
+
+      {/* sticky complete/finish */}
+      {plan.length > 0 && (
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px)', padding: '0 16px', zIndex: 40 }}>
+          <button className="btn btn-primary btn-lg btn-block" disabled={summary.sets === 0} onClick={() => setShowFinish(true)}>
+            {allMet ? 'Complete workout' : 'Finish workout'}
+          </button>
+        </div>
+      )}
 
       {/* finish sheet */}
       {showFinish && (

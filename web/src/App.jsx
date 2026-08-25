@@ -15,6 +15,7 @@ import ExercisesBrowse from './pages/mf/ExercisesBrowse.jsx';
 import BankTab from './pages/mf/BankTab.jsx';
 import Onboard from './pages/onboarding/Onboard.jsx';
 import SessionPlayer from './pages/mf/SessionPlayer.jsx';
+import WorkoutSummary from './pages/mf/WorkoutSummary.jsx';
 import { HistoryList } from './pages/mf/HistoryList.jsx';
 import { HistoryDetail } from './pages/mf/HistoryDetail.jsx';
 
@@ -61,6 +62,7 @@ export default function App() {
           <Route path="/onboarding" element={<ProtectedRoute roles={ANY}><Onboard /></ProtectedRoute>} />
           <Route path="/today" element={<ProtectedRoute roles={ANY}><Today /></ProtectedRoute>} />
           <Route path="/workout" element={<ProtectedRoute roles={ANY}><WorkoutTab /></ProtectedRoute>} />
+          <Route path="/workout/day/:dayId" element={<ProtectedRoute roles={ANY}><WorkoutSummary /></ProtectedRoute>} />
           <Route path="/workout/session/free" element={<ProtectedRoute roles={ANY}><SessionPlayer /></ProtectedRoute>} />
           <Route path="/workout/session/:dayId" element={<ProtectedRoute roles={ANY}><SessionPlayer /></ProtectedRoute>} />
           <Route path="/workout/history" element={<ProtectedRoute roles={ANY}><HistoryList /></ProtectedRoute>} />
