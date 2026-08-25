@@ -37,6 +37,7 @@ export default function SessionPlayer() {
   const [showFinish, setShowFinish] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [extraRows, setExtraRows] = useState({}); // key → extra set rows beyond target
   const [barDenoms, setBarDenoms] = useState([1.25, 2.5, 5, 10, 20, 25]);
   const priorPrRef = useRef({});
   const logIdRef = useRef(null);
@@ -202,6 +203,42 @@ export default function SessionPlayer() {
     setDone((prev) => ({ ...prev, [item.key]: (prev[item.key] || []).filter((s) => s.id !== setId) }));
   }
 
+  // Per-set-row drafts for the clean table (namespaced under rows_<key>).
+  function rowDraft(item, idx) {
+    const k = `rows_${item.key}`;
+    const store = (drafts.current[k] ||= {});
+    if (!store[idx]) store[idx] = { kg: String(lastPerf[item.name]?.weight ?? ''), reps: '', rir: item.scheme.rir };
+    return store[idx];
+  }
+  function setRowDraft(item, idx, patch) {
+    const k = `rows_${item.key}`;
+    const store = (drafts.current[k] ||= {});
+    store[idx] = { ...rowDraft(item, idx), ...patch };
+    forceRender();
+  }
+  // Commit a set when its tick-box is checked.
+  async function logSet(item, idx) {
+    const rd = rowDraft(item, idx);
+    const reps = parseInt(rd.reps, 10) || 0;
+    const kg = parseFloat(rd.kg) || 0;
+    if (!reps) { setErrText('Enter reps before ticking the set.'); return; }
+    const uni = unilateral(item);
+    const n = (done[item.key] || []).length + 1;
+    const row = {
+      client_id: profile.id, log_id: logIdRef.current,
+      exercise_name: item.name, exercise_id: item.exerciseId, programme_exercise_id: item.peId || null,
+      set_number: n, set_type: 'normal', rir: rd.rir ?? null,
+      weight: kg || null, reps: reps || null,
+      ...(uni ? { weight_left: kg || null, reps_left: reps || null } : {}),
+      target_rep_min: item.scheme.repMin, target_rep_max: item.scheme.repMax,
+      target_rir: item.scheme.rir, completed: true,
+    };
+    const { data, error } = await supabase.from('logged_sets').insert(row).select('*').single();
+    if (error) { setErrText(error.message); return; }
+    setDone((prev) => ({ ...prev, [item.key]: [...(prev[item.key] || []), data] }));
+    setRestLeft(item.scheme.restSeconds || 90);
+  }
+
   function addFreeExercise(ex) {
     setPlan((p) => [...p, {
       key: `free_${ex.id}_${Date.now()}`, peId: null, exerciseId: ex.id,
@@ -334,63 +371,76 @@ export default function SessionPlayer() {
         </div>
       )}
 
-      {/* the ACTIVE exercise only */}
+      {/* the ACTIVE exercise only — clean set table with tick-boxes */}
       {active && (() => {
         const item = active;
-        const rows = done[item.key] || [];
-        const d = draftFor(item);
+        const committed = done[item.key] || [];
         const uni = unilateral(item);
-        const plates = plateBreakdown(parseFloat(d.weightR) || 0, 20, barDenoms);
+        const cols = '32px 1fr 60px 60px 30px';
+        const kgLabel = uni ? 'kg/Side' : 'kg';
+        const repsLabel = uni ? 'Reps/Side' : 'Reps';
+        const rirColor = (r) => (r == null ? 'var(--text-subtle)' : r <= 1 ? 'var(--danger)' : r <= 3 ? 'var(--warning)' : 'var(--success)');
+        const autoLine = `${lastPerf[item.name]?.weight ? `${lastPerf[item.name].weight} kg × ` : ''}${item.scheme.repMin}–${item.scheme.repMax}`;
+        const totalRows = Math.max((item.scheme.sets || 3) + (extraRows[item.key] || 0), committed.length);
+        const idxs = [...Array(totalRows).keys()];
+        const cellInput = { width: '100%', textAlign: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 4px', color: 'var(--ink)', font: 'inherit', fontSize: 14, MozAppearance: 'textfield' };
+        const firstDraft = idxs.find((i) => !committed[i]);
+        const draftKg = firstDraft != null ? parseFloat(rowDraft(item, firstDraft).kg) || 0 : 0;
+        const plates = plateBreakdown(draftKg, 20, barDenoms);
         const showPlates = (item.equipmentIds || []).includes('barbell') && plates.length > 0;
         const nextIdx = plan.findIndex((p, i) => i > activeIdx && !targetMet(p));
         return (
-          <div className="mf-card" style={{ marginBottom: 90 }}>
-            <div className="row between" style={{ alignItems: 'flex-start' }}>
-              <div style={{ minWidth: 0 }}>
-                <b style={{ fontSize: 18 }}>{item.name}</b>
-                <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
-                  Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
-                  {lastPerf[item.name] ? ` · last ${lastPerf[item.name].weight} kg` : ''}
+          <div className="mf-card" style={{ marginBottom: 96 }}>
+            <div style={{ minWidth: 0, marginBottom: 10 }}>
+              <b style={{ fontSize: 18 }}>{item.name}</b>
+              <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
+                Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
+              </div>
+            </div>
+
+            {/* table header */}
+            <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '2px 2px 8px', color: 'var(--text-subtle)', fontSize: 12, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>
+              <span>Set</span><span>Auto</span>
+              <span style={{ textAlign: 'center' }}>{kgLabel}</span>
+              <span style={{ textAlign: 'center' }}>{repsLabel}</span><span />
+            </div>
+
+            {idxs.map((idx) => {
+              const c = committed[idx];
+              const isDone = !!c;
+              const rd = rowDraft(item, idx);
+              const kg = isDone ? (c.weight ?? '') : rd.kg;
+              const reps = isDone ? (c.reps ?? '') : rd.reps;
+              const rir = isDone ? c.rir : rd.rir;
+              return (
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '9px 2px', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ width: 30, height: 30, borderRadius: 50, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: isDone ? 'var(--text-subtle)' : 'var(--ink)' }}>{idx + 1}</span>
+                  <span className="subtle" style={{ fontSize: 12.5, lineHeight: 1.25 }}>
+                    {autoLine}
+                    <span style={{ display: 'block', color: rirColor(item.scheme.rir), fontSize: 11.5 }}>{item.scheme.rir} RIR</span>
+                  </span>
+                  <input type="number" inputMode="decimal" value={kg} disabled={isDone}
+                    onChange={(e) => setRowDraft(item, idx, { kg: e.target.value })} style={cellInput} />
+                  <div style={{ position: 'relative' }}>
+                    <input type="number" inputMode="numeric" value={reps} disabled={isDone}
+                      onChange={(e) => setRowDraft(item, idx, { reps: e.target.value })} style={cellInput} />
+                    <button type="button" disabled={isDone}
+                      onClick={() => setRowDraft(item, idx, { rir: (((rd.rir ?? 0) + 1) % 5) })}
+                      aria-label="Cycle RIR"
+                      style={{ position: 'absolute', right: -6, bottom: -6, width: 20, height: 20, borderRadius: 999, background: rirColor(rir), color: '#fff', fontSize: 11, fontWeight: 800, border: '2px solid var(--surface)', cursor: isDone ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{rir ?? '–'}</button>
+                  </div>
+                  <button type="button" onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
+                    aria-label={isDone ? 'Uncheck set' : 'Complete set'}
+                    style={{ width: 26, height: 26, borderRadius: 7, border: `2px solid ${isDone ? 'var(--green-600)' : 'var(--border-strong)'}`, background: isDone ? 'var(--green-600)' : 'transparent', color: 'var(--on-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, justifySelf: 'center' }}>{isDone ? '✓' : ''}</button>
                 </div>
-              </div>
-              <span className="badge badge-neutral" style={{ fontSize: 11 }}>
-                {item.scheme.repMin}–{item.scheme.repMax} @ RIR {item.scheme.rir}
-              </span>
-            </div>
+              );
+            })}
 
-            {rows.map((s, i) => (
-              <div key={s.id} className="prev-row">
-                <b>{i + 1}. {s.set_type !== 'normal' ? `${s.set_type} · ` : ''}
-                  {s.weight ?? '—'} kg × {s.reps ?? '—'}
-                  {s.reps_left != null ? ` (L ${s.weight_left ?? '—'}×${s.reps_left})` : ''}
-                  {s.rir != null ? ` @ ${s.rir} RIR` : ''}
-                </b>
-                <button style={{ background: 'none', border: 0, color: 'var(--text-subtle)', cursor: 'pointer' }}
-                  onClick={() => removeSet(item, s.id)}>✕</button>
-              </div>
-            ))}
+            <button type="button" onClick={() => setExtraRows((e) => ({ ...e, [item.key]: (e[item.key] || 0) + 1 }))}
+              style={{ width: 30, height: 30, borderRadius: 50, background: 'var(--surface-2)', border: 0, color: 'var(--text-muted)', fontSize: 18, cursor: 'pointer', marginTop: 10 }}>+</button>
 
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-              <NumIn label="kg" value={d.weightR} onChange={(v) => setDraft(item, { weightR: v })} />
-              <NumIn label="reps" value={d.repsR} onChange={(v) => setDraft(item, { repsR: v })} />
-              {uni && <NumIn label="kg L" value={d.weightL} onChange={(v) => setDraft(item, { weightL: v })} />}
-              {uni && <NumIn label="reps L" value={d.repsL} onChange={(v) => setDraft(item, { repsL: v })} />}
-              <label style={{ ...miniBtn, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                RIR
-                <input type="number" min={0} max={6} value={d.rir}
-                  onChange={(e) => setDraft(item, { rir: e.target.value === '' ? '' : parseInt(e.target.value, 10) })}
-                  style={{ width: 34, background: 'none', border: 0, color: 'var(--ink)', font: 'inherit' }} />
-              </label>
-              <select value={d.setType} onChange={(e) => setDraft(item, { setType: e.target.value })}
-                style={{ ...miniBtn, appearance: 'auto' }}>
-                {SET_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-              <button className="btn btn-primary" style={{ minHeight: 40, flex: 1 }} onClick={() => completeSet(item)}>
-                ✓ Log set
-              </button>
-            </div>
             {showPlates && (
-              <div className="subtle" style={{ fontSize: 11.5, marginTop: 6 }}>Per side: {plates.join(' + ')} kg</div>
+              <div className="subtle" style={{ fontSize: 11.5, marginTop: 8 }}>Per side: {plates.join(' + ')} kg</div>
             )}
 
             {activeIdx < plan.length - 1 && (
