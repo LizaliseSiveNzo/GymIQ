@@ -86,10 +86,10 @@ export function AuthProvider({ children }) {
     return { needsConfirmation: !data.session, role };
   }
 
-  function logout() {
+  async function logout() {
+    await supabase.auth.signOut();
     setSession(null);
     setProfile(null);
-    supabase.auth.signOut().catch(() => {});
   }
 
   return (

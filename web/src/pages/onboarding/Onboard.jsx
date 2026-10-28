@@ -4,14 +4,14 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Wizard, OptionCard, StepperControl } from '../../onboarding/wizard.jsx';
 import { generateProgram } from '../../lib/engines/generator.js';
 import { persistProgram } from '../../lib/engines/persistProgram.js';
 
-const DISCLAIMER_VERSION = '2026-08-v1';
+const DISCLAIMER_VERSION = '2026-10-v2';
 const COLORS = ['#C6FF3A', '#FF6A3D', '#60A5FA', '#C084FC', '#F472B6', '#2DD4BF'];
 const ICONS = ['💪', '🏋️', '⚡', '🔥', '🦁', '🐺', '🚀', '🎯', '🏆', '🥊'];
 
@@ -29,12 +29,15 @@ const EMPTY = {
 export default function Onboard() {
   const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const rebuilding = params.get('new') === '1';
 
   const [muscles, setMuscles] = useState([]);
   const [equipmentItems, setEquipmentItems] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const gymProfileIdRef = useRef(null);
   const persistedProgramRef = useRef(null);
+  const requestIdRef = useRef(null);
   const [form, setForm] = useState(EMPTY);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -45,9 +48,11 @@ export default function Onboard() {
     if (!profile) return;
     if (resumed.current) return;
     resumed.current = true;
-    if (profile.onboarded_at) { navigate('/today', { replace: true }); return; }
+    if (profile.onboarded_at && !rebuilding) { navigate('/workout', { replace: true }); return; }
+    if (rebuilding) return;
     const st = profile.onboarding_state || {};
     const draft = st.draft || {};
+    requestIdRef.current = draft.program_request_id || crypto.randomUUID();
     setForm((f) => ({ ...f, ...draft }));
     if (typeof st.step === 'number') setStep(Math.min(st.step, TOTAL - 1));
   }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -61,6 +66,7 @@ export default function Onboard() {
           'id,name,primary_muscle_id,secondary_muscle_fraction,movement_pattern,equipment_ids,difficulty,stability_demand,sort_order',
         ).is('owner_user_id', null),
       ]);
+      if (m.error || e.error || x.error) { setErr('Could not load your exercise library. Refresh this page to try again.'); return; }
       setMuscles(m.data || []);
       setEquipmentItems(e.data || []);
       setCatalog(x.data || []);
@@ -73,12 +79,12 @@ export default function Onboard() {
   }));
 
   /** Persist a partial patch to users + stash the whole draft & cursor. */
-  async function persist(patch) {
+  async function persist(patch, advance = false) {
     if (!profile || profile.demo) return;
-    const nextStep = Math.min(step + 1, TOTAL - 1);
+    const nextStep = advance ? Math.min(step + 1, TOTAL - 1) : step;
     const payload = {
       ...patch,
-      onboarding_state: { phase: S[nextStep].phase, step: nextStep, draft: { ...form, ...patch } },
+      onboarding_state: { phase: S[nextStep].phase, step: nextStep, draft: { ...form, ...patch, program_request_id: requestIdRef.current } },
     };
     const { error } = await supabase.from('users').update(payload).eq('id', profile.id);
     if (error) throw error;
@@ -88,6 +94,7 @@ export default function Onboard() {
     if (!profile || profile.demo) return;
     const name = (form.gym_name || '').trim() || 'My Gym';
     const existing = await supabase.from('gym_profiles').select('id').eq('user_id', profile.id).limit(1);
+    if (existing.error) throw existing.error;
     let profileId = existing.data?.[0]?.id;
     if (!profileId) {
       const ins = await supabase
@@ -97,7 +104,8 @@ export default function Onboard() {
       if (ins.error) throw ins.error;
       profileId = ins.data.id;
     } else {
-      await supabase.from('gym_profiles').update({ name }).eq('id', profileId);
+      const { error } = await supabase.from('gym_profiles').update({ name }).eq('id', profileId);
+      if (error) throw error;
     }
     gymProfileIdRef.current = profileId;
     const rows = equipmentItems.map((it) => {
@@ -108,8 +116,7 @@ export default function Onboard() {
         denominations_kg: Array.isArray(sel.denoms) ? sel.denoms : (it.default_denominations_kg || []),
       };
     });
-    await supabase.from('gym_profile_equipment').delete().eq('profile_id', profileId);
-    const { error } = await supabase.from('gym_profile_equipment').insert(rows);
+    const { error } = await supabase.from('gym_profile_equipment').upsert(rows, { onConflict: 'profile_id,equipment_id' });
     if (error) throw error;
   }
 
@@ -118,18 +125,10 @@ export default function Onboard() {
   const add = (o) => S.push(o);
 
   // ---- PHASE: BASICS ----
-  add({ key: 'health', phase: 'basics', title: 'Link your health data',
-    sub: 'GymIQ can sync weigh-ins and activity. On web we store your consent and sync manually — mobile integrations arrive later.',
-    valid: () => true,
-    node: (f, st) => (
-      <div className="ob-options">
-        <OptionCard icon="🔗" title="Yes, link my health data" desc="Sync weigh-ins and steps where supported"
-          selected={!!f.health_link_consent} onClick={() => st('health_link_consent', true)} />
-        <OptionCard icon="🚫" title="Not now" desc="You can enable integrations anytime in More"
-          selected={!f.health_link_consent} onClick={() => st('health_link_consent', false)} />
-      </div>
-    ),
-    save: () => persist({ health_link_consent: form.health_link_consent }) });
+  add({ key: 'health', phase: 'basics', title: 'Let’s build your training plan.',
+    sub: 'A few details. A programme that fits your life.', valid: () => true,
+    node: () => <div className="prev-card"><h4>Made around you</h4><p>Tell us your training experience, equipment and schedule. We’ll use them to build your workout programme.</p><p>Calorie Bank is ready to set up separately whenever you want to bring nutrition into focus.</p></div>,
+    save: () => persist({ health_link_consent: false }) });
 
   add({ key: 'sex', phase: 'basics', title: 'What is your sex?',
     sub: 'Used for energy maths and sensible starting loads.',
@@ -143,8 +142,8 @@ export default function Onboard() {
     save: () => persist({ sex: form.sex }) });
 
   add({ key: 'dob', phase: 'basics', title: 'When were you born?',
-    sub: 'Age calibrates your starting estimates.',
-    valid: (f) => !!f.dob,
+    sub: 'GymIQ is for adults aged 18 and over. Age helps calibrate your starting estimates.',
+    valid: (f) => { const d = new Date(f.dob); const cutoff = new Date(); cutoff.setFullYear(cutoff.getFullYear() - 18); return Number.isFinite(d.getTime()) && d <= cutoff && d.getFullYear() > 1900; },
     node: (f, st) => (
       <div className="ob-field">
         <label className="ob-label" htmlFor="dob">Date of birth</label>
@@ -166,7 +165,7 @@ export default function Onboard() {
     save: () => persist({ height_cm: Number(form.height_cm) }) });
 
   add({ key: 'weight', phase: 'basics', title: 'How much do you weigh?',
-    sub: 'Your first weigh-in — you can log a better one any day.',
+    sub: 'Your starting weight for your training profile.',
     valid: (f) => Number(f.weight_now) > 25,
     node: (f, st) => (
       <div className="ob-field ob-suffix">
@@ -311,7 +310,7 @@ export default function Onboard() {
     valid: (f) => !!f.deload,
     node: (f, st) => (
       <div className="ob-options">
-        <OptionCard icon="🤖" title="Auto" desc="Scheduled when fatigue accumulates" selected={f.deload === 'auto'} onClick={() => st('deload', 'auto')} />
+        <OptionCard icon="🤖" title="Auto" desc="A lighter week is planned for week 5" selected={f.deload === 'auto'} onClick={() => st('deload', 'auto')} />
         <OptionCard icon="4️⃣" title="Every 4 weeks" selected={f.deload === 'every_4w'} onClick={() => st('deload', 'every_4w')} />
         <OptionCard icon="6️⃣" title="Every 6 weeks" selected={f.deload === 'every_6w'} onClick={() => st('deload', 'every_6w')} />
         <OptionCard icon="🚫" title="Never" desc="I'll manage recovery myself" selected={f.deload === 'never'} onClick={() => st('deload', 'never')} />
@@ -349,7 +348,7 @@ export default function Onboard() {
 
   // ---- PREVIEW / PAYWALL / LEGAL / FINISH ----
   add({ key: 'preview', phase: 'preview', title: 'Your program, generated',
-    sub: 'Built by transparent rules from your answers — not AI. Everything stays editable.',
+    sub: 'Built by transparent rules from your answers — not AI. Review your plan before saving.',
     valid: () => true, nextLabel: 'Save & continue',
     node: (f) => (
       <>
@@ -365,6 +364,7 @@ export default function Onboard() {
       if (persistedProgramRef.current) return;
       const id = await persistProgram(previewProgram, {
         clientId: profile.id,
+        requestId: requestIdRef.current ||= crypto.randomUUID(),
         gymProfileId: gymProfileIdRef.current,
         name: form.programme_name || `${(form.split === 'auto' ? 'Auto' : form.split).replace('_', ' ')} Program`,
         color: form.color,
@@ -373,20 +373,11 @@ export default function Onboard() {
       persistedProgramRef.current = id;
     } });
 
-  add({ key: 'paywall', phase: 'preview', title: 'Choose your plan',
-    sub: 'Structure preview — real billing arrives post-Phase 7. Trials activate instantly.',
-    valid: (f) => !!f.plan,
-    node: (f, st) => <PlanCards f={f} st={st} />,
-    save: async () => {
-      if (!profile || profile.demo) return;
-      const now = new Date();
-      const end = new Date(now.getTime() + 7 * 864e5);
-      const { error } = await supabase.from('entitlements').upsert({
-        user_id: profile.id, plan: form.plan === 'yearly' ? 'premium_yearly' : form.plan === 'monthly' ? 'premium_monthly' : 'trial',
-        status: 'active', trial_started_at: now.toISOString(), trial_ends_at: end.toISOString(), updated_at: now.toISOString(),
-      });
-      if (error) throw error;
-    } });
+  add({ key: 'paywall', phase: 'preview', title: 'Two essentials. One membership.',
+    sub: 'Your first 7 days are free. Then R100 for 30 days, renewed manually through Yoco. No automatic debit.',
+    valid: () => true,
+    node: () => <div className="prev-card"><h4>Workouts + Calorie Bank</h4><p>Your programme, live workout logging, session history and nutrition balance in one place.</p><p>Manage your membership in Account. Paid access starts only after Yoco confirms your payment.</p></div>,
+  });
 
   add({ key: 'disclaimer', phase: 'legal', title: 'Health disclaimer',
     sub: 'Please read before training with GymIQ.',
@@ -395,21 +386,22 @@ export default function Onboard() {
     save: () => persist({ disclaimer_version: DISCLAIMER_VERSION, disclaimer_accepted_at: new Date().toISOString() }) });
 
   add({ key: 'first30', phase: 'legal', title: 'Your first 30 days',
-    sub: 'GymIQ learns as you train — here is what to expect.',
+    sub: 'Build a consistent habit — here is a simple way to get started.',
     valid: () => true,
     node: () => <FirstThirty /> });
 
   add({ key: 'done', phase: 'done', title: "You're set",
-    sub: 'Your answers are saved. Generation begins in Phase 3 — then every set gets an Auto target.',
+    sub: 'Your programme is saved. Your next session is ready when you are.',
     valid: () => true, nextLabel: 'Enter GymIQ',
     node: () => <div className="check-big">✅</div>,
     save: async () => {
       if (profile && !profile.demo) {
         await persist({});
-        await supabase.from('users').update({ onboarded_at: new Date().toISOString() }).eq('id', profile.id);
+        const { error } = await supabase.from('users').update({ onboarded_at: new Date().toISOString() }).eq('id', profile.id);
+        if (error) throw error;
       }
       await refreshProfile();
-      navigate('/today', { replace: true });
+      navigate('/workout', { replace: true });
     } });
 
   const TOTAL = S.length;
@@ -428,6 +420,7 @@ export default function Onboard() {
     setBusy(true); setErr('');
     try {
       if (cur.save) await cur.save();
+      if (step < TOTAL - 1 && profile && !profile.demo) await persist({}, true);
       if (step < TOTAL - 1) setStep(step + 1);
     } catch (e) {
       setErr(e?.message || 'Could not save — check your connection and try again.');
@@ -550,37 +543,12 @@ function PreviewSummary({ f, muscles, count }) {
         <div className="prev-row"><b>Equipment</b><span>{count} items · “{f.gym_name || 'My Gym'}”</span></div>
       </div>
       <div className="prev-card" style={{ opacity: .8 }}>
-        <h4>⚡ Rule-based auto-progression</h4>
+        <h4>⚡ Personal training targets</h4>
         <div className="prev-row"><b>Per-set targets</b><span>weight × reps × RIR</span></div>
-        <div className="prev-row"><b>Transparent rules</b><span>no black-box AI</span></div>
+        <div className="prev-row"><b>Transparent rules</b><span>based on your goals</span></div>
         <div className="prev-row"><b>Fully editable</b><span>override anything</span></div>
       </div>
     </>
-  );
-}
-
-function PlanCards({ f, st }) {
-  const plans = [
-    { id: 'monthly', price: '$11.99', per: '/month' },
-    { id: 'sixmonth', price: '$47.99', per: '6 months', save: '~$7.99/mo' },
-    { id: 'yearly', price: '$71.99', per: '/year', save: 'best value' },
-  ];
-  return (
-    <div className="ob-options">
-      {plans.map((p) => (
-        <button key={p.id} type="button" className={`plan-card ${f.plan === p.id ? 'on' : ''}`} onClick={() => st('plan', p.id)}>
-          <div style={{ flex: 1 }}>
-            <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{p.id === 'sixmonth' ? '6-Month' : p.id}</span>
-            {p.save && <span className="badge-save">{p.save.toUpperCase()}</span>}
-            <div className="plan-per">7-day free trial included</div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div className="plan-price">{p.price}</div>
-            <div className="plan-per">{p.per}</div>
-          </div>
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -595,11 +563,9 @@ function Disclaimer({ f, st }) {
         Resistance training carries inherent risk of injury. Use spotters, safety pins and
         sensible loads; stop immediately if you feel pain, dizziness or shortness of breath.
         <h5>RIR targets are guidance</h5>
-        Reps-in-reserve targets are estimates. Auto-adjusted weights follow transparent rules
-        applied to your logged performance — you remain responsible for every lift you attempt.
+        Reps-in-reserve targets and previous loads are training references. Choose a sensible weight for every lift.
         <h5>Data & privacy</h5>
-        Your logs stay in your account, protected by row-level security. You can export or
-        permanently delete your data from More → Data management at any time.
+        Your logs stay in your account. You can export your data, contact support or delete your account from Account.
       </div>
       <label className="agree-row">
         <input type="checkbox" checked={!!f.disclaimer_agreed} onChange={(e) => st('disclaimer_agreed', e.target.checked)} />
@@ -612,9 +578,9 @@ function Disclaimer({ f, st }) {
 function FirstThirty() {
   const items = [
     ['Week 1', 'Log workouts honestly — including RIR. The engine baselines every lift.'],
-    ['Weeks 2–3', 'Auto targets tune to your actual rep strength. Expect small load bumps.'],
-    ['Week 4', 'First deload checkpoint (if enabled). Volume drops, progress sticks.'],
-    ['Day 30+', 'With food + weigh-ins logged, adaptive expenditure starts learning your true TDEE.'],
+    ['Weeks 2–3', 'Use your session history to review weights, reps and effort. Adjust loads at your own pace.'],
+    ['Week 4', 'Review your progress and allow time for rest and recovery.'],
+    ['Day 30+', 'Keep food and activity logs alongside your workouts in Calorie Bank.'],
   ];
   return (
     <div className="t30">

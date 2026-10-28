@@ -41,6 +41,7 @@ export default function SessionPlayer() {
   const [barDenoms, setBarDenoms] = useState([1.25, 2.5, 5, 10, 20, 25]);
   const priorPrRef = useRef({});
   const logIdRef = useRef(null);
+  const pendingSets = useRef(new Set());
 
   // timers
   const [nowTick, setNowTick] = useState(Date.now());
@@ -60,19 +61,10 @@ export default function SessionPlayer() {
     (async () => {
       try {
         // Reuse an open (unfinished) log for this day today; else create one.
-        let open = await supabase.from('workout_logs')
-          .select('id,created_at').eq('client_id', profile.id)
-          .eq(isFree ? 'note' : 'day_id', isFree ? 'freeform' : dayId)
-          .is('completed_at', null).order('created_at', { ascending: false }).limit(1);
-        let log = open.data?.[0];
-        if (!log) {
-          const ins = await supabase.from('workout_logs').insert({
-            client_id: profile.id,
-            ...(isFree ? { note: 'freeform' } : { day_id: dayId }),
-          }).select('id,created_at').single();
-          if (ins.error) throw ins.error;
-          log = ins.data;
-        }
+        const opened = await supabase.rpc('open_workout', { p_day: dayId });
+        if (opened.error) throw opened.error;
+        const log = Array.isArray(opened.data) ? opened.data[0] : opened.data;
+        if (!log?.id) throw new Error('Could not open your workout. Please try again.');
         if (cancelled) return;
         logIdRef.current = log.id;
         setLogId(log.id);
@@ -84,6 +76,7 @@ export default function SessionPlayer() {
           const pes = await supabase.from('programme_exercises')
             .select('id,exercise_id,name,target_sets,target_reps,target_rir,rest_seconds,exercises(laterality,equipment_ids)')
             .eq('day_id', dayId).order('sort_order');
+          if (pes.error) throw pes.error;
           items = (pes.data || []).map((pe) => {
             const [repMin, repMax] = String(pe.target_reps || '8-12').split('-').map((v) => parseInt(v, 10));
             return {
@@ -102,6 +95,17 @@ export default function SessionPlayer() {
         // Resume: sets already logged in THIS log
         const existing = await supabase.from('logged_sets')
           .select('*').eq('log_id', log.id).order('created_at');
+        if (existing.error) throw existing.error;
+        if (isFree) {
+          let saved = [];
+          try { saved = JSON.parse(localStorage.getItem(`gymiq_session_${profile.id}_${log.id}`) || '[]'); } catch { /* use logged sets */ }
+          items = Array.isArray(saved) ? saved : [];
+          for (const s of existing.data || []) {
+            const key = keyFor(null, s.exercise_name);
+            if (!items.some(item => item.key === key)) items.push({ key, name: s.exercise_name,
+              exerciseId: s.exercise_id, peId: null, laterality: s.reps_left != null ? 'unilateral' : 'bilateral', scheme: { ...DEFAULT_SCHEME } });
+          }
+        }
         const doneMap = {};
         let counter = {};   // per exercise running set number
         for (const s of existing.data || []) {
@@ -149,6 +153,11 @@ export default function SessionPlayer() {
     })();
     return () => { cancelled = true; };
   }, [profile?.id, dayId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (isFree && logId && status === 'ready') {
+      try { localStorage.setItem(`gymiq_session_${profile.id}_${logId}`, JSON.stringify(plan)); } catch { /* saved sets remain on server */ }
+    }
+  }, [plan, isFree, logId, status, profile?.id]);
 
   /* ----------------------------- state bits ----------------------------- */
   const [counter, setCounter] = useState({});     // key → next set_number - 1
@@ -199,7 +208,8 @@ export default function SessionPlayer() {
   }
 
   async function removeSet(item, setId) {
-    await supabase.from('logged_sets').delete().eq('id', setId);
+    const { error } = await supabase.from('logged_sets').delete().eq('id', setId);
+    if (error) { setErrText(error.message); return; }
     setDone((prev) => ({ ...prev, [item.key]: (prev[item.key] || []).filter((s) => s.id !== setId) }));
   }
 
@@ -218,10 +228,14 @@ export default function SessionPlayer() {
   }
   // Commit a set when its tick-box is checked.
   async function logSet(item, idx) {
+    const pendingKey = `${item.key}_${idx}`;
+    if (pendingSets.current.has(pendingKey)) return;
     const rd = rowDraft(item, idx);
     const reps = parseInt(rd.reps, 10) || 0;
     const kg = parseFloat(rd.kg) || 0;
-    if (!reps) { setErrText('Enter reps before ticking the set.'); return; }
+    if (reps <= 0 || kg < 0) { setErrText('Enter positive reps and a weight of zero or more.'); return; }
+    pendingSets.current.add(pendingKey);
+    setErrText('');
     const uni = unilateral(item);
     const n = (done[item.key] || []).length + 1;
     const row = {
@@ -234,6 +248,7 @@ export default function SessionPlayer() {
       target_rir: item.scheme.rir, completed: true,
     };
     const { data, error } = await supabase.from('logged_sets').insert(row).select('*').single();
+    pendingSets.current.delete(pendingKey);
     if (error) { setErrText(error.message); return; }
     setDone((prev) => ({ ...prev, [item.key]: [...(prev[item.key] || []), data] }));
     setRestLeft(item.scheme.restSeconds || 90);
@@ -241,7 +256,7 @@ export default function SessionPlayer() {
 
   function addFreeExercise(ex) {
     setPlan((p) => [...p, {
-      key: `free_${ex.id}_${Date.now()}`, peId: null, exerciseId: ex.id,
+      key: keyFor(null, ex.name), peId: null, exerciseId: ex.id,
       name: ex.name, laterality: ex.laterality, equipmentIds: ex.equipment_ids || [],
       scheme: { ...DEFAULT_SCHEME },
     }]);
@@ -265,27 +280,19 @@ export default function SessionPlayer() {
   }, [sessionSets, nowTick, startedAt]);
 
   async function finishWorkout() {
+    if (pendingSets.current.size) { setErrText('Wait for your set to finish saving, then try again.'); return; }
     setFinishing(true);
     try {
-      await supabase.from('workout_logs').update({
-        completed_at: new Date().toISOString(),
-        duration_sec: summary.durationSec,
-      }).eq('id', logIdRef.current);
-
-      const today = new Date().toISOString().slice(0, 10);
-      await supabase.from('habits').upsert(
-        { user_id: profile.id, day: today, worked_out: true },
-        { onConflict: 'user_id,day' },
-      );
-
-      for (const pr of summary.prs) {
-        await supabase.from('personal_records').upsert({
-          user_id: profile.id, exercise_name: pr.exerciseName,
-          pr_type: pr.type === 'volume' ? 'volume' : 'e1rm',
-          value: pr.value, achieved_on: today,
-        }, { onConflict: 'user_id,exercise_name,pr_type' });
-      }
+      const day = new Date();
+      const today = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
+      const { error } = await supabase.rpc('finish_workout', { p_log: logIdRef.current,
+        p_duration: summary.durationSec, p_day: today, p_prs: summary.prs });
+      if (error) throw error;
+      try { localStorage.removeItem(`gymiq_session_${profile.id}_${logIdRef.current}`); } catch { /* ignore */ }
       navigate(`/workout/history/${logIdRef.current}`, { replace: true });
+    } catch (e) {
+      setErrText(e.message || 'Could not finish saving. Your sets are retained; please try again.');
+      setShowFinish(false);
     } finally {
       setFinishing(false);
     }
@@ -303,7 +310,8 @@ export default function SessionPlayer() {
   const active = plan[Math.min(activeIdx, Math.max(0, plan.length - 1))] || null;
 
   return (
-    <TabShell active="workout" title={isFree ? 'Empty Workout' : 'Session'}>
+    <TabShell active="workout" title={isFree ? 'Freestyle workout' : 'Your session'}>
+      {errText && <div className="inline-error" role="alert">{errText}</div>}
       {/* status chips */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
         <span style={chipStyle}>⏱ {fmtClock(elapsed)}</span>
@@ -400,7 +408,7 @@ export default function SessionPlayer() {
 
             {/* table header */}
             <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '2px 2px 8px', color: 'var(--text-subtle)', fontSize: 12, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>
-              <span>Set</span><span>Auto</span>
+              <span>Set</span><span>Reference</span>
               <span style={{ textAlign: 'center' }}>{kgLabel}</span>
               <span style={{ textAlign: 'center' }}>{repsLabel}</span><span />
             </div>

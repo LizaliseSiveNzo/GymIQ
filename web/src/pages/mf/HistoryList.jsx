@@ -16,21 +16,25 @@ const clock = (s) => (s ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0
 export function HistoryList() {
   const { profile } = useAuth();
   const [logs, setLogs] = useState(undefined);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!profile?.id || profile.demo) { setLogs([]); return; }
     (async () => {
-      const { data } = await supabase.from('workout_logs')
+      const { data, error } = await supabase.from('workout_logs')
         .select('id,created_at,duration_sec,note,programme_days(name),logged_sets(weight,reps,weight_left,reps_left,set_type)')
         .eq('client_id', profile.id)
+        .not('completed_at', 'is', null)
         .order('created_at', { ascending: false }).limit(40);
-      setLogs(data || []);
+      if (error) setError('Could not load your history. Please refresh and try again.');
+      else setLogs(data || []);
     })();
   }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <TabShell active="workout" title="History">
-      {(logs === undefined) && <div className="mf-card"><div className="subtle">Loading…</div></div>}
+      {error && <p className="inline-error" role="alert">{error}</p>}
+      {(logs === undefined && !error) && <div className="mf-card"><div className="subtle">Loading…</div></div>}
       {logs?.length === 0 && (
         <div className="mf-card" style={{ borderStyle: 'dashed' }}>
           <h4>No sessions yet</h4>

@@ -1,121 +1,19 @@
-/*
- * Copyright © 2026 Lizalise Nzo. All rights reserved.
- * GymIQ — proprietary and confidential. See LICENSE.
- */
-
 import { Link } from 'react-router-dom';
-
-export const CONSENT_VERSION = '1.0';
-
-const S = ({ title, children }) => (
-  <section style={{ marginTop: 22 }}>
-    <h3 style={{ margin: '0 0 6px', fontSize: 17 }}>{title}</h3>
-    <div style={{ fontSize: 14.5, lineHeight: 1.65 }}>{children}</div>
-  </section>
-);
-
-export default function Privacy() {
-  return (
-    <div className="container" style={{ maxWidth: 760, padding: '28px 18px 60px' }}>
-      <div className="row between" style={{ marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
-        <div className="row" style={{ gap: 10, fontWeight: 800, fontSize: 20 }}>
-          <span className="dot" /> GymIQ
-        </div>
-        <Link to="/login" className="btn btn-ghost" style={{ minHeight: 34 }}>← Back to sign in</Link>
-      </div>
-
-      <div className="card">
-        <h1 style={{ fontSize: 26, marginTop: 0 }}>Privacy policy &amp; guardian consent</h1>
-        <p className="subtle" style={{ marginTop: 0 }}>Version {CONSENT_VERSION} · Last updated July 2026 · Governed by the laws of the Republic of South Africa</p>
-
-        <div style={{ border: '1px solid var(--border)', borderLeft: '4px solid var(--energy)', borderRadius: 12, padding: '12px 14px', marginTop: 16 }}>
-          <strong>In short:</strong> GymIQ stores information about young athletes so their coach can run training,
-          track development and keep families informed. We only collect what a coach genuinely needs, we never sell it,
-          and a parent or guardian can ask to see or delete it at any time.
-        </div>
-
-        <S title="1. Who is responsible for this information">
-          GymIQ is owned and operated by <strong>Lizalise Nzo</strong> (the “Operator”), who acts as the responsible
-          party under the Protection of Personal Information Act 4 of 2013 (“POPIA”). The sports academy using GymIQ
-          is the operator of the data about its own players. Questions or requests can be sent to the academy in the
-          first instance, or to the Operator.
-        </S>
-
-        <S title="2. Information we collect">
-          <ul style={{ margin: '6px 0 0', paddingLeft: 20 }}>
-            <li><strong>Account details</strong> — name, email address and role (player, coach or administrator).</li>
-            <li><strong>Player profile</strong> — position, date of birth, shirt number, preferred foot, height and weight.</li>
-            <li><strong>Guardian and emergency contacts</strong> — names and phone numbers used to reach a responsible adult.</li>
-            <li><strong>Health information</strong> — allergies, injuries and return-to-play status, recorded so a player is kept safe.</li>
-            <li><strong>Participation records</strong> — training attendance, match appearances, minutes played and statistics.</li>
-            <li><strong>Coaching records</strong> — skill ratings, development goals and written notes from the coach.</li>
-            <li><strong>Files</strong> — documents, photographs and video shared between a coach and a player.</li>
-          </ul>
-        </S>
-
-        <S title="3. Children’s information">
-          Most GymIQ users are under 18. Under POPIA, personal information about a child may only be processed with
-          the consent of a competent person — normally a parent or legal guardian. By creating a player account, or by
-          allowing a child to be added to a squad, the parent or guardian confirms they consent to the processing
-          described in this policy. Consent can be withdrawn at any time by contacting the academy, after which the
-          child’s record will be removed.
-        </S>
-
-        <S title="4. Why we process it">
-          Information is used only to run the academy: organising training and fixtures, recording attendance, tracking
-          development, communicating with families, and keeping players safe during activity. We do not use personal
-          information for advertising, and we do not sell it or share it with third parties for their own purposes.
-        </S>
-
-        <S title="5. Health information">
-          Allergies, injuries and medical notes are special personal information under POPIA. They are recorded solely
-          so that coaching staff can protect a player’s wellbeing, manage a safe return to play, and act appropriately
-          in an emergency. Access is limited to the player’s own coaches and academy administrators.
-        </S>
-
-        <S title="6. Photographs and video">
-          Consent for photographs and video is requested <strong>separately</strong> and is optional. A player’s account
-          works fully without it. Where given, images are used only within the academy — for coaching feedback and
-          communication with families — and not for public marketing without a further, specific request.
-        </S>
-
-        <S title="7. Who can see what">
-          <ul style={{ margin: '6px 0 0', paddingLeft: 20 }}>
-            <li><strong>Players and their families</strong> see that player’s own record.</li>
-            <li><strong>Coaches</strong> see only the players in the squads they run.</li>
-            <li><strong>Academy administrators</strong> see players within their own academy.</li>
-            <li>Coaches’ private journal notes are not visible to players or families.</li>
-          </ul>
-          These boundaries are enforced by database-level access rules, not only by the app screens.
-        </S>
-
-        <S title="8. Storage and security">
-          Data is stored on Supabase infrastructure hosted in the European Union, protected in transit and at rest.
-          Access is controlled by row-level security policies so that each account can reach only the records it is
-          entitled to. Files are held in private storage and are not publicly reachable by URL.
-        </S>
-
-        <S title="9. How long we keep it">
-          Records are kept while a player is registered with the academy and for a reasonable period afterwards to
-          support continuity, transfers and historical performance records. A guardian may request earlier deletion.
-        </S>
-
-        <S title="10. Your rights under POPIA">
-          A parent, guardian or adult account holder may ask to see the information held, correct anything inaccurate,
-          request deletion, object to processing, or withdraw consent. Requests should go to the academy, who will
-          action them. Complaints may also be lodged with the Information Regulator of South Africa.
-        </S>
-
-        <S title="11. Changes to this policy">
-          If this policy changes in a way that materially affects how information is used, account holders will be asked
-          to review and accept the updated version. Each acceptance is recorded with its version number and date.
-        </S>
-
-        <p className="subtle" style={{ fontSize: 12.5, marginTop: 26, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-          This policy is provided in good faith and reflects how the software is built. It is not legal advice — the
-          academy should have it reviewed by a South African attorney before operating at scale.
-        </p>
-      </div>
-    </div>
-  );
+import { CONSENT_VERSION } from '../lib/legal.js';
+export { CONSENT_VERSION } from '../lib/legal.js';
+const sections=[
+ ['The service','GymIQ is a personal fitness application for adults aged 18 and over, operated by Lizalise Nzo. It provides workout programmes, set logging, training history and Calorie Bank for food and activity tracking.'],
+ ['Information you provide','We store your name and account email, profile details you enter (including date of birth, sex, height and training experience), equipment preferences, workout programmes and logs, body measurements, calorie targets, food and activity entries, consent records, support requests and membership/payment references.'],
+ ['Why we use your information','We use this information to operate your account, personalise your programme, save and display your training and calorie records, confirm membership access, respond to support requests and maintain service security. We do not sell your personal information.'],
+ ['Service providers','Supabase provides authentication, database storage and application functions; the current database is hosted in Frankfurt, Germany. Yoco hosts checkout and processes payment details. GymIQ stores payment references and membership dates; card details are handled by Yoco. Resend is used for configured transactional email and support notifications. Vercel hosts the web application and provides aggregate usage analytics. These services may process information outside South Africa.'],
+ ['Access and support','Your fitness records are intended to be accessible only through your own account. The operator and authorised service providers may access information where necessary to operate, secure or support the service. Support requests, including your account email and message, are sent to the operator at Lizalisenzo@gmail.com when email notifications are configured. Do not include passwords, card details or sensitive medical information in support messages.'],
+ ['Retention, export and deletion','Records are retained while your account exists so you can review your history. Membership expiry does not automatically delete your records. Account → Export my data downloads your records. Account → Delete account removes your account, owned application records and owned uploads. Copies in provider backups and records required for payment, dispute or legal purposes may remain under the relevant provider’s retention rules.'],
+ ['Your choices','You can edit your account name, export your records, delete your account or contact Lizalisenzo@gmail.com about access, correction, deletion, consent or a privacy concern. Optional health integration consent does not connect a health provider; device health syncing is not offered by this web release.'],
+ ['Membership and payment','New accounts receive a one-time 7-day trial. Membership costs R100 for 30 days of access, paid through Yoco. Renewals are manual: GymIQ does not automatically debit your card. Confirmed early renewals extend remaining access by 30 days. Checkout redirects alone do not confirm payment; membership updates after server confirmation. If payment fails or is cancelled, access is not extended. After expiry, you can still access Account, export your data and review workout history.'],
+ ['Billing help and refunds','If you see an incorrect charge, paid without receiving access, or want to request a refund, contact Lizalisenzo@gmail.com or use Account → Support & billing help. Include the payment reference if available; never send card details. Refund requests are reviewed against the payment record and applicable consumer rights.'],
+ ['Fitness guidance','GymIQ provides general fitness tools, not medical advice, diagnosis or treatment. Calorie targets and activity estimates are approximate. Choose appropriate loads, allow for recovery and seek qualified advice when needed. Do not use a calorie balance to justify extreme food restriction or exercise. Stop an exercise if you feel pain or unwell.'],
+ ['Changes and contact','Material changes to the service or this policy will be reflected in a new policy version. Contact the operator at Lizalisenzo@gmail.com for support, privacy and membership enquiries.'],
+];
+export default function Privacy(){
+ return <div className="container" style={{maxWidth:760,padding:'32px 20px 80px'}}><div className="row between"><Link to="/" className="app-wordmark">GYM<span>IQ</span></Link><Link to="/more" className="btn btn-ghost">Back to account</Link></div><h1 style={{marginTop:40}}>Privacy & membership terms</h1><p className="subtle">Version {CONSENT_VERSION} · 28 October 2026</p>{sections.map(([title,text],i)=><section key={title} style={{marginTop:28}}><h2 style={{fontSize:19}}>{i+1}. {title}</h2><p style={{fontSize:14,lineHeight:1.85,color:'var(--text-muted)'}}>{text}</p></section>)}</div>;
 }

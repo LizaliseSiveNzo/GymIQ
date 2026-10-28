@@ -3,7 +3,7 @@
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient.js';
 import { monthlyAllowance } from '../../lib/calorieBank.js';
@@ -14,17 +14,21 @@ const fmt = (n) => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString
 // month's allowance, linking to the full Bank tab for setup and logging.
 export default function CalorieBankCard({ userId }) {
   const [settings, setSettings] = useState(undefined); // undefined=loading, null=none
-  const [txns, setTxns] = useState([]);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [error, setError] = useState('');
 
   useEffect(() => { if (!userId) return; (async () => {
-    const { data: s } = await supabase.from('calorie_bank').select('*').eq('user_id', userId).maybeSingle();
+    const { data: s, error: settingsError } = await supabase.from('calorie_bank').select('*').eq('user_id', userId).maybeSingle();
+    if (settingsError) { setError('Your Calorie Bank could not load. Open the bank to try again.'); return; }
     setSettings(s || null);
     if (s) await supabase.rpc('ensure_month_deposit', { uid: userId });
-    const { data: t } = await supabase.from('calorie_transactions').select('kcal').eq('user_id', userId).limit(400);
-    setTxns(t || []);
+    const { data: balance, error } = await supabase.rpc('calorie_balance', { uid: userId });
+    if (error) { setError('Your balance could not load. Please try again in Calorie Bank.'); return; }
+    setTotalBalance(Number(balance) || 0);
   })(); }, [userId]);
 
-  const balance = useMemo(() => txns.reduce((a, t) => a + t.kcal, 0), [txns]);
+  const balance = totalBalance;
+  if (error) return <Link to="/bank" className="mf-card"><h4>Calorie Bank</h4><p role="alert">{error}</p></Link>;
 
   if (settings === undefined) return (
     <section className="mf-card"><h4>🏦 Calorie Bank</h4><div className="subtle" style={{ fontSize: 13 }}>Loading…</div></section>
@@ -47,7 +51,7 @@ export default function CalorieBankCard({ userId }) {
     <section className="mf-card">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h4>🏦 Calorie Bank</h4>
-        <Link to="/bank" style={{ fontSize: 13, color: 'var(--green-600)' }}>Configure →</Link>
+        <Link to="/bank" style={{ fontSize: 13, color: 'var(--green-600)' }}>View bank →</Link>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 8 }}>
         <div style={{ position: 'relative', width: 128, height: 128, flexShrink: 0 }}>

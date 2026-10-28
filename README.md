@@ -1,54 +1,26 @@
 # GymIQ
 
-**Sports academy management platform** — track players, communicate with parents, manage trials, and measure performance. Soccer first, then rugby, cricket, chess. One subscription per school.
+Personal workout programmes and Calorie Bank. Workouts lead the experience; nutrition supports the same training journey.
 
-Built with React, Node.js, Supabase, and the Claude API. _Built with Claude · RevidArch._
+React + Vite, Supabase Auth/Postgres/Edge Functions, Yoco hosted checkout, and Resend transactional email.
 
-## Monorepo layout
+## Development
 
-```
-gymiq/
-├── backend/    Node.js + Express REST API (Supabase + Claude API)
-├── web/        React (Vite) web app — dark theme, green accent (#00e676)
-├── mobile/     React Native (Expo) — placeholder for Phase 4+
-├── supabase/   SQL migrations (13 tables + RLS policies)
-└── docs/       Architecture notes
+```powershell
+npm install
+npm run dev:web
+npm run build:web
+npm test --workspace web
 ```
 
-## User roles
+The current frontend targets the GymIQ Supabase project. Use a separate project and update `web/src/lib/supabaseClient.js` before working against staging data.
 
-| Role | Access |
-|------|--------|
-| **Admin** | Full access · manage all teams · view all players · export reports · invite coaches |
-| **Coach** | Own team · log training · rate players · notes & diet plans · mark bench reasons |
-| **Parent** | Own child only · stats, comments, upcoming games, bench reasons, diet plan |
-| **Player** | Own profile · rank/level · training history · upcoming fixtures |
+## Membership
 
-## Core modules
+R100 for 30 days, renewed manually through Yoco. New customers receive a one-time 7-day trial. Access is confirmed by signed payment webhooks; the browser cannot write paid membership records.
 
-Player profiles · stats & attendance tracker · match/training schedule with push notifications · level/rank system (Rookie → Rising Star → Elite → Master → Grand Master) · QR trial management · coach–parent messaging · team leaderboards · multi-sport expansion.
+## Release
 
-## Getting started
+Read [docs/LAUNCH.md](docs/LAUNCH.md) for deployed backend changes, required secrets, verification results and remaining release gates. Historical architecture and rebuild notes are retained in `docs/` as reference.
 
-```bash
-# 1. Database — create a free project at https://supabase.com,
-#    then run supabase/migrations/0001_initial_schema.sql in the SQL editor.
-
-# 2. Backend
-cd backend && cp .env.example .env   # add Supabase + Anthropic keys
-npm install && npm run dev           # http://localhost:4000
-
-# 3. Web
-cd web && cp .env.example .env        # add Supabase URL + anon key
-npm install && npm run dev            # http://localhost:5173
-```
-
-## Tech stack
-
-React · React Native · Node.js/Express · Supabase (DB + auth + storage) · Claude API (`claude-sonnet-4-6`) · Vercel/Railway hosting.
-
-## Build sequence
-
-1. Auth system 2. Player profiles 3. Stats logging 4. Schedule + notifications 5. Ranking 6. Trial QR check-in 7. AI coach summaries 8. Multi-sport expansion
-
-See `docs/ARCHITECTURE.md` and `GymIQ_Blueprint.pdf` for full detail.
+Copyright © 2026 Lizalise Nzo. Proprietary; see LICENSE.

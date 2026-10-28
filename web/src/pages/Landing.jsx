@@ -1,166 +1,37 @@
-/*
- * Copyright © 2026 Lizalise Nzo. All rights reserved.
- * GymIQ — proprietary and confidential. See LICENSE.
- */
-
-import { Link } from 'react-router-dom';
-
-const MODULES = [
-  ['👤', 'Player profiles', 'Photo, position, medical info, injury history, diet plan — access-controlled.'],
-  ['📊', 'Stats & attendance', 'Minutes, ratings, goals, assists. The data that justifies every decision.'],
-  ['📅', 'Schedule & alerts', 'Fixtures, lineups, bench lists. Push notifications end the "when’s the game?" texts.'],
-  ['🏆', 'Rank system', 'Rookie → Grand Master. A motivation engine players show their friends.'],
-  ['📋', 'Trial management', 'QR check-in, digital registration, automated outcomes. No more 800-on-paper.'],
-  ['💬', 'Coach–parent chat', 'In-app messaging and automated updates. No more WhatsApp chaos.'],
-  ['⭐', 'Leaderboards', 'Top performers per division and a star-player spotlight per age group.'],
-  ['➕', 'Multi-sport', 'Soccer, rugby, cricket, chess — same structure, add a sport in a click.'],
-];
-
-const PAINS = [
-  ['"When’s the game?"', 'Parents flooding coaches with logistics questions.', 'Schedule + push notifications'],
-  ['"Why is my kid benched?"', 'Bench decisions that spark arguments with no evidence.', 'Stats + bench reasons parents can see'],
-  ['800 people on paper', 'Trial days run on clipboards and lost forms.', 'QR trial check-in + digital registration'],
-];
-
-const ROLES = [
-  ['Admin', ['Manage all teams', 'View all players', 'Export reports', 'Invite coaches']],
-  ['Coach', ['Log training & matches', 'Rate players', 'Notes & diet plans', 'Mark bench reasons']],
-  ['Parent', ['See your child only', 'Stats & comments', 'Upcoming games', 'Bench reasons & diet']],
-  ['Player', ['Your profile & rank', 'Training history', 'Upcoming fixtures', 'AI performance tips']],
-];
-
-const RANKS = ['Rookie', 'Rising Star', 'Elite', 'Master', 'Grand Master'];
-
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 export default function Landing() {
-  return (
-    <div className="lp">
-      <nav className="lp-nav">
-        <div className="inner">
-          <div className="lp-logo"><span className="dot" /> GymIQ</div>
-          <div className="row" style={{ gap: 12 }}>
-            <Link to="/login" className="btn btn-ghost">Sign in</Link>
-            <Link to="/login" className="btn btn-primary">Get started</Link>
-          </div>
+  const { session } = useAuth();
+  if (session) return <Navigate to="/workout" replace />;
+  return <div className="launch-site">
+    <nav className="launch-nav" aria-label="Website navigation">
+      <Link to="/" className="app-wordmark">GYM<span>IQ</span></Link>
+      <div className="row"><Link to="/login" className="btn btn-ghost">Sign in</Link><Link to="/login?mode=register" className="btn btn-primary">Get started ↗</Link></div>
+    </nav>
+    <main>
+      <section className="launch-hero">
+        <div>
+          <div className="launch-eyebrow">THE WORKOUT. THE FUEL. THE PROGRESS.</div>
+          <h1>Show up.<br />Get stronger.<br /><span>Make it count.</span></h1>
+          <p className="launch-lead">Your training deserves a plan. Build workouts around your goals and equipment, log every set, and fuel your progress with Calorie Bank.</p>
+          <div className="launch-actions"><Link className="btn btn-primary btn-lg" to="/login?mode=register">Build my programme ↗</Link><a className="btn btn-secondary btn-lg" href="#inside">Explore GymIQ</a></div>
+          <p className="launch-caption">Built for your phone. Ready for your next session.</p>
         </div>
-      </nav>
-
-      {/* Hero */}
-      <header className="hero">
-        <div className="lp-section hero-grid" style={{ paddingTop: 64, paddingBottom: 64 }}>
-          <div>
-            <div className="lp-eyebrow">Sports academy management</div>
-            <h1 style={{ margin: '10px 0 16px' }}>Run your academy like a pro club.</h1>
-            <p className="lead">
-              GymIQ digitises how academies track players, talk to parents, run trials, and measure
-              performance — all in one place. One subscription per school.
-            </p>
-            <div className="row" style={{ gap: 12, marginTop: 24 }}>
-              <Link to="/login" className="btn btn-primary btn-lg">Get started</Link>
-              <Link to="/login" className="btn btn-secondary btn-lg">See how it works</Link>
-            </div>
-            <p className="subtle" style={{ marginTop: 16, fontSize: 13 }}>Starts free · Soccer, rugby, cricket & more</p>
-          </div>
-
-          <div className="hero-mock">
-            <div className="bar"><i /><i /><i /></div>
-            <div className="grid grid-2" style={{ gap: 10 }}>
-              <div className="kpi"><div className="kpi-label">Players</div><div className="kpi-value" style={{ fontSize: 26 }}>248</div></div>
-              <div className="kpi"><div className="kpi-label">Attendance</div><div className="kpi-value" style={{ fontSize: 26 }}>87%</div></div>
-            </div>
-            <div className="card" style={{ marginTop: 10, padding: 16 }}>
-              <div className="row between"><strong>Thabo Mokoena</strong><span className="rank-badge rank-Elite" style={{ padding: '4px 10px', fontSize: 12 }}>◆ Elite</span></div>
-              <div className="progress energy" style={{ marginTop: 10 }}><span style={{ width: '62%' }} /></div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Trust */}
-      <div className="trust">
-        <div className="inner">
-          <span>Built for academies</span><span>·</span><span>One subscription per school</span><span>·</span><span>Zero capital to start</span>
-        </div>
-      </div>
-
-      {/* Problem → solution */}
-      <section className="lp-section">
-        <div className="lp-eyebrow">The problems you know too well</div>
-        <h2 style={{ margin: '8px 0 28px' }}>Stop running your academy from a group chat.</h2>
-        <div className="pain">
-          {PAINS.map(([t, d, s]) => (
-            <div key={t} className="card">
-              <b>{t}</b>
-              <p style={{ margin: '8px 0 14px' }}>{d}</p>
-              <span className="badge badge-success">→ {s}</span>
-            </div>
-          ))}
+        <div className="product-preview" aria-label="Illustrative workout preview">
+          <div className="preview-top"><span>GYMIQ / WORKOUTS</span><span className="live-pill">YOUR NEXT MOVE</span></div>
+          <h2>A plan.<br />A purpose.<br /><span>A stronger you.</span></h2>
+          <div className="preview-session"><span className="preview-letter">A</span><div><strong>Upper body</strong><p>Programme preview · 3 exercises</p></div><span>↗</span></div>
+          {['Bench press', 'Seated cable row', 'Lateral raise'].map((name, i) => <div className="preview-exercise" key={name}><span>0{i + 1}</span><strong>{name}</strong><span>3 × 8–12</span></div>)}
+          <div className="preview-bank"><span>◎ &nbsp; CALORIE BANK</span><strong>Your fuel, in focus.</strong><p>Food, activity and your calorie balance in one place.</p></div>
         </div>
       </section>
-
-      {/* Modules */}
-      <section className="lp-section" style={{ paddingTop: 0 }}>
-        <div className="lp-eyebrow">Everything in one platform</div>
-        <h2 style={{ margin: '8px 0 28px' }}>Eight modules that run the whole academy.</h2>
-        <div className="lp-cards">
-          {MODULES.map(([ic, h, p]) => (
-            <div key={h} className="lp-card">
-              <div className="ic">{ic}</div>
-              <h4>{h}</h4>
-              <p>{p}</p>
-            </div>
-          ))}
-        </div>
+      <section id="inside" className="launch-features">
+        <div className="launch-section-heading"><div className="launch-eyebrow">ONE APP. TWO ESSENTIALS.</div><h2>Train with intent.<br />Fuel with perspective.</h2></div>
+        <article className="launch-feature flagship"><span className="feature-number">01 / WORKOUTS</span><h3>Your programme.<br />Your next personal best.</h3><p>A programme shaped by your goal, available equipment and training schedule. Track weights, reps and effort, use rest timers, and revisit every session in your history.</p><div className="feature-tags"><span>Personal programmes</span><span>Live set logging</span><span>Workout history</span></div><Link to="/login?mode=register">Find your next session ↗</Link></article>
+        <article className="launch-feature"><span className="feature-number">02 / CALORIE BANK</span><h3>The bigger picture<br />behind every meal.</h3><p>Set a calorie target, log food and activity, and follow your running balance. A simple way to keep nutrition alongside your training.</p><div className="feature-tags"><span>Calorie targets</span><span>Food & activity</span><span>Balance & ledger</span></div><Link to="/login?mode=register">Put your fuel in focus ↗</Link></article>
       </section>
-
-      {/* Roles */}
-      <section className="lp-section" style={{ paddingTop: 0 }}>
-        <div className="lp-eyebrow">Built for everyone at the club</div>
-        <h2 style={{ margin: '8px 0 28px' }}>One platform, four tailored experiences.</h2>
-        <div className="roles">
-          {ROLES.map(([r, items]) => (
-            <div key={r} className="card">
-              <h4 style={{ color: 'var(--green-700)' }}>{r}</h4>
-              <ul>{items.map((i) => <li key={i}>{i}</li>)}</ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Gamification band */}
-      <section className="lp-section" style={{ paddingTop: 0 }}>
-        <div className="band">
-          <div className="lp-eyebrow" style={{ color: 'var(--energy)' }}>The motivation engine</div>
-          <h2 style={{ margin: '8px 0 8px' }}>Players climb the ranks — and bring their friends.</h2>
-          <p style={{ color: '#C7D2E1', maxWidth: 620 }}>
-            Attendance, minutes, and coach ratings power a rank players are proud to show off.
-            Engagement that turns parents and players into your best marketing.
-          </p>
-          <div className="ladder" style={{ marginTop: 22 }}>
-            {RANKS.map((r, i) => (
-              <div key={r} className={`step ${i === 2 ? 'active' : ''}`}>{r}</div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="lp-section pricing" style={{ paddingTop: 0 }}>
-        <div className="lp-eyebrow">Simple pricing</div>
-        <h2 style={{ margin: '8px 0 4px' }}>One plan. One school. Everything included.</h2>
-        <div className="price-card">
-          <div className="lp-eyebrow">Per school</div>
-          <div className="amt">Starts free</div>
-          <p style={{ margin: '8px 0 20px' }}>All modules, all roles, unlimited teams and players. Add sports as you grow.</p>
-          <Link to="/login" className="btn btn-primary btn-lg btn-block">Get started</Link>
-        </div>
-      </section>
-
-      <footer className="lp-footer">
-        <div className="inner">
-          <div className="lp-logo" style={{ fontSize: 16 }}><span className="dot" /> GymIQ</div>
-          <span>© 2026 RevidArch</span>
-        </div>
-      </footer>
-    </div>
-  );
+      <section className="launch-price"><div><div className="launch-eyebrow">KEEP IT SIMPLE</div><h2>One membership.<br />Both essentials.</h2><p>Workouts and Calorie Bank. Together, where they belong.</p></div><div className="membership-card"><span>GYMIQ MEMBERSHIP</span><div className="membership-price">R100 <small>/ 30 days</small></div><p>Renew manually through Yoco. No automatic debit.</p><ul><li>Personal workout programmes</li><li>Set logging, timers and session history</li><li>Calorie Bank, food and activity logging</li></ul><Link to="/login?mode=register" className="btn btn-primary btn-lg btn-block">Create your account ↗</Link></div></section>
+    </main>
+    <footer className="launch-footer"><span>© {new Date().getFullYear()} GymIQ · Lizalise Nzo</span><Link to="/privacy">Privacy & terms</Link></footer>
+  </div>;
 }

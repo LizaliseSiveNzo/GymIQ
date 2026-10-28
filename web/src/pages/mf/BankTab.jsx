@@ -15,6 +15,7 @@ export default function BankTab() {
   }
   return (
     <TabShell active="bank" title="Calorie Bank">
+      <p className="bank-intro">Fuel the work you put in. Log food and activity, and keep your calorie balance in view.</p>
       <CalorieBank clientId={profile.id} />
     </TabShell>
   );

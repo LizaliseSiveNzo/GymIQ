@@ -19,6 +19,7 @@ export function HistoryDetail() {
   const { logId } = useParams();
   const { profile } = useAuth();
   const [log, setLog] = useState(undefined);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!profile?.id || !logId) return;
@@ -28,12 +29,13 @@ export function HistoryDetail() {
         .eq('id', logId).eq('client_id', profile.id).single();
       const s = await supabase.from('logged_sets')
         .select('*').eq('log_id', logId).order('created_at');
+      if (l.error || s.error) { setError('This session could not be loaded. Return to history and try again.'); setLog(null); return; }
       setLog({ ...l.data, sets: s.data || [] });
     })();
   }, [profile?.id, logId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (log === undefined) return <TabShell active="workout" title="Session"><div className="mf-card"><div className="subtle">Loading…</div></div></TabShell>;
-  if (!log) return <TabShell active="workout" title="Session"><div className="mf-card"><h4>Not found</h4><Link to="/workout/history" className="btn btn-secondary" style={{ marginTop: 8 }}>Back to history</Link></div></TabShell>;
+  if (!log) return <TabShell active="workout" title="Session"><div className="mf-card"><h4>{error || 'Session not found'}</h4><Link to="/workout/history" className="btn btn-secondary" style={{ marginTop: 8 }}>Back to history</Link></div></TabShell>;
 
   const groups = [];
   for (const s of log.sets) {

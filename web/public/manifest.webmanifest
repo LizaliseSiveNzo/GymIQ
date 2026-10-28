@@ -1,11 +1,12 @@
 {
   "name": "GymIQ",
   "short_name": "GymIQ",
-  "description": "Sports academy management — track players, ratings, schedule and more.",
-  "start_url": "/",
+  "description": "Sports academy management â€” track players, ratings, schedule and more.",
+  "start_url": "/workout",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#15161A",
-  "theme_color": "#15161A"
+  "theme_color": "#15161A",
+  "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

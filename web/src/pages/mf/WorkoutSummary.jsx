@@ -21,12 +21,13 @@ export default function WorkoutSummary() {
   const [day, setDay] = useState(undefined);
   const [rows, setRows] = useState([]);
   const [mName, setMName] = useState({});
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!profile?.id) return;
     let cancelled = false;
     (async () => {
-      const [{ data: d }, { data: pes }, { data: mus }] = await Promise.all([
+      const [dayResult, exerciseResult, muscleResult] = await Promise.all([
         supabase.from('programme_days').select('id,label,name,programme_id').eq('id', dayId).maybeSingle(),
         supabase.from('programme_exercises')
           .select('id,name,target_sets,target_reps,target_rir,sort_order,exercise_id,exercises(primary_muscle_id,secondary_muscle_fraction)')
@@ -34,6 +35,8 @@ export default function WorkoutSummary() {
         supabase.from('muscles').select('id,name'),
       ]);
       if (cancelled) return;
+      if (dayResult.error || exerciseResult.error || muscleResult.error) { setError('Could not load this workout. Please return to your programme and try again.'); setDay(null); return; }
+      const d = dayResult.data, pes = exerciseResult.data, mus = muscleResult.data;
       setDay(d || null);
       setRows(pes || []);
       setMName(Object.fromEntries((mus || []).map((m) => [m.id, m.name])));
@@ -47,7 +50,7 @@ export default function WorkoutSummary() {
   }, [rows]);
 
   if (day === undefined) return <TabShell active="workout" title="Workout"><div className="mf-card"><div className="subtle">Loading…</div></div></TabShell>;
-  if (day === null) return <TabShell active="workout" title="Workout"><div className="mf-card"><h4>Workout not found</h4><a className="btn btn-secondary" href="/workout">Back to Workout</a></div></TabShell>;
+  if (day === null) return <TabShell active="workout" title="Workout"><div className="mf-card"><h4>{error || 'Workout not found'}</h4><a className="btn btn-secondary" href="/workout">Back to Workout</a></div></TabShell>;
 
   return (
     <TabShell active="workout" title={day.name || `Workout ${day.label || ''}`}>
