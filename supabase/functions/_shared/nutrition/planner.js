@@ -12,6 +12,7 @@ export const RECIPES = [
   {id:'fruit-nuts',slot:'snack',name:'Apple & almonds',items:[item('171688',150),item('170567',25)]},
   {id:'banana-oats',slot:'snack',name:'Banana & oats',items:[item('173944',120),item('173904',30)]},
   {id:'chicken-potato',slot:'dinner',name:'Chicken, sweet potato & greens',items:[item('171477',150),item('168484',250),item('169967',180),item('171413',10)]},
+  {id:'tuna-rice',slot:'dinner',name:'Tuna, brown rice & vegetables',items:[item('173709',160),item('169704',200),item('169967',150),item('170393',100),item('171413',10)]},
   {id:'lentil-rice',slot:'dinner',name:'Lentils, rice & vegetables',items:[item('172421',230),item('169704',150),item('169967',150),item('170393',100),item('171413',10)]},
   {id:'tofu-bowl',slot:'dinner',name:'Tofu, rice & vegetables',items:[item('172475',160),item('169704',170),item('169967',150),item('170393',100),item('171413',8)]},
 ];
@@ -26,10 +27,18 @@ export function mealTotals(items, foods) {
   return Object.fromEntries(Object.entries(totals).map(([k,v])=>[k,Math.round(v*10)/10]));
 }
 export function eligibleRecipes(foods, diet='regular', excludes=[]) {
-  return RECIPES.filter(r=>r.items.every(i=>{
+  return RECIPES.filter(r=>{
+    // Mixed eating is the default. Plant-based main dishes require explicit opt-in.
+    if(diet==='regular' && (r.id==='plant-oats'||(['lunch','dinner'].includes(r.slot)&&!r.items.some(i=>foods.find(f=>f.id===i.food_id)?.vegetarian===false))))return false;
+    return r.items.every(i=>{
     const f=foods.find(f=>f.id===i.food_id);
     return f && (diet==='regular'||f[diet]===true) && !f.allergens.some(a=>excludes.includes(a));
-  }));
+    });
+  });
+}
+export function planMatchesDiet(plan, foods, diet='regular', excludes=[]) {
+  const eligible=eligibleRecipes(foods,diet,excludes);
+  return Array.isArray(plan)&&plan.length===SLOTS.length&&SLOTS.every(slot=>plan.some(m=>m.slot===slot&&eligible.some(r=>r.id===m.recipe_id&&r.slot===slot)));
 }
 export function buildPlan(target, foods, diet, excludes, selection={}) {
   if(!Number.isFinite(target)||target<1500||target>6000)throw new Error('Set an eligible calorie guide first.');

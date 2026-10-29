@@ -1,8 +1,25 @@
 import {describe,it,expect} from 'vitest';
 import foods from '../../../../supabase/functions/_shared/nutrition/foods.json';
-import {calorieGuide,mealTotals,buildPlan,eligibleRecipes,periodSummary} from '../../../../supabase/functions/_shared/nutrition/planner.js';
+import {calorieGuide,mealTotals,buildPlan,eligibleRecipes,periodSummary,planMatchesDiet} from '../../../../supabase/functions/_shared/nutrition/planner.js';
 const base={sex:'male',age:30,height_cm:180,weight_kg:85,goal_weight_kg:78,monthly_loss_kg:1,activity_level:'sedentary',gym_days:3,gym_minutes:60,gym_basis:'planned',general_plan:true};
 describe('nutrition planning boundaries',()=>{
+ it('keeps vegetarian main meals out of default presets and overrides incompatible AI choices',()=>{
+  const allowed=eligibleRecipes(foods);
+  for(const id of ['bean-bowl','lentil-rice','tofu-bowl','plant-oats'])expect(allowed.some(r=>r.id===id)).toBe(false);
+  const plan=buildPlan(2200,foods,'regular',[],{lunch:'bean-bowl',dinner:'lentil-rice'});
+  for(const m of plan.filter(m=>['lunch','dinner'].includes(m.slot)))expect(m.items.some(i=>foods.find(f=>f.id===i.food_id).vegetarian===false)).toBe(true);
+  expect(planMatchesDiet(plan,foods)).toBe(true);
+ });
+ it('allows vegetarian mains only with an explicit preference, and catches old incompatible plans',()=>{
+  const plan=buildPlan(2200,foods,'vegetarian',[],{lunch:'bean-bowl',dinner:'lentil-rice'});
+  expect(planMatchesDiet(plan,foods,'vegetarian')).toBe(true);
+  expect(planMatchesDiet(plan,foods,'regular')).toBe(false);
+  expect(plan.find(m=>m.slot==='dinner').recipe_id).toBe('lentil-rice');
+ });
+ it('does not silently substitute plant mains when animal options are excluded',()=>{
+  // Current dinner catalogue includes chicken even if fish is excluded.
+  expect(buildPlan(2000,foods,'regular',['fish']).find(m=>m.slot==='dinner').recipe_id).toBe('chicken-potato');
+ });
  it('uses net gym energy once and a 30-day requested deficit',()=>{
   const r=calorieGuide(base);expect(r.bmr).toBe(1830);expect(r.gym_kcal).toBe(91);expect(r.maintenance).toBe(2287);expect(r.target).toBe(2030);
  });

@@ -45,7 +45,7 @@ Deno.serve(async(req:Request)=>{
     const key=Deno.env.get('GROQ_API_KEY')?.trim();
     if(body.consent===true&&key&&['openai/gpt-oss-120b','openai/gpt-oss-20b'].includes(model)){
       // Public catalogue only: no target, measurements, preferences, logs or identifiers are sent.
-      const facts={task:'public-meal-selection-v2',options:RECIPES.map(r=>({id:r.id,slot:r.slot,name:r.name}))};
+      const facts={task:'public-meal-selection-v3-mixed-default',options:RECIPES.map(r=>({id:r.id,slot:r.slot,name:r.name}))};
       const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify({model,...facts})));
       const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
       const valid=(v:any)=>v&&SLOTS.every((s:string)=>RECIPES.some(r=>r.slot===s&&r.id===v[s]));
@@ -57,7 +57,7 @@ Deno.serve(async(req:Request)=>{
         reason=reservation.data?.status||'temporarily_unavailable';
         if(!reservation.error&&reason==='reserved')try{
           const properties=Object.fromEntries(SLOTS.map((s:string)=>[s,{type:'string',enum:RECIPES.filter(r=>r.slot===s).map(r=>r.id)}]));
-          const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},signal:AbortSignal.timeout(18000),body:JSON.stringify({model,reasoning_effort:'low',include_reasoning:false,max_completion_tokens:768,messages:[{role:'system',content:'Choose one varied everyday meal per slot from this public recipe catalogue. Return only recipe IDs. Do not calculate calories or invent meals.'},{role:'user',content:JSON.stringify(facts)}],response_format:{type:'json_schema',json_schema:{name:'meal_selection',strict:true,schema:{type:'object',additionalProperties:false,required:SLOTS,properties}}}})});
+          const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},signal:AbortSignal.timeout(18000),body:JSON.stringify({model,reasoning_effort:'low',include_reasoning:false,max_completion_tokens:768,messages:[{role:'system',content:'Choose varied everyday mixed meals from this public catalogue. Prefer chicken or fish for lunch and dinner and eggs or dairy for breakfast. Fruit, oats and yoghurt are ordinary breakfast/snack foods. Vegetarian or vegan main dishes require an explicit preference, which GymIQ applies locally. Return only recipe IDs. Do not calculate calories or invent meals.'},{role:'user',content:JSON.stringify(facts)}],response_format:{type:'json_schema',json_schema:{name:'meal_selection',strict:true,schema:{type:'object',additionalProperties:false,required:SLOTS,properties}}}})});
           if(!response.ok)throw Error('Provider unavailable');
           const data=await response.json();
           const tokens=Number(data.usage?.total_tokens);
