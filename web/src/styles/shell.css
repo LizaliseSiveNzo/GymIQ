@@ -324,3 +324,26 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
   .exercise-catalog-row > .row { margin-left: auto; }
   .exercise-illustration--thumbnail img { width: 64px; height: 88px; }
 }
+
+/* Exercise records and reversible session controls. */
+.exercise-progress-card h2 { font-size: 18px; margin: 0 0 4px; }
+.exercise-progress-card .exercise-catalog-row p { margin: 0; font-size: 12px; }
+.exercise-progress-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-top: 16px; }
+.exercise-progress-grid > div { padding: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; min-width: 0; }
+.exercise-progress-grid span, .exercise-progress-grid small { display: block; color: var(--text-muted); font-size: 11px; }
+.exercise-progress-grid strong { display: block; font-size: 15px; margin: 6px 0; overflow-wrap: anywhere; }
+.exercise-progress-history { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 12px; font-size: 13px; }
+.exercise-progress-history summary { cursor: pointer; padding: 8px 0; font-weight: 600; }
+.exercise-progress-history section { margin: 12px 0; }
+.exercise-progress-history .prev-row { gap: 12px; }
+.exercise-progress-history .prev-row strong { text-align: right; }
+.progress-search { display: grid; gap: 8px; font-size: 13px; }
+.session-exercise-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.session-exercise-heading button { font-size: 11px; min-height: 44px; }
+.exercise-previous { padding: 12px; margin: 12px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); font-size: 12px; line-height: 1.5; }
+.exercise-previous p { color: var(--text-muted); margin: 6px 0; }
+.session-cancel-button { margin: 12px 0 100px; color: var(--text-muted); }
+.session-discard-dialog { box-sizing: border-box; width: min(480px,calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; border: 1px solid var(--border-strong); border-radius: 18px; background: var(--surface); color: var(--ink); padding: 22px; }
+.session-discard-dialog::backdrop { background: rgb(0 0 0 / 80%); }
+.session-discard-dialog h2 { font-size: 20px; }
+.session-discard-dialog p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }

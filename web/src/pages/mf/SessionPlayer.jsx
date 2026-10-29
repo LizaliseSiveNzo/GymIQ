@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import ExercisePicker from '../../components/ui/ExercisePicker.jsx';
 import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
@@ -15,8 +15,10 @@ import useSessionTimer from '../../hooks/useSessionTimer.js';
 import SessionTiming from '../../components/ui/SessionTiming.jsx';
 import { formatSessionTime } from '../../lib/sessionClock.js';
 import { createRestBell } from '../../lib/restBell.js';
+import { loadExerciseProgress } from '../../lib/loadExerciseProgress.js';
+import { previousFor, setDescription } from '../../lib/exerciseProgress.js';
+import SessionDiscardDialog from '../../components/ui/SessionDiscardDialog.jsx';
 
-const SET_TYPES = ['normal', 'warmup', 'drop', 'myorep', 'partial', 'failure'];
 const DEFAULT_SCHEME = { sets: 3, repMin: 8, repMax: 12, rir: 2, restSeconds: 90 };
 const fmtClock = formatSessionTime;
 
@@ -46,6 +48,13 @@ export default function SessionPlayer() {
   const priorPrRef = useRef({});
   const logIdRef = useRef(null);
   const pendingSets = useRef(new Set());
+  const [progress,setProgress] = useState([]);
+  const [progressUnavailable,setProgressUnavailable] = useState(false);
+  const [excludedKeys,setExcludedKeys] = useState([]);
+  const [discard,setDiscard] = useState(null);
+  const [discardBusy,setDiscardBusy] = useState(false);
+  const [discardError,setDiscardError] = useState('');
+  const includedPlan = plan.filter(item=>!excludedKeys.includes(item.key));
 
   const bellRef = useRef(null);
   if (!bellRef.current) bellRef.current = createRestBell();
@@ -97,6 +106,7 @@ export default function SessionPlayer() {
         if (cancelled) return;
         logIdRef.current = log.id;
         setLogId(log.id);
+        setExcludedKeys(log.excluded_exercises || []);
 
         // Plan
         let items = [];
@@ -135,31 +145,19 @@ export default function SessionPlayer() {
           }
         }
         const doneMap = {};
-        let counter = {};   // per exercise running set number
         for (const s of existing.data || []) {
           const k = keyFor(s.programme_exercise_id, s.exercise_name);
           (doneMap[k] ||= []).push(s);
-          counter[k] = Math.max(counter[k] || 0, s.set_number || 0);
         }
-        setCounter(counter);
         setDone(doneMap);
 
-        // Recent performances → suggested loads ("Auto")
-        const recent = await supabase.from('logged_sets')
-          .select('exercise_name,weight,reps').eq('client_id', profile.id)
-          .gte('created_at', new Date(Date.now() - 90 * 864e5).toISOString())
-          .order('created_at', { ascending: false }).limit(80);
-        const last = {};
-        for (const s of recent.data || []) {
-          if (s.weight && !last[s.exercise_name]) last[s.exercise_name] = { weight: Number(s.weight), reps: s.reps };
-        }
-        setLastPerf(last);
-
-        // Prior PRs
-        const prs = await supabase.from('personal_records').select('exercise_name,pr_type,value');
-        priorPrRef.current = Object.fromEntries(
-          Object.entries(groupPrs(prs.data || [])).map(([k, v]) => [k, v]),
-        );
+        // Recover defaults only from finished, included working sets.
+        try {
+          const history = await loadExerciseProgress(()=>cancelled);
+          if(cancelled)return;
+          setProgress(history); setProgressUnavailable(false);
+          priorPrRef.current = Object.fromEntries(history.map(p=>[p.name,{e1rm:p.estimatedMax,volume:p.topVolume}]));
+        } catch { setProgress([]); setProgressUnavailable(true); priorPrRef.current={}; }
 
         // Bar denominations from default gym profile
         const gp = await supabase.from('gym_profiles').select('id').eq('user_id', profile.id).eq('is_default', true).limit(1);
@@ -196,55 +194,13 @@ export default function SessionPlayer() {
   }, [plan, isFree, logId, status, profile?.id]);
 
   /* ----------------------------- state bits ----------------------------- */
-  const [counter, setCounter] = useState({});     // key → next set_number - 1
-  const [lastPerf, setLastPerf] = useState({});   // name → {weight,reps}
-  const drafts = useRef({});                      // key → current draft inputs
-
-  function draftFor(item) {
-    return drafts.current[item.key] ||= {
-      setType: 'normal', rir: item.scheme.rir,
-      weightR: String(lastPerf[item.name]?.weight ?? ''), repsR: '', weightL: '', repsL: '',
-    };
-  }
-  function setDraft(item, patch) {
-    drafts.current[item.key] = { ...draftFor(item), ...patch };
-    forceRender();
-  }
+  const drafts = useRef({});
   const [, setTick] = useState(0);
   const forceRender = () => setTick((t) => t + 1);
-
   const unilateral = (item) => String(item.laterality || '').startsWith('unilateral');
 
-  async function completeSet(item) {
-    const d = draftFor(item);
-    const wR = parseFloat(d.weightR) || 0;
-    const rR = parseInt(d.repsR, 10) || 0;
-    const wL = unilateral(item) ? parseFloat(d.weightL) || 0 : 0;
-    const rL = unilateral(item) ? parseInt(d.repsL, 10) || 0 : 0;
-    if (!rR && !rL) return;
-
-    const n = (counter[item.key] || 0) + 1;
-    setCounter((c) => ({ ...c, [item.key]: n }));
-    const row = {
-      client_id: profile.id, log_id: logIdRef.current,
-      exercise_name: item.name, exercise_id: item.exerciseId, programme_exercise_id: item.peId || null,
-      set_number: n, set_type: SET_TYPES.includes(d.setType) ? d.setType : 'normal',
-      rir: d.rir ?? null,
-      weight: wR || null, reps: rR || null,
-      ...(unilateral(item) ? { weight_left: wL || null, reps_left: rL || null } : {}),
-      target_rep_min: item.scheme.repMin, target_rep_max: item.scheme.repMax,
-      target_rir: item.scheme.rir, completed: true,
-    };
-    const { data, error } = await supabase.from('logged_sets').insert(row).select('*').single();
-    if (error) { setErrText(error.message); return; }
-
-    setDone((prev) => ({ ...prev, [item.key]: [...(prev[item.key] || []), data] }));
-    drafts.current[item.key] = { ...d, repsR: '', repsL: '' };
-    if (d.setType !== 'warmup') beginRest(item.scheme.restSeconds || 90);
-  }
-
   async function removeSet(item, setId) {
-    if (timer.isPaused()) return;
+    if (timer.isPaused() || discardBusy || discard) return;
     const { error } = await supabase.from('logged_sets').delete().eq('id', setId);
     if (error) { setErrText(error.message); return; }
     setDone((prev) => ({ ...prev, [item.key]: (prev[item.key] || []).filter((s) => s.id !== setId) }));
@@ -254,7 +210,10 @@ export default function SessionPlayer() {
   function rowDraft(item, idx) {
     const k = `rows_${item.key}`;
     const store = (drafts.current[k] ||= {});
-    if (!store[idx]) store[idx] = { kg: String(lastPerf[item.name]?.weight ?? ''), reps: '', rir: item.scheme.rir };
+    if (!store[idx]) {
+      const previous = previousFor(progress,item,idx);
+      store[idx] = { kg: previous ? String(previous.weight) : '', reps: previous ? String(previous.reps) : '', rir: item.scheme.rir };
+    }
     return store[idx];
   }
   function setRowDraft(item, idx, patch) {
@@ -266,7 +225,7 @@ export default function SessionPlayer() {
   }
   // Commit a set when its tick-box is checked.
   async function logSet(item, idx) {
-    if (timer.isPaused()) return;
+    if (timer.isPaused() || discardBusy || discard) return;
     void bellRef.current.unlock();
     const pendingKey = `${item.key}_${idx}`;
     if (pendingSets.current.has(pendingKey)) return;
@@ -277,7 +236,7 @@ export default function SessionPlayer() {
     pendingSets.current.add(pendingKey);
     setErrText('');
     const uni = unilateral(item);
-    const n = (done[item.key] || []).length + 1;
+    const n = Math.max(0,...(done[item.key] || []).map(s=>s.set_number || 0)) + 1;
     const row = {
       client_id: profile.id, log_id: logIdRef.current,
       exercise_name: item.name, exercise_id: item.exerciseId, programme_exercise_id: item.peId || null,
@@ -303,21 +262,53 @@ export default function SessionPlayer() {
     setPickerOpen(false);
   }
 
+  function requestDiscard(action) {
+    if (pendingSets.current.size) { setErrText('Wait for your set to finish saving, then try again.'); return; }
+    pauseSession(); setDiscardError(''); setDiscard(action);
+  }
+  async function confirmDiscard() {
+    if (!discard || discardBusy || pendingSets.current.size) return;
+    setDiscardBusy(true); setDiscardError('');
+    try {
+      const {error} = discard.type==='workout'
+        ? await supabase.rpc('cancel_workout',{p_log:logIdRef.current,p_restore:false})
+        : await supabase.rpc('set_workout_exercise_excluded',{p_log:logIdRef.current,p_key:discard.key,p_excluded:true});
+      if(error)throw error;
+      timer.changeRest(0); setRestComplete(false); bellRef.current.stop();
+      if(discard.type==='workout') {
+        timer.complete();
+        try {localStorage.removeItem(`gymiq_session_${profile.id}_${logIdRef.current}`);}catch{/* retained on server */}
+        navigate('/workout',{replace:true});
+      } else { setExcludedKeys(keys=>[...new Set([...keys,discard.key])]); setActiveIdx(0); setDiscard(null); }
+    } catch(error) {setDiscardError(error.message || 'Could not cancel. Your session is still saved.');}
+    finally {setDiscardBusy(false);}
+  }
+  async function restoreExercise(item) {
+    if(discardBusy)return;
+    setDiscardBusy(true);
+    try {
+      const {error}=await supabase.rpc('set_workout_exercise_excluded',{p_log:logIdRef.current,p_key:item.key,p_excluded:false});
+      if(error)throw error;
+      setExcludedKeys(keys=>keys.filter(key=>key!==item.key));
+    } catch(error){setErrText(error.message || 'Could not restore exercise.');}
+    finally{setDiscardBusy(false);}
+  }
+
   /* ------------------------------ finish ------------------------------ */
   const sessionSets = useMemo(() =>
-    Object.values(done).flat().map((s) => ({
+    Object.entries(done).filter(([key])=>!excludedKeys.includes(key)).flatMap(([,sets])=>sets).map((s) => ({
       exerciseName: s.exercise_name, weight: Number(s.weight) || 0, reps: Number(s.reps) || 0,
       weightLeft: Number(s.weight_left) || 0, repsLeft: Number(s.reps_left) || 0,
       setType: s.set_type,
-    })), [done]);
+    })), [done,excludedKeys]);
 
   const summary = useMemo(() => {
     const hard = sessionSets.filter((s) => s.setType !== 'warmup');
     const volume = hard.reduce((a, s) => a + (s.weight * s.reps) + (s.weightLeft * s.repsLeft), 0);
     const durationSec = Math.floor(timer.clock.elapsedMs / 1000);
-    const { prs } = detectPRs(sessionSets, priorPrRef.current);
+    const { prs } = progressUnavailable ? { prs: [] } : detectPRs(sessionSets.filter(s=>s.setType !== 'warmup'), priorPrRef.current);
     return { sets: hard.length, volume: Math.round(volume), durationSec, prs };
-  }, [sessionSets, timer.clock.elapsedMs]);
+  }, [sessionSets, timer.clock.elapsedMs, progressUnavailable]);
 
   async function finishWorkout() {
     if (pendingSets.current.size) { setErrText('Wait for your set to finish saving, then try again.'); return; }
@@ -346,8 +337,8 @@ export default function SessionPlayer() {
   const initials = (name = '') => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').slice(0, 3).toUpperCase() || '?';
   const workingDone = (item) => (done[item.key] || []).filter((s) => s.set_type !== 'warmup').length;
   const targetMet = (item) => workingDone(item) >= (item.scheme.sets || 0);
-  const allMet = plan.length > 0 && plan.every(targetMet);
-  const active = plan[Math.min(activeIdx, Math.max(0, plan.length - 1))] || null;
+  const allMet = includedPlan.length > 0 && includedPlan.every(targetMet);
+  const active = includedPlan[Math.min(activeIdx, Math.max(0, includedPlan.length - 1))] || null;
 
   return (
     <TabShell active="workout" title={isFree ? 'Freestyle workout' : 'Your session'}>
@@ -364,12 +355,12 @@ export default function SessionPlayer() {
         }} onTestBell={testBell} />
       {soundUnavailable && <p className="subtle" role="status">Bell audio is unavailable in this browser. The rest-complete message will still appear.</p>}
       {(timingSyncError || timer.storageError) && <p className="subtle" role="status">{timer.storageError ? 'Device recovery storage is unavailable. Keep this session open until it finishes saving online.' : 'Active time is saved on this device. Cloud sync will retry when connected.'}</p>}
-      {plan.length > 0 && <p className="subtle" style={{ fontSize: 12 }}>{plan.filter(targetMet).length}/{plan.length} exercises done</p>}
+      {plan.length > 0 && <p className="subtle" style={{ fontSize: 12 }}>{includedPlan.filter(targetMet).length}/{includedPlan.length} exercises done</p>}
 
       {/* exercise filmstrip — tap a card to jump to that exercise */}
-      {plan.length > 0 && (
+      {(plan.length > 0 || isFree) && (
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6, marginBottom: 14 }}>
-          {plan.map((item, idx) => {
+          {includedPlan.map((item, idx) => {
             const on = idx === activeIdx;
             const met = targetMet(item);
             return (
@@ -408,9 +399,9 @@ export default function SessionPlayer() {
         </div>
       )}
 
-      {!plan.length && (
+      {!includedPlan.length && (
         <div className="mf-card">
-          <h4>{isFree ? 'Empty workout' : 'Rest day'}</h4>
+          <h4>{plan.length ? 'All exercises removed' : isFree ? 'Empty workout' : 'Rest day'}</h4>
           <div className="subtle">{isFree ? 'Tap + above to add your first exercise.' : 'This program day has no exercises.'}</div>
         </div>
       )}
@@ -424,7 +415,7 @@ export default function SessionPlayer() {
         const kgLabel = uni ? 'kg/Side' : 'kg';
         const repsLabel = uni ? 'Reps/Side' : 'Reps';
         const rirColor = (r) => (r == null ? 'var(--text-subtle)' : r <= 1 ? 'var(--danger)' : r <= 3 ? 'var(--warning)' : 'var(--success)');
-        const autoLine = `${lastPerf[item.name]?.weight ? `${lastPerf[item.name].weight} kg × ` : ''}${item.scheme.repMin}–${item.scheme.repMax}`;
+        const previous = previousFor(progress,item);
         const totalRows = Math.max((item.scheme.sets || 3) + (extraRows[item.key] || 0), committed.length);
         const idxs = [...Array(totalRows).keys()];
         const cellInput = { width: '100%', textAlign: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 4px', color: 'var(--ink)', font: 'inherit', fontSize: 14, MozAppearance: 'textfield' };
@@ -432,21 +423,24 @@ export default function SessionPlayer() {
         const draftKg = firstDraft != null ? parseFloat(rowDraft(item, firstDraft).kg) || 0 : 0;
         const plates = plateBreakdown(draftKg, 20, barDenoms);
         const showPlates = (item.equipmentIds || []).includes('barbell') && plates.length > 0;
-        const nextIdx = plan.findIndex((p, i) => i > activeIdx && !targetMet(p));
+        const nextIdx = includedPlan.findIndex((p, i) => i > activeIdx && !targetMet(p));
         return (
           <div className="mf-card" style={{ marginBottom: 96 }}>
             <div style={{ minWidth: 0, marginBottom: 10 }}>
-              <b style={{ fontSize: 18 }}>{item.name}</b>
+              <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
               <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
                 Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
               </div>
             </div>
 
+            {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>Your previous working sets are prefilled below. Edit them as needed; tick a set only after performing it.</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
+            {!previous && <p className="subtle" style={{fontSize:12}}>Enter your starting weight and reps. Finished working sets become your defaults next time.</p>}
+            <p className="subtle" style={{fontSize:12}}>Target: {item.scheme.repMin}–{item.scheme.repMax} reps @ {item.scheme.rir} RIR. Build reps within your range; review the load when your working sets reach the upper end with good form.</p>
             <ExerciseIllustration key={item.exerciseId || item.key} exerciseId={item.exerciseId} name={item.name} variant="guide" />
 
             {/* table header */}
             <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '2px 2px 8px', color: 'var(--text-subtle)', fontSize: 12, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>
-              <span>Set</span><span>Reference</span>
+              <span>Set</span><span>{previous ? 'Last session' : 'Target'}</span>
               <span style={{ textAlign: 'center' }}>{kgLabel}</span>
               <span style={{ textAlign: 'center' }}>{repsLabel}</span><span />
             </div>
@@ -458,24 +452,26 @@ export default function SessionPlayer() {
               const kg = isDone ? (c.weight ?? '') : rd.kg;
               const reps = isDone ? (c.reps ?? '') : rd.reps;
               const rir = isDone ? c.rir : rd.rir;
+              const priorSet = previousFor(progress,item,idx);
+              const reference = priorSet ? `${priorSet.weight} kg × ${priorSet.reps}` : `${item.scheme.repMin}–${item.scheme.repMax} reps`;
               return (
                 <div key={idx} style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '9px 2px', borderBottom: '1px solid var(--border)' }}>
                   <span style={{ width: 30, height: 30, borderRadius: 50, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: isDone ? 'var(--text-subtle)' : 'var(--ink)' }}>{idx + 1}</span>
                   <span className="subtle" style={{ fontSize: 12.5, lineHeight: 1.25 }}>
-                    {autoLine}
+                    {reference}
                     <span style={{ display: 'block', color: rirColor(item.scheme.rir), fontSize: 11.5 }}>{item.scheme.rir} RIR</span>
                   </span>
-                  <input type="number" inputMode="decimal" value={kg} disabled={isDone || timer.clock.paused}
+                  <input aria-label={`Set ${idx+1} weight in kg`} type="number" inputMode="decimal" value={kg} disabled={isDone || timer.clock.paused || discardBusy}
                     onChange={(e) => setRowDraft(item, idx, { kg: e.target.value })} style={cellInput} />
                   <div style={{ position: 'relative' }}>
-                    <input type="number" inputMode="numeric" value={reps} disabled={isDone || timer.clock.paused}
+                    <input aria-label={`Set ${idx+1} reps`} type="number" inputMode="numeric" value={reps} disabled={isDone || timer.clock.paused || discardBusy}
                       onChange={(e) => setRowDraft(item, idx, { reps: e.target.value })} style={cellInput} />
-                    <button type="button" disabled={isDone || timer.clock.paused}
+                    <button type="button" disabled={isDone || timer.clock.paused || discardBusy}
                       onClick={() => setRowDraft(item, idx, { rir: (((rd.rir ?? 0) + 1) % 5) })}
                       aria-label="Cycle RIR"
                       style={{ position: 'absolute', right: -6, bottom: -6, width: 20, height: 20, borderRadius: 999, background: rirColor(rir), color: '#fff', fontSize: 11, fontWeight: 800, border: '2px solid var(--surface)', cursor: isDone ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{rir ?? '–'}</button>
                   </div>
-                  <button type="button" disabled={timer.clock.paused} onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
+                  <button type="button" disabled={timer.clock.paused || discardBusy} onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
                     aria-label={isDone ? 'Uncheck set' : 'Complete set'}
                     style={{ width: 26, height: 26, borderRadius: 7, border: `2px solid ${isDone ? 'var(--green-600)' : 'var(--border-strong)'}`, background: isDone ? 'var(--green-600)' : 'transparent', color: 'var(--on-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, justifySelf: 'center' }}>{isDone ? '✓' : ''}</button>
                 </div>
@@ -489,7 +485,7 @@ export default function SessionPlayer() {
               <div className="subtle" style={{ fontSize: 11.5, marginTop: 8 }}>Per side: {plates.join(' + ')} kg</div>
             )}
 
-            {activeIdx < plan.length - 1 && (
+            {activeIdx < includedPlan.length - 1 && (
               <button className="btn btn-secondary btn-block" style={{ marginTop: 12 }}
                 onClick={() => setActiveIdx(nextIdx >= 0 ? nextIdx : activeIdx + 1)}>
                 Next exercise →
@@ -499,10 +495,14 @@ export default function SessionPlayer() {
         );
       })()}
 
+      {plan.some(item=>excludedKeys.includes(item.key)) && <div className="mf-card"><h3>Removed from this session</h3><p className="subtle">These exercises and their sets won’t count when you finish.</p>{plan.filter(item=>excludedKeys.includes(item.key)).map(item=><div className="prev-row" key={item.key}><span>{item.name}</span><button className="btn btn-ghost" disabled={discardBusy} onClick={()=>restoreExercise(item)}>Restore</button></div>)}</div>}
+      {progressUnavailable && <p className="subtle" role="status">Previous exercise records are unavailable. Enter your weights and reps manually for this session.</p>}
+      <button className="btn btn-ghost session-cancel-button" disabled={discardBusy || finishing} onClick={()=>requestDiscard({type:'workout'})}>Cancel workout</button>
+      <SessionDiscardDialog action={discard} busy={discardBusy} error={discardError} onClose={()=>setDiscard(null)} onConfirm={confirmDiscard}/>
       {/* sticky complete/finish */}
       {plan.length > 0 && (
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px)', padding: '0 16px', zIndex: 40 }}>
-          <button className="btn btn-primary btn-lg btn-block" disabled={summary.sets === 0} onClick={() => { pauseSession(); setShowFinish(true); }}>
+          <button className="btn btn-primary btn-lg btn-block" disabled={summary.sets === 0 || discardBusy} onClick={() => { pauseSession(); setShowFinish(true); }}>
             {allMet ? 'Complete workout' : 'Finish workout'}
           </button>
         </div>
@@ -538,35 +538,4 @@ export default function SessionPlayer() {
   );
 }
 
-function groupPrs(rows) {
-  const out = {};
-  for (const r of rows) {
-    (out[r.exercise_name] ||= {})[r.pr_type === 'volume' ? 'volume' : 'e1rm'] = Number(r.value);
-  }
-  return out;
-}
 function keyFor(peId, name) { return peId ? `pe_${peId}` : `nm_${name}`; }
-
-const chipStyle = {
-  background: 'var(--surface)', border: '1px solid var(--border-strong)',
-  borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 700,
-};
-const miniBtn = {
-  background: 'var(--surface)', border: '1px solid var(--border-strong)',
-  borderRadius: 999, padding: '5px 11px', fontSize: 12, color: 'var(--text-muted)',
-  cursor: 'pointer', font: 'inherit', fontWeight: 600,
-};
-
-function NumIn({ label, value, onChange }) {
-  return (
-    <label style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      background: 'var(--surface)', border: '1px solid var(--border-strong)',
-      borderRadius: 10, padding: '8px 10px', flex: '0 0 auto',
-    }}>
-      <input type="number" inputMode="decimal" placeholder={label} value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ width: 58, background: 'none', border: 0, outline: 'none', color: 'var(--ink)', font: 'inherit', fontSize: 14 }} />
-    </label>
-  );
-}

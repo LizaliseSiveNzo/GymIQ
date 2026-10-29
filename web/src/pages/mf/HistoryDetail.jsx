@@ -25,12 +25,12 @@ export function HistoryDetail() {
     if (!profile?.id || !logId) return;
     (async () => {
       const l = await supabase.from('workout_logs')
-        .select('id,created_at,completed_at,duration_sec,note,programme_days(label,name)')
+        .select('id,created_at,completed_at,cancelled_at,excluded_exercises,duration_sec,note,programme_days(label,name)')
         .eq('id', logId).eq('client_id', profile.id).single();
       const s = await supabase.from('logged_sets')
         .select('*').eq('log_id', logId).order('created_at');
       if (l.error || s.error) { setError('This session could not be loaded. Return to history and try again.'); setLog(null); return; }
-      setLog({ ...l.data, sets: s.data || [] });
+      setLog({ ...l.data, sets: (s.data || []).filter(row=>!(l.data.excluded_exercises || []).includes(row.programme_exercise_id ? `pe_${row.programme_exercise_id}` : `nm_${row.exercise_name}`)) });
     })();
   }, [profile?.id, logId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -42,13 +42,14 @@ export function HistoryDetail() {
     const g = groups.find((x) => x.name === s.exercise_name);
     if (g) g.rows.push(s); else groups.push({ name: s.exercise_name, rows: [s] });
   }
-  const hard = log.sets.filter((s) => s.set_type !== 'warmup');
+  const hard = log.sets.filter((s) => s.completed !== false && s.set_type !== 'warmup');
   const volume = hard.reduce((a, s) =>
     a + ((Number(s.weight) || 0) * (Number(s.reps) || 0)) +
         ((Number(s.weight_left) || 0) * (Number(s.reps_left) || 0)), 0);
 
   return (
-    <TabShell active="workout" title={log.programme_days?.name || (log.note === 'freeform' ? 'Empty Workout' : 'Session')}>
+    <TabShell active="workout" title={log.programme_days?.name || (log.note === 'freeform' ? 'Freestyle workout' : 'Session')}>
+      {log.cancelled_at && <p className="inline-error" role="status">This workout was cancelled. Its retained sets do not count toward your stats or defaults.</p>}
       <div className="mf-card" style={{ marginBottom: 12 }}>
         <h4>{fmtFull(log.completed_at || log.created_at)}</h4>
         <div className="prev-row"><b>{hard.length}</b><span>hard sets</span></div>

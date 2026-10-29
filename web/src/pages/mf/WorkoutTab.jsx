@@ -61,7 +61,7 @@ export default function WorkoutTab() {
       (x.data || []).forEach((row) => { (map[row.day_id] ||= []).push(row); });
       setExByDay(map);
       const recent = await supabase.from('workout_logs').select('day_id').eq('client_id', profile.id)
-        .in('day_id', ids).not('completed_at', 'is', null).order('completed_at', { ascending: false }).limit(1);
+        .in('day_id', ids).not('completed_at', 'is', null).is('cancelled_at',null).order('completed_at', { ascending: false }).limit(1);
       if (recent.error) throw recent.error;
       if (!cancelled) setNextIndex(recent.data?.[0] ? (ids.indexOf(recent.data[0].day_id) + 1) % ids.length : 0);
       } catch (e) { if (!cancelled) setError(e.message || 'Could not load your programme.'); }
@@ -79,10 +79,10 @@ export default function WorkoutTab() {
       const [finishedResult, unfinishedResult] = await Promise.all([supabase.from('workout_logs')
         .select('id,day_id')
         .eq('client_id', profile.id)
-        .not('completed_at', 'is', null)
+        .not('completed_at', 'is', null).is('cancelled_at',null)
         .gte('completed_at', monday.toISOString()),
         supabase.from('workout_logs').select('id,day_id').eq('client_id', profile.id)
-          .is('completed_at', null).or('day_id.not.is.null,note.eq.freeform')
+          .is('completed_at', null).is('cancelled_at', null).or('day_id.not.is.null,note.eq.freeform')
           .order('created_at', { ascending: false }).limit(1),
       ]);
       if (cancelled) return;
@@ -97,7 +97,7 @@ export default function WorkoutTab() {
 
   return (
     <TabShell active="workout" title="Your training.">
-      <div className="training-intro"><p>Your programme, your pace. Make every session count.</p><Link to="/workout/history">View history ↗</Link></div>
+      <div className="training-intro"><p>Your programme, your pace. Make every session count.</p><div className="row" style={{gap:16,flexWrap:'wrap'}}><Link to="/workout/stats">Exercise stats ↗</Link><Link to="/workout/history">History ↗</Link></div></div>
       {error && <div className="inline-error" role="alert">{error} <button className="btn btn-ghost" onClick={() => setRetry(r => r + 1)}>Try again</button></div>}
       {unfinished && <div className="mf-card" style={{ marginBottom: 16 }}>
         <h3 style={{ marginTop: 0 }}>Continue your workout</h3>
