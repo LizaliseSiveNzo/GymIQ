@@ -22,6 +22,8 @@ import SetEditDialog from '../../components/ui/SetEditDialog.jsx';
 import ExerciseTargetDialog from '../../components/ui/ExerciseTargetDialog.jsx';
 import { exerciseDefault, loadExerciseTargets, targetKey } from '../../lib/exerciseTargets.js';
 
+import {loadWorkoutWeek,weekStart,dayKey,exerciseIdentity} from '../../lib/workoutWeek.js';
+
 const DEFAULT_SCHEME = { sets: 3, repMin: 8, repMax: 12, rir: 2, restSeconds: 90 };
 const fmtClock = formatSessionTime;
 
@@ -105,6 +107,13 @@ export default function SessionPlayer() {
     let cancelled = false;
     (async () => {
       try {
+        let weekly=null,programmeId=null;
+        if(!isFree){
+          const dayLookup=await supabase.from('programme_days').select('programme_id').eq('id',dayId).single();
+          if(dayLookup.error)throw dayLookup.error;
+          programmeId=dayLookup.data.programme_id;
+          weekly=await loadWorkoutWeek({programmeId});
+        }
         // Recover an unfinished log for this day, including an earlier paused workout.
         const opened = await supabase.rpc('open_workout', { p_day: dayId });
         if (opened.error) throw opened.error;
@@ -114,6 +123,10 @@ export default function SessionPlayer() {
         logIdRef.current = log.id;
         setLogId(log.id);
         setExcludedKeys(log.excluded_exercises || []);
+        if(!isFree){
+          const logWeek=weekStart(dayKey(new Date(log.created_at)));
+          if(weekly?.week_start!==logWeek)weekly=await loadWorkoutWeek({programmeId,week:logWeek});
+        }
 
         // Plan
         let items = [];
@@ -122,10 +135,10 @@ export default function SessionPlayer() {
             .select('id,exercise_id,name,target_sets,target_reps,target_rir,rest_seconds,exercises(laterality,equipment_ids)')
             .eq('day_id', dayId).order('sort_order');
           if (pes.error) throw pes.error;
-          items = (pes.data || []).map((pe) => {
+          items = [...(pes.data||[]),...(weekly?.extras||[]).filter(e=>e.day_id===dayId&&!weekly.sessions.some(session=>session.id!==log.id&&(session.sets||[]).some(set=>exerciseIdentity(set)===exerciseIdentity(e))))].map((pe) => {
             const [repMin, repMax] = String(pe.target_reps || '8-12').split('-').map((v) => parseInt(v, 10));
             return {
-              key: `pe_${pe.id}`, peId: pe.id, exerciseId: pe.exercise_id || null,
+              key: pe.optional?keyFor(null,pe.name):`pe_${pe.id}`, peId: pe.optional?null:pe.id, exerciseId: pe.exercise_id || null,optional:pe.optional,sourceWeek:pe.source_week,
               name: pe.name, laterality: pe.exercises?.laterality || 'bilateral',
               equipmentIds: pe.exercises?.equipment_ids || [],
               scheme: {
@@ -454,7 +467,7 @@ export default function SessionPlayer() {
         return (
           <div className="mf-card" style={{ marginBottom: 96 }}>
             <div style={{ minWidth: 0, marginBottom: 10 }}>
-              <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b><button type="button" className="btn btn-ghost" onClick={()=>{pauseSession();setTargetExercise({exerciseId:item.exerciseId,name:item.name,weight:previous?.weight,reps:previous?.reps});}}>Set target</button><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
+              <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b>{item.optional&&<span className="badge badge-neutral">Optional make-up · up to 2 sets</span>}<button type="button" className="btn btn-ghost" onClick={()=>{pauseSession();setTargetExercise({exerciseId:item.exerciseId,name:item.name,weight:previous?.weight,reps:previous?.reps});}}>Set target</button><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
               <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
                 Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
               </div>
