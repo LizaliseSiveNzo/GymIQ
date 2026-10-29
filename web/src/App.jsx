@@ -15,6 +15,7 @@ const History = lazy(() => import('./pages/mf/HistoryList.jsx').then(m => ({ def
 const Detail = lazy(() => import('./pages/mf/HistoryDetail.jsx').then(m => ({ default: m.HistoryDetail })));
 const Stats = lazy(() => import('./pages/mf/ExerciseStats.jsx'));
 const Analytics = lazy(() => import('./pages/mf/TrainingAnalytics.jsx'));
+const WeeklyCheckIn = lazy(() => import('./pages/mf/WeeklyCheckIn.jsx'));
 const secure = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
 export default function App() {
   return <Suspense fallback={<div className="app-loading" role="status">Loading GymIQ…</div>}>
@@ -33,6 +34,7 @@ export default function App() {
       <Route path="/workout/history" element={secure(<History />)} />
       <Route path="/workout/stats" element={secure(<Stats />)} />
       <Route path="/workout/analytics" element={secure(<Analytics />)} />
+      <Route path="/workout/check-in" element={secure(<WeeklyCheckIn />)} />
       <Route path="/workout/history/:logId" element={secure(<Detail />)} />
       <Route path="/customer/calorie-bank" element={<Navigate to="/bank" replace />} />
       <Route path="*" element={<Navigate to="/workout" replace />} />

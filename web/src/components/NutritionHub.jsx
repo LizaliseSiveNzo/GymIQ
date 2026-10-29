@@ -14,7 +14,7 @@ async function invoke(body){
   if(data?.error)throw Error(data.error);
   return data;
 }
-export default function NutritionHub({userId}){
+export default function NutritionHub({userId,openGoals=false}){
   const [day,setDay]=useState(localDay()),[settings,setSettings]=useState(initial),[goal,setGoal]=useState(null),[showGoal,setShowGoal]=useState(false);
   const [days,setDays]=useState([]),[entries,setEntries]=useState([]),[saved,setSaved]=useState([]),[plan,setPlan]=useState(null);
   const [meal,setMeal]=useState(blankMeal),[editing,setEditing]=useState(false),[consent,setConsent]=useState(false),[period,setPeriod]=useState('day');
@@ -39,11 +39,11 @@ export default function NutritionHub({userId}){
       setWeights(w||[]);
       if(g)setSettings({...initial,...g.settings});
       else if(legacy)setSettings({...initial,sex:legacy.sex||initial.sex,age:legacy.age||'',height_cm:legacy.height_cm||'',weight_kg:legacy.weight_kg||'',goal_weight_kg:legacy.goal_weight_kg||''});
-      setShowGoal(!g);setLoading(false);
+      setShowGoal(!g||openGoals);setLoading(false);
     }
     load().catch(()=>{if(active){setError('Your nutrition records could not load. Please reload.');setLoading(false);}});
     return()=>{active=false;};
-  },[userId,day]);
+  },[userId,day,openGoals]);
   async function refresh(){
     const [d,e]=await Promise.all([supabase.rpc('nutrition_period',{p_day:day,p_offset:new Date().getTimezoneOffset()}),supabase.rpc('nutrition_food_entries',{p_day:day,p_offset:new Date().getTimezoneOffset()})]);
     if(d.error||e.error)throw Error('Saved, but totals could not refresh. Reload to see the latest records.');
