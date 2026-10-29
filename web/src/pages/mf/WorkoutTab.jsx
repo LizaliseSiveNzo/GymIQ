@@ -2,6 +2,7 @@ import {useEffect,useState} from 'react';
 import {Link,useSearchParams} from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
+import TrainingMenu from '../../components/ui/TrainingMenu.jsx';
 import {loadWorkoutWeek,weekStart,dayKey,addDays} from '../../lib/workoutWeek.js';
 import './workoutWeek.css';
 import './weeklyCheckIn.css';
@@ -23,7 +24,7 @@ export default function WorkoutTab(){
  const trainingDates=new Set(sessions.map(s=>s.day));
  const isLoaded=data?.week_start===week;
  return <TabShell active="workout" title="Your training.">
-  <div className="training-intro"><p>Your programme, your pace. Make every session count.</p><div className="row" style={{gap:16,flexWrap:'wrap'}}><Link to="/workout/stats">Exercise stats ↗</Link><Link to="/workout/history">History ↗</Link><Link to="/workout/progress-story">Monthly progress ↗</Link></div></div>
+  <div className="training-intro"><p>Your programme, your pace. Make every session count.</p><TrainingMenu/></div>
   <Link to="/workout/analytics" className="btn btn-secondary training-analytics-entry"><svg viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M5 5v26h26" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="m10 25 6-9 7 4 7-12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="16" cy="16" r="2" fill="currentColor"/><circle cx="23" cy="20" r="2" fill="currentColor"/><circle cx="30" cy="8" r="2" fill="currentColor"/></svg><span><strong>Training analytics</strong><small>Sets by body part · weight & rep graphs</small></span><span aria-hidden="true">↗</span></Link>
   <Link to="/workout/check-in" className="mf-card checkin-entry"><span><strong>Your weekly check-in</strong><small>Training, strength, food & weight trends · plan your next step</small></span><span aria-hidden="true">↗</span></Link>
   <nav className="workout-week-nav" aria-label="Training week"><button className="btn btn-ghost" aria-label="Previous week" disabled={busy||!data?.first_week||week<=data.first_week} onClick={()=>setWeek(addDays(week,-7))}>←</button><div><strong>{past?'Previous week':'This week'}</strong><span>{dateLabel(week)} – {dateLabel(addDays(week,6))}</span></div><button className="btn btn-ghost" aria-label="Next week" disabled={busy||week>=current} onClick={()=>setWeek(addDays(week,7))}>→</button>{past&&<button className="btn btn-secondary" disabled={busy} onClick={()=>setWeek(current)}>This week</button>}</nav>
@@ -41,6 +42,5 @@ export default function WorkoutTab(){
     <section className="mf-card workout-rest-card"><div className="section-heading"><h2>Rest & recovery</h2><span className="badge badge-neutral">{data.rest_remaining} / {data.rest_target} {past?'not recorded':'left'}</span></div><p className="subtle">Choose rest days around your schedule. A rest day does not count as a missed workout. Days with a finished workout count as training.</p><div className="workout-week-list">{Array.from({length:data.rest_target},(_,i)=>{const date=data.rest_dates[i];return <div key={i} className={`workout-rest-row ${date?'is-taken':''}`}><span>{date?'✓':'R'}</span><div><strong>Rest day {i+1}</strong><small>{date?`Taken ${dateLabel(date)}`:past?'Not recorded':'Still available this week'}</small></div>{date&&!past&&<button className="btn btn-ghost" disabled={busy||!data.can_write} onClick={()=>rest(false,date)}>Undo</button>}</div>;})}</div>{!past&&data.rest_remaining>0&&<button className="btn btn-secondary" disabled={busy||!data.can_write||trainingDates.has(today)||data.rest_dates.includes(today)} onClick={()=>rest()}>Mark today as rest</button>}{!data.rest_target&&<p className="subtle">Your current programme has no unassigned days. You can adjust the weekly schedule by building a new programme.</p>}</section>
    </>:<div className="mf-card"><h3>No active programme yet</h3><p className="subtle">Build a programme around your goals, schedule and equipment.</p><Link className="btn btn-primary" to="/onboarding?new=1">Build my programme</Link></div>}
   </>}
-  <div className="workout-primary-actions"><Link className="btn btn-secondary" to="/workout/session/free">+ Freestyle workout</Link><Link className="btn btn-secondary" to="/exercises">Exercise library ↗</Link></div>
  </TabShell>;
 }
