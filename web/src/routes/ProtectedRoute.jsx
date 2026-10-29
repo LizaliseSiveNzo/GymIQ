@@ -52,7 +52,7 @@ export default function ProtectedRoute({ roles, children }) {
   // wizard exactly once before reaching any app surface.
   if (location.pathname !== '/more' && membershipError) return <div className="container"><p role="alert">{membershipError}</p><button className="btn btn-primary" onClick={() => window.location.reload()}>Try again</button></div>;
   if (location.pathname !== '/more' && (!membership || membership.checkedPath !== location.pathname || membership.checkedUser !== profile?.id)) return <div className="app-loading" role="status">Preparing your GymIQ membership…</div>;
-  const readOnly = location.pathname.startsWith('/workout/history') || location.pathname === '/workout/stats';
+  const readOnly = location.pathname.startsWith('/workout/history') || location.pathname === '/workout/stats' || location.pathname === '/workout/analytics';
   if (location.pathname !== '/more' && !readOnly && membership && new Date(membership.expires_at) <= new Date()) return <Navigate to="/more?membership=expired" replace />;
   if (!session.demo && profile && !profile.onboarded_at && !['/onboarding', '/more'].includes(location.pathname)) {
     return <Navigate to="/onboarding" replace />;
