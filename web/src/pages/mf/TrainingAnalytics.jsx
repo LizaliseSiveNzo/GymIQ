@@ -31,7 +31,7 @@ export default function TrainingAnalytics(){
  const parts=(analytics?.bodyParts||[]).filter(m=>zeroes||m.primary>0||supporting&&m.supporting>0);
  const maximum=Math.max(1,...parts.map(p=>Math.max(p.primary,supporting?p.supporting:0)));
  return <TabShell title="Training analytics.">
-  <div className="analytics-intro"><p>Your completed sets, body-part balance and weight progression in one view.</p><Link to="/workout">← Workouts</Link></div>
+  <div className="analytics-intro"><p>Your completed sets, body-part balance and weight progression in one view.</p><div className="launch-actions"><Link to="/workout">← Workouts</Link><Link to="/workout/progress-story">Monthly progress story →</Link></div></div>
   <div className="analytics-toolbar"><label>Period<select value={period} onChange={e=>setPeriod(e.target.value)}><option value="week">This week</option><option value="month">This month</option><option value="4weeks">Last 4 weeks</option><option value="12weeks">Last 12 weeks</option><option value="all">All time</option></select></label><button className="btn btn-secondary" disabled={loading} onClick={()=>setRetry(n=>n+1)}>{loading?'Loading…':'Refresh data'}</button></div>
   <p className="subtle analytics-range">{start?`${dateLabel(start)} – ${dateLabel(today)}`:`All completed history through ${dateLabel(today)}`}{updated?` · Updated ${updated.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}`:''}</p>
   {error&&<p className="inline-error" role="alert">{error}</p>}

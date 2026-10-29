@@ -13,8 +13,9 @@ Work through these as reviewable stages while keeping Workouts the flagship.
 4. Lower-friction logging — implemented: durable new-entry queue with conflict
    handling, repeat meals, favourites and barcode lookup. Existing individual meal
    shuffles and session swaps provide quick replacements. See QUICK_LOGGING.md.
-5. Progress story — understandable monthly strength, consistency and weight
-   trends, with fair comparisons and clear missing-data indicators.
+5. Progress story — implemented: monthly training calendar, working-set and
+   session totals, comparable lift changes, scale-weight trends and measured-data
+   milestones. Missing data and unfinished months are explicit. See PROGRESS_STORY.md.
 
 After initial stages, validate with 15–20 paying users over four weeks. Measure
 activation, workout completion, use of accepted suggestions, return use and
