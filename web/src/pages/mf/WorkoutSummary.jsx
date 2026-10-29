@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
 
 export const initials = (name = '') =>
   name.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').slice(0, 3).toUpperCase() || '?';
@@ -68,11 +69,7 @@ export default function WorkoutSummary() {
           const [lo, hi] = String(r.target_reps || '8-12').split('-');
           return (
             <div key={r.id} className="mf-card" style={{ display: 'flex', gap: 12 }}>
-              <span style={{
-                width: 52, height: 52, borderRadius: 12, background: 'var(--surface-2)',
-                border: '1px solid var(--border-strong)', display: 'inline-flex', alignItems: 'center',
-                justifyContent: 'center', fontWeight: 800, fontSize: 16, flex: '0 0 auto',
-              }}>{initials(r.name)}</span>
+              <ExerciseIllustration exerciseId={r.exercise_id} name={r.name} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <b style={{ fontSize: 15 }}>{r.name}</b>
                 <div className="subtle" style={{ fontSize: 12.5, marginTop: 2 }}>

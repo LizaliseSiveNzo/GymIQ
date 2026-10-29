@@ -1,0 +1,688 @@
+{
+  "ee887699-dab3-4d5e-a988-1d67cd4a9922": {
+    "name": "Ab Wheel Rollout",
+    "src": "/exercises/ee887699-dab3-4d5e-a988-1d67cd4a9922-ffe8ffd4.webp",
+    "thumbnail": "/exercises/ee887699-dab3-4d5e-a988-1d67cd4a9922-ffe8ffd4-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "723bb508-fcfd-481f-8dda-8954793be358": {
+    "name": "Barbell Front Raise",
+    "src": "/exercises/723bb508-fcfd-481f-8dda-8954793be358-ae33559a.webp",
+    "thumbnail": "/exercises/723bb508-fcfd-481f-8dda-8954793be358-ae33559a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "f6915d40-b113-413f-aacc-6135191c6ae7": {
+    "name": "Bodyweight Pull-Up",
+    "src": "/exercises/f6915d40-b113-413f-aacc-6135191c6ae7-505de145.webp",
+    "thumbnail": "/exercises/f6915d40-b113-413f-aacc-6135191c6ae7-505de145-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "4a8d0b6e-162f-4d38-8f50-3e2a4461897f": {
+    "name": "Cable Rope Hammer Curl",
+    "src": "/exercises/4a8d0b6e-162f-4d38-8f50-3e2a4461897f-497c272d.webp",
+    "thumbnail": "/exercises/4a8d0b6e-162f-4d38-8f50-3e2a4461897f-497c272d-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "e42f95a9-fd2a-4441-a415-9cc4fc75851e": {
+    "name": "Cat-Cow Mobility Stretch",
+    "src": "/exercises/e42f95a9-fd2a-4441-a415-9cc4fc75851e-d12c6489.webp",
+    "thumbnail": "/exercises/e42f95a9-fd2a-4441-a415-9cc4fc75851e-d12c6489-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "fe61911f-33f6-4e71-916c-7d3451dc2d71": {
+    "name": "Glute Ham Raise",
+    "src": "/exercises/fe61911f-33f6-4e71-916c-7d3451dc2d71-289d1982.webp",
+    "thumbnail": "/exercises/fe61911f-33f6-4e71-916c-7d3451dc2d71-289d1982-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "ed82ace4-cbd1-4442-88ae-26a2f8372960": {
+    "name": "Leg Press Machine",
+    "src": "/exercises/ed82ace4-cbd1-4442-88ae-26a2f8372960-6e9307e2.webp",
+    "thumbnail": "/exercises/ed82ace4-cbd1-4442-88ae-26a2f8372960-6e9307e2-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "1522d396-34b1-474e-a3c0-56af9d15826a": {
+    "name": "Pec Deck Machine",
+    "src": "/exercises/1522d396-34b1-474e-a3c0-56af9d15826a-4710c98a.webp",
+    "thumbnail": "/exercises/1522d396-34b1-474e-a3c0-56af9d15826a-4710c98a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "63e70471-f4f0-4472-9ec6-58a978fd4e6d": {
+    "name": "Forearm Plank Hold",
+    "src": "/exercises/63e70471-f4f0-4472-9ec6-58a978fd4e6d-b1b3da4c.webp",
+    "thumbnail": "/exercises/63e70471-f4f0-4472-9ec6-58a978fd4e6d-b1b3da4c-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "6dd762af-c295-4fd5-bf33-b5dc8601e7ef": {
+    "name": "Abdominal Crunch",
+    "src": "/exercises/6dd762af-c295-4fd5-bf33-b5dc8601e7ef-c65ac63d.webp",
+    "thumbnail": "/exercises/6dd762af-c295-4fd5-bf33-b5dc8601e7ef-c65ac63d-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "9c9ea87f-4b47-46e7-820a-eeed24ab4123": {
+    "name": "Arnold Press",
+    "src": "/exercises/9c9ea87f-4b47-46e7-820a-eeed24ab4123-b3ed46b6.webp",
+    "thumbnail": "/exercises/9c9ea87f-4b47-46e7-820a-eeed24ab4123-b3ed46b6-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "eb9399ae-d6e7-426d-a614-2efb62c4517e": {
+    "name": "Band Face Pull",
+    "src": "/exercises/eb9399ae-d6e7-426d-a614-2efb62c4517e-be2c6c3b.webp",
+    "thumbnail": "/exercises/eb9399ae-d6e7-426d-a614-2efb62c4517e-be2c6c3b-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "096d68ba-2b05-44cf-8284-a3baa6744258": {
+    "name": "Barbell Back Squat",
+    "src": "/exercises/096d68ba-2b05-44cf-8284-a3baa6744258-fbc2af0e.webp",
+    "thumbnail": "/exercises/096d68ba-2b05-44cf-8284-a3baa6744258-fbc2af0e-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "1fd1383d-81c4-40ad-b036-703444508cd8": {
+    "name": "Barbell Bench Press",
+    "src": "/exercises/1fd1383d-81c4-40ad-b036-703444508cd8-7167f410.webp",
+    "thumbnail": "/exercises/1fd1383d-81c4-40ad-b036-703444508cd8-7167f410-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a7b8db65-660a-4bac-8e1f-59f5b5db19c8": {
+    "name": "Barbell Front Squat",
+    "src": "/exercises/a7b8db65-660a-4bac-8e1f-59f5b5db19c8-423c914c.webp",
+    "thumbnail": "/exercises/a7b8db65-660a-4bac-8e1f-59f5b5db19c8-423c914c-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "2f308ec6-9ced-4269-8b97-8c2f86ea32e5": {
+    "name": "Barbell Hip Thrust",
+    "src": "/exercises/2f308ec6-9ced-4269-8b97-8c2f86ea32e5-23ae330b.webp",
+    "thumbnail": "/exercises/2f308ec6-9ced-4269-8b97-8c2f86ea32e5-23ae330b-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "4c35fc1e-6139-42dd-a9f0-452e667a306d": {
+    "name": "Bent-Over Barbell Row",
+    "src": "/exercises/4c35fc1e-6139-42dd-a9f0-452e667a306d-994db610.webp",
+    "thumbnail": "/exercises/4c35fc1e-6139-42dd-a9f0-452e667a306d-994db610-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a022a354-540f-4962-9e23-8d247ea8f867": {
+    "name": "Barbell Shrug",
+    "src": "/exercises/a022a354-540f-4962-9e23-8d247ea8f867-23afb07c.webp",
+    "thumbnail": "/exercises/a022a354-540f-4962-9e23-8d247ea8f867-23afb07c-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "c5b9a7ea-f688-45e3-8566-2e42cfa20fa7": {
+    "name": "Bench Dip",
+    "src": "/exercises/c5b9a7ea-f688-45e3-8566-2e42cfa20fa7-00f19870.webp",
+    "thumbnail": "/exercises/c5b9a7ea-f688-45e3-8566-2e42cfa20fa7-00f19870-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "7e67b87f-e616-4f94-9d81-50810c4100a8": {
+    "name": "Bicycle Crunch",
+    "src": "/exercises/7e67b87f-e616-4f94-9d81-50810c4100a8-272864e5.webp",
+    "thumbnail": "/exercises/7e67b87f-e616-4f94-9d81-50810c4100a8-272864e5-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "1a8194d6-867e-40b8-a15d-0e993a598898": {
+    "name": "Bird Dog Hold and Flex",
+    "src": "/exercises/1a8194d6-867e-40b8-a15d-0e993a598898-6ec66660.webp",
+    "thumbnail": "/exercises/1a8194d6-867e-40b8-a15d-0e993a598898-6ec66660-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "8db36a0b-6b54-4597-b23c-650d36a8d193": {
+    "name": "Bulgarian Split Squat",
+    "src": "/exercises/8db36a0b-6b54-4597-b23c-650d36a8d193-62d8c8b2.webp",
+    "thumbnail": "/exercises/8db36a0b-6b54-4597-b23c-650d36a8d193-62d8c8b2-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "596f9806-f757-4117-9411-d6b6462243c9": {
+    "name": "Burpees",
+    "src": "/exercises/596f9806-f757-4117-9411-d6b6462243c9-d00dd697.webp",
+    "thumbnail": "/exercises/596f9806-f757-4117-9411-d6b6462243c9-d00dd697-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "2b24e2a5-e7ae-4652-b588-fa109e7e0bb6": {
+    "name": "Cable Crunch",
+    "src": "/exercises/2b24e2a5-e7ae-4652-b588-fa109e7e0bb6-4db3eb05.webp",
+    "thumbnail": "/exercises/2b24e2a5-e7ae-4652-b588-fa109e7e0bb6-4db3eb05-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "b40432fd-f7e6-4134-8d72-9862c8b8a281": {
+    "name": "Cable Face Pull",
+    "src": "/exercises/b40432fd-f7e6-4134-8d72-9862c8b8a281-29c053a3.webp",
+    "thumbnail": "/exercises/b40432fd-f7e6-4134-8d72-9862c8b8a281-29c053a3-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "c6fede66-0d67-4708-82b0-3f455bd76ebf": {
+    "name": "Cable Glute Kickback",
+    "src": "/exercises/c6fede66-0d67-4708-82b0-3f455bd76ebf-ea404782.webp",
+    "thumbnail": "/exercises/c6fede66-0d67-4708-82b0-3f455bd76ebf-ea404782-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "99ef16cf-00fb-4719-93bc-767a670e3774": {
+    "name": "Cable Lateral Raise",
+    "src": "/exercises/99ef16cf-00fb-4719-93bc-767a670e3774-8897bce7.webp",
+    "thumbnail": "/exercises/99ef16cf-00fb-4719-93bc-767a670e3774-8897bce7-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "81aefb6f-a5e1-41d4-8454-746a243332cd": {
+    "name": "Cable Pull-Through",
+    "src": "/exercises/81aefb6f-a5e1-41d4-8454-746a243332cd-0401f8c1.webp",
+    "thumbnail": "/exercises/81aefb6f-a5e1-41d4-8454-746a243332cd-0401f8c1-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "3175209c-ef59-4f7e-aaab-eb679836894d": {
+    "name": "Cable Overhead Tricep Extension",
+    "src": "/exercises/3175209c-ef59-4f7e-aaab-eb679836894d-a0237c46.webp",
+    "thumbnail": "/exercises/3175209c-ef59-4f7e-aaab-eb679836894d-a0237c46-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "ba511d95-3477-48d7-8226-323113727e1a": {
+    "name": "Machine Chest Press",
+    "src": "/exercises/ba511d95-3477-48d7-8226-323113727e1a-f0665108.webp",
+    "thumbnail": "/exercises/ba511d95-3477-48d7-8226-323113727e1a-f0665108-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "32e5abb5-51e4-4f6f-b3a5-b0ef48bbaab0": {
+    "name": "Chin-Up",
+    "src": "/exercises/32e5abb5-51e4-4f6f-b3a5-b0ef48bbaab0-56f6c5c4.webp",
+    "thumbnail": "/exercises/32e5abb5-51e4-4f6f-b3a5-b0ef48bbaab0-56f6c5c4-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "6db02d0b-4900-42d1-8c38-320bcbff8492": {
+    "name": "Close-Grip Barbell Bench Press",
+    "src": "/exercises/6db02d0b-4900-42d1-8c38-320bcbff8492-b4918d9a.webp",
+    "thumbnail": "/exercises/6db02d0b-4900-42d1-8c38-320bcbff8492-b4918d9a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "b147bbdc-faf2-4c54-bae5-dd2b281c467d": {
+    "name": "Concentration Curl",
+    "src": "/exercises/b147bbdc-faf2-4c54-bae5-dd2b281c467d-84192c20.webp",
+    "thumbnail": "/exercises/b147bbdc-faf2-4c54-bae5-dd2b281c467d-84192c20-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "04ab2e78-f4d4-411c-b629-b1944e4b8ed3": {
+    "name": "Conventional Deadlift",
+    "src": "/exercises/04ab2e78-f4d4-411c-b629-b1944e4b8ed3-e0372ab6.webp",
+    "thumbnail": "/exercises/04ab2e78-f4d4-411c-b629-b1944e4b8ed3-e0372ab6-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a0e7cc9a-0a21-449e-8ccd-98e252d477d6": {
+    "name": "Decline Barbell Bench Press",
+    "src": "/exercises/a0e7cc9a-0a21-449e-8ccd-98e252d477d6-6027ba76.webp",
+    "thumbnail": "/exercises/a0e7cc9a-0a21-449e-8ccd-98e252d477d6-6027ba76-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "68c14a5b-ffb9-455e-b56b-7036a2251dda": {
+    "name": "Dumbbell Bench Press",
+    "src": "/exercises/68c14a5b-ffb9-455e-b56b-7036a2251dda-d3d2654d.webp",
+    "thumbnail": "/exercises/68c14a5b-ffb9-455e-b56b-7036a2251dda-d3d2654d-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "2ca54414-9757-45e2-9fde-12b00fb0d4fd": {
+    "name": "Dumbbell Bicep Curl",
+    "src": "/exercises/2ca54414-9757-45e2-9fde-12b00fb0d4fd-d907c43f.webp",
+    "thumbnail": "/exercises/2ca54414-9757-45e2-9fde-12b00fb0d4fd-d907c43f-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "43bd3967-1f41-4ce6-9792-1ba44382d7f9": {
+    "name": "Dumbbell Chest Flys",
+    "src": "/exercises/43bd3967-1f41-4ce6-9792-1ba44382d7f9-a014d5f7.webp",
+    "thumbnail": "/exercises/43bd3967-1f41-4ce6-9792-1ba44382d7f9-a014d5f7-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "b537f60c-2c78-4052-8d70-9fba3d1e52f9": {
+    "name": "Dumbbell Stiff-Legged Deadlift",
+    "src": "/exercises/b537f60c-2c78-4052-8d70-9fba3d1e52f9-3c8ebf02.webp",
+    "thumbnail": "/exercises/b537f60c-2c78-4052-8d70-9fba3d1e52f9-3c8ebf02-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "da214538-ce55-4231-a9b2-b8216f4d8432": {
+    "name": "Dumbbell Lateral Raise",
+    "src": "/exercises/da214538-ce55-4231-a9b2-b8216f4d8432-44fce18c.webp",
+    "thumbnail": "/exercises/da214538-ce55-4231-a9b2-b8216f4d8432-44fce18c-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "ddfc449c-c9d7-4971-97fc-3997f59d93f6": {
+    "name": "Dumbbell Overhead Press",
+    "src": "/exercises/ddfc449c-c9d7-4971-97fc-3997f59d93f6-a7be32d8.webp",
+    "thumbnail": "/exercises/ddfc449c-c9d7-4971-97fc-3997f59d93f6-a7be32d8-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "224601d8-aeb3-4ec2-b62a-ec830f662688": {
+    "name": "Dumbbell Pullover",
+    "src": "/exercises/224601d8-aeb3-4ec2-b62a-ec830f662688-1961f002.webp",
+    "thumbnail": "/exercises/224601d8-aeb3-4ec2-b62a-ec830f662688-1961f002-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "9ee88abc-52d5-47fe-a470-4749c82de12b": {
+    "name": "One-Arm Dumbbell Row",
+    "src": "/exercises/9ee88abc-52d5-47fe-a470-4749c82de12b-adfed662.webp",
+    "thumbnail": "/exercises/9ee88abc-52d5-47fe-a470-4749c82de12b-adfed662-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "4c3c6a92-87c6-449a-8748-f69b7f4419bd": {
+    "name": "Chest-Supported Dumbbell Row",
+    "src": "/exercises/4c3c6a92-87c6-449a-8748-f69b7f4419bd-f02bf1c5.webp",
+    "thumbnail": "/exercises/4c3c6a92-87c6-449a-8748-f69b7f4419bd-f02bf1c5-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "788a815b-80a9-4997-8a4e-b63bb1182cee": {
+    "name": "Dumbbell Skullcrusher",
+    "src": "/exercises/788a815b-80a9-4997-8a4e-b63bb1182cee-c31735d4.webp",
+    "thumbnail": "/exercises/788a815b-80a9-4997-8a4e-b63bb1182cee-c31735d4-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "fb4e0b32-9385-4b77-9e2e-863ccf81c7bc": {
+    "name": "EZ-Bar Curl",
+    "src": "/exercises/fb4e0b32-9385-4b77-9e2e-863ccf81c7bc-371747c4.webp",
+    "thumbnail": "/exercises/fb4e0b32-9385-4b77-9e2e-863ccf81c7bc-371747c4-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "328d015c-0fb2-47cf-b843-98bc8a812f3b": {
+    "name": "Goblet Squat",
+    "src": "/exercises/328d015c-0fb2-47cf-b843-98bc8a812f3b-56304ee0.webp",
+    "thumbnail": "/exercises/328d015c-0fb2-47cf-b843-98bc8a812f3b-56304ee0-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "b351a1be-6b73-4665-bfdf-cb408a4a6d19": {
+    "name": "Good Morning",
+    "src": "/exercises/b351a1be-6b73-4665-bfdf-cb408a4a6d19-a0d3e0db.webp",
+    "thumbnail": "/exercises/b351a1be-6b73-4665-bfdf-cb408a4a6d19-a0d3e0db-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "74fcdad7-2c29-4566-82c8-8febd9ca4a5f": {
+    "name": "Hack Squat",
+    "src": "/exercises/74fcdad7-2c29-4566-82c8-8febd9ca4a5f-43952250.webp",
+    "thumbnail": "/exercises/74fcdad7-2c29-4566-82c8-8febd9ca4a5f-43952250-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "728d5023-ee66-4b63-a002-d73b8307e951": {
+    "name": "Hanging Leg Raise",
+    "src": "/exercises/728d5023-ee66-4b63-a002-d73b8307e951-0750ac4c.webp",
+    "thumbnail": "/exercises/728d5023-ee66-4b63-a002-d73b8307e951-0750ac4c-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a5fbda9f-8a7e-4838-9d3f-f12fdf146166": {
+    "name": "Hyperextension (Back Extension)",
+    "src": "/exercises/a5fbda9f-8a7e-4838-9d3f-f12fdf146166-35defbe8.webp",
+    "thumbnail": "/exercises/a5fbda9f-8a7e-4838-9d3f-f12fdf146166-35defbe8-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "bcd4a7cb-3ead-4516-b120-538ca5127818": {
+    "name": "Incline Barbell Bench Press",
+    "src": "/exercises/bcd4a7cb-3ead-4516-b120-538ca5127818-93dcd771.webp",
+    "thumbnail": "/exercises/bcd4a7cb-3ead-4516-b120-538ca5127818-93dcd771-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "d0a2bb0e-0fe1-412e-a1df-a8f653a63d80": {
+    "name": "Incline Cable Fly",
+    "src": "/exercises/d0a2bb0e-0fe1-412e-a1df-a8f653a63d80-c3f5613a.webp",
+    "thumbnail": "/exercises/d0a2bb0e-0fe1-412e-a1df-a8f653a63d80-c3f5613a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "d91eb829-1d88-4059-9e2e-4494cc9d8728": {
+    "name": "Incline Dumbbell Curl",
+    "src": "/exercises/d91eb829-1d88-4059-9e2e-4494cc9d8728-8ca3275e.webp",
+    "thumbnail": "/exercises/d91eb829-1d88-4059-9e2e-4494cc9d8728-8ca3275e-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "970edfc2-0171-43ba-8a26-c7bab602b3f3": {
+    "name": "Lat Pulldown",
+    "src": "/exercises/970edfc2-0171-43ba-8a26-c7bab602b3f3-da83560d.webp",
+    "thumbnail": "/exercises/970edfc2-0171-43ba-8a26-c7bab602b3f3-da83560d-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a6b45d3f-5edc-4dae-9665-7bc28f704ba2": {
+    "name": "90 Lat Stretch",
+    "src": "/exercises/a6b45d3f-5edc-4dae-9665-7bc28f704ba2-d118a48f.webp",
+    "thumbnail": "/exercises/a6b45d3f-5edc-4dae-9665-7bc28f704ba2-d118a48f-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "6341a061-0bb7-4ac1-9985-13d18e356c11": {
+    "name": "Lying Leg Curl",
+    "src": "/exercises/6341a061-0bb7-4ac1-9985-13d18e356c11-33e33189.webp",
+    "thumbnail": "/exercises/6341a061-0bb7-4ac1-9985-13d18e356c11-33e33189-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "92e64e79-944f-41d4-a4b8-44babf4e1bd8": {
+    "name": "Lying Triceps Extension (Skullcrusher)",
+    "src": "/exercises/92e64e79-944f-41d4-a4b8-44babf4e1bd8-1db183d1.webp",
+    "thumbnail": "/exercises/92e64e79-944f-41d4-a4b8-44babf4e1bd8-1db183d1-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "181394f0-2b89-41ae-947c-d1c404bf2449": {
+    "name": "Nordic Hamstring Curl",
+    "src": "/exercises/181394f0-2b89-41ae-947c-d1c404bf2449-1b9687ee.webp",
+    "thumbnail": "/exercises/181394f0-2b89-41ae-947c-d1c404bf2449-1b9687ee-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "7d9acb84-3f35-4db3-95cc-13735b32942a": {
+    "name": "Overhead Military Press",
+    "src": "/exercises/7d9acb84-3f35-4db3-95cc-13735b32942a-8e9866b3.webp",
+    "thumbnail": "/exercises/7d9acb84-3f35-4db3-95cc-13735b32942a-8e9866b3-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "7412b262-8676-4def-b9a9-52eb00e46574": {
+    "name": "Pallof Press",
+    "src": "/exercises/7412b262-8676-4def-b9a9-52eb00e46574-5a339300.webp",
+    "thumbnail": "/exercises/7412b262-8676-4def-b9a9-52eb00e46574-5a339300-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "bfac2f90-40b7-4879-aa4a-f4a92bce5295": {
+    "name": "Parallel Bar Chest Dips",
+    "src": "/exercises/bfac2f90-40b7-4879-aa4a-f4a92bce5295-1b3edcb6.webp",
+    "thumbnail": "/exercises/bfac2f90-40b7-4879-aa4a-f4a92bce5295-1b3edcb6-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "3b30e090-ed9e-4883-8b33-33f590e1a0aa": {
+    "name": "Pendlay Row",
+    "src": "/exercises/3b30e090-ed9e-4883-8b33-33f590e1a0aa-dd2698e9.webp",
+    "thumbnail": "/exercises/3b30e090-ed9e-4883-8b33-33f590e1a0aa-dd2698e9-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "baf2faef-22d2-4f94-a042-5314359b85af": {
+    "name": "Dynamic Plank Up-Downs",
+    "src": "/exercises/baf2faef-22d2-4f94-a042-5314359b85af-b2073299.webp",
+    "thumbnail": "/exercises/baf2faef-22d2-4f94-a042-5314359b85af-b2073299-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "f4d42bb9-9bb5-43f0-9f3b-b3929d02b214": {
+    "name": "Preacher Curl",
+    "src": "/exercises/f4d42bb9-9bb5-43f0-9f3b-b3929d02b214-c763d121.webp",
+    "thumbnail": "/exercises/f4d42bb9-9bb5-43f0-9f3b-b3929d02b214-c763d121-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "35c86d01-c412-4291-b4db-775729635178": {
+    "name": "Bent-Over Dumbbell Rear Delt Fly",
+    "src": "/exercises/35c86d01-c412-4291-b4db-775729635178-c1af977a.webp",
+    "thumbnail": "/exercises/35c86d01-c412-4291-b4db-775729635178-c1af977a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "8c9c685d-69b3-4b38-905f-913fb259d97f": {
+    "name": "Reverse Cable Fly",
+    "src": "/exercises/8c9c685d-69b3-4b38-905f-913fb259d97f-dab3c2ae.webp",
+    "thumbnail": "/exercises/8c9c685d-69b3-4b38-905f-913fb259d97f-dab3c2ae-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "8f4eb1b3-9c31-4574-8018-2e70d1a478fa": {
+    "name": "Reverse Crunch",
+    "src": "/exercises/8f4eb1b3-9c31-4574-8018-2e70d1a478fa-9e55998a.webp",
+    "thumbnail": "/exercises/8f4eb1b3-9c31-4574-8018-2e70d1a478fa-9e55998a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "289e789e-b93b-486c-abe4-88cf7f681024": {
+    "name": "Reverse Lunge",
+    "src": "/exercises/289e789e-b93b-486c-abe4-88cf7f681024-dba0be68.webp",
+    "thumbnail": "/exercises/289e789e-b93b-486c-abe4-88cf7f681024-dba0be68-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "c033e367-354d-427b-a69d-52412dcef4b1": {
+    "name": "Reverse Pec Deck",
+    "src": "/exercises/c033e367-354d-427b-a69d-52412dcef4b1-ffc89576.webp",
+    "thumbnail": "/exercises/c033e367-354d-427b-a69d-52412dcef4b1-ffc89576-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "2b5dd82f-801b-46b0-9c98-ba295931f091": {
+    "name": "Barbell Romanian Deadlift",
+    "src": "/exercises/2b5dd82f-801b-46b0-9c98-ba295931f091-5a03c360.webp",
+    "thumbnail": "/exercises/2b5dd82f-801b-46b0-9c98-ba295931f091-5a03c360-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "b616a301-0da3-4e28-b229-d2e681674fa8": {
+    "name": "Seated Cable Row",
+    "src": "/exercises/b616a301-0da3-4e28-b229-d2e681674fa8-d68e92df.webp",
+    "thumbnail": "/exercises/b616a301-0da3-4e28-b229-d2e681674fa8-d68e92df-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "6497890d-c255-41ce-a38d-7a0d58619c0f": {
+    "name": "Seated Calf Raise",
+    "src": "/exercises/6497890d-c255-41ce-a38d-7a0d58619c0f-4ab8fe28.webp",
+    "thumbnail": "/exercises/6497890d-c255-41ce-a38d-7a0d58619c0f-4ab8fe28-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "437866e7-5805-49a0-8f70-0490e72c72f3": {
+    "name": "Seated Russian Twist",
+    "src": "/exercises/437866e7-5805-49a0-8f70-0490e72c72f3-f33e1b8a.webp",
+    "thumbnail": "/exercises/437866e7-5805-49a0-8f70-0490e72c72f3-f33e1b8a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "0587b955-ea1b-49db-9ee7-b10a8a824e56": {
+    "name": "Seated Overhead Tricep Extension",
+    "src": "/exercises/0587b955-ea1b-49db-9ee7-b10a8a824e56-6381ab17.webp",
+    "thumbnail": "/exercises/0587b955-ea1b-49db-9ee7-b10a8a824e56-6381ab17-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a1c00666-fc48-46bf-929c-746d515c471e": {
+    "name": "Seated Wrist Curls",
+    "src": "/exercises/a1c00666-fc48-46bf-929c-746d515c471e-b25a89d5.webp",
+    "thumbnail": "/exercises/a1c00666-fc48-46bf-929c-746d515c471e-b25a89d5-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a6f661e2-eebc-4136-89da-a7522a1a78d4": {
+    "name": "Machine Shoulder Press",
+    "src": "/exercises/a6f661e2-eebc-4136-89da-a7522a1a78d4-215065d8.webp",
+    "thumbnail": "/exercises/a6f661e2-eebc-4136-89da-a7522a1a78d4-215065d8-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "4483afda-0d6b-490c-a622-caeba3b50af2": {
+    "name": "Side Plank",
+    "src": "/exercises/4483afda-0d6b-490c-a622-caeba3b50af2-cd51c15c.webp",
+    "thumbnail": "/exercises/4483afda-0d6b-490c-a622-caeba3b50af2-cd51c15c-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "27cc3adf-b12f-43f7-9444-80fea04752f5": {
+    "name": "Single-Arm Cable Row",
+    "src": "/exercises/27cc3adf-b12f-43f7-9444-80fea04752f5-da925ca6.webp",
+    "thumbnail": "/exercises/27cc3adf-b12f-43f7-9444-80fea04752f5-da925ca6-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "0403296b-7853-44ed-ad81-4a07a245cf3f": {
+    "name": "Smith Machine Squat",
+    "src": "/exercises/0403296b-7853-44ed-ad81-4a07a245cf3f-57c25c6d.webp",
+    "thumbnail": "/exercises/0403296b-7853-44ed-ad81-4a07a245cf3f-57c25c6d-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "9acd098e-0bb6-4248-a8f5-9b9d15e65015": {
+    "name": "Standing Machine Calf Raise",
+    "src": "/exercises/9acd098e-0bb6-4248-a8f5-9b9d15e65015-5be35564.webp",
+    "thumbnail": "/exercises/9acd098e-0bb6-4248-a8f5-9b9d15e65015-5be35564-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "66c6e81f-7bac-45a9-bfa9-1a8d683fb885": {
+    "name": "Step-Up",
+    "src": "/exercises/66c6e81f-7bac-45a9-bfa9-1a8d683fb885-e86f2c76.webp",
+    "thumbnail": "/exercises/66c6e81f-7bac-45a9-bfa9-1a8d683fb885-e86f2c76-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "b5a2f804-598d-419a-838a-af15b468ed7c": {
+    "name": "T-Bar Row",
+    "src": "/exercises/b5a2f804-598d-419a-838a-af15b468ed7c-3720759d.webp",
+    "thumbnail": "/exercises/b5a2f804-598d-419a-838a-af15b468ed7c-3720759d-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "4513f6ea-c4f8-4ce5-a4ed-f233b5b87ecb": {
+    "name": "Tibialis Anterior Raise",
+    "src": "/exercises/4513f6ea-c4f8-4ce5-a4ed-f233b5b87ecb-bc2d441c.webp",
+    "thumbnail": "/exercises/4513f6ea-c4f8-4ce5-a4ed-f233b5b87ecb-bc2d441c-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "80e5f69c-2f96-4f5a-bb67-88ea81d05817": {
+    "name": "Straight Bar Tricep Extension",
+    "src": "/exercises/80e5f69c-2f96-4f5a-bb67-88ea81d05817-f8836f47.webp",
+    "thumbnail": "/exercises/80e5f69c-2f96-4f5a-bb67-88ea81d05817-f8836f47-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "7b6aee7c-29b4-47f9-91e4-4d1ef3d527a6": {
+    "name": "Tricep Rope Pushdown",
+    "src": "/exercises/7b6aee7c-29b4-47f9-91e4-4d1ef3d527a6-54f34daf.webp",
+    "thumbnail": "/exercises/7b6aee7c-29b4-47f9-91e4-4d1ef3d527a6-54f34daf-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "c596946e-ba23-4eba-a431-8fccec247bf1": {
+    "name": "Upright Row",
+    "src": "/exercises/c596946e-ba23-4eba-a431-8fccec247bf1-e482f59b.webp",
+    "thumbnail": "/exercises/c596946e-ba23-4eba-a431-8fccec247bf1-e482f59b-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "a2607e2c-4c72-436d-96d0-c93c42fe586f": {
+    "name": "Walking Dumbbell Lunge",
+    "src": "/exercises/a2607e2c-4c72-436d-96d0-c93c42fe586f-b1908b39.webp",
+    "thumbnail": "/exercises/a2607e2c-4c72-436d-96d0-c93c42fe586f-b1908b39-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "311da7e5-4085-49a3-a9b4-d2b7ba29201a": {
+    "name": "Seated Hip Abduction Machine",
+    "src": "/exercises/311da7e5-4085-49a3-a9b4-d2b7ba29201a-1663e09e.webp",
+    "thumbnail": "/exercises/311da7e5-4085-49a3-a9b4-d2b7ba29201a-1663e09e-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "7233b51a-47bd-4183-952b-3d4bba02dd84": {
+    "name": "Leg Extension Machine",
+    "src": "/exercises/7233b51a-47bd-4183-952b-3d4bba02dd84-50181454.webp",
+    "thumbnail": "/exercises/7233b51a-47bd-4183-952b-3d4bba02dd84-50181454-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "e1dae52e-f579-45bf-b7c7-6a404314997b": {
+    "name": "Seated Dumbbell Shoulder Press",
+    "src": "/exercises/e1dae52e-f579-45bf-b7c7-6a404314997b-97c06695.webp",
+    "thumbnail": "/exercises/e1dae52e-f579-45bf-b7c7-6a404314997b-97c06695-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "52555cdc-c41e-4ab7-885f-3daa3b935bb6": {
+    "name": "Seated Leg Curl",
+    "src": "/exercises/52555cdc-c41e-4ab7-885f-3daa3b935bb6-874f5eee.webp",
+    "thumbnail": "/exercises/52555cdc-c41e-4ab7-885f-3daa3b935bb6-874f5eee-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "0a885dd4-5b17-4840-94c2-d22c7893013b": {
+    "name": "Standing Barbell Biceps Curl",
+    "src": "/exercises/0a885dd4-5b17-4840-94c2-d22c7893013b-f27f361a.webp",
+    "thumbnail": "/exercises/0a885dd4-5b17-4840-94c2-d22c7893013b-f27f361a-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "b52abd7b-2015-4bca-952d-8d097f0a1247": {
+    "name": "Standing Cable Chest Fly",
+    "src": "/exercises/b52abd7b-2015-4bca-952d-8d097f0a1247-2bbc4bc6.webp",
+    "thumbnail": "/exercises/b52abd7b-2015-4bca-952d-8d097f0a1247-2bbc4bc6-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "9611a05e-967b-49b7-83a4-47d6dab659f9": {
+    "name": "Standing Cable Woodchopper",
+    "src": "/exercises/9611a05e-967b-49b7-83a4-47d6dab659f9-7c8d5f2e.webp",
+    "thumbnail": "/exercises/9611a05e-967b-49b7-83a4-47d6dab659f9-7c8d5f2e-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "8260c174-d22d-4352-9ae3-320915198332": {
+    "name": "Standing Dumbbell Calf Raise",
+    "src": "/exercises/8260c174-d22d-4352-9ae3-320915198332-1a5236d7.webp",
+    "thumbnail": "/exercises/8260c174-d22d-4352-9ae3-320915198332-1a5236d7-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "78d581f9-330a-4ea2-9d54-6d7c9063e5c9": {
+    "name": "Straight-Arm Pulldown",
+    "src": "/exercises/78d581f9-330a-4ea2-9d54-6d7c9063e5c9-b22758e0.webp",
+    "thumbnail": "/exercises/78d581f9-330a-4ea2-9d54-6d7c9063e5c9-b22758e0-thumb.webp",
+    "width": 768,
+    "height": 1376
+  },
+  "1a3cad0d-6400-4770-ae37-fa9919ff383e": {
+    "name": "Dumbbell Hammer Curl",
+    "src": "/exercises/1a3cad0d-6400-4770-ae37-fa9919ff383e-616c3b48.webp",
+    "thumbnail": "/exercises/1a3cad0d-6400-4770-ae37-fa9919ff383e-616c3b48-thumb.webp",
+    "width": 768,
+    "height": 1376
+  }
+}

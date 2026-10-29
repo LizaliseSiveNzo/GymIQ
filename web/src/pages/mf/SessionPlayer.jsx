@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import ExercisePicker from '../../components/ui/ExercisePicker.jsx';
+import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { detectPRs, plateBreakdown } from '../../lib/engines/prs.js';
@@ -405,6 +406,8 @@ export default function SessionPlayer() {
                 Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
               </div>
             </div>
+
+            <ExerciseIllustration key={item.exerciseId || item.key} exerciseId={item.exerciseId} name={item.name} variant="guide" />
 
             {/* table header */}
             <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '2px 2px 8px', color: 'var(--text-subtle)', fontSize: 12, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>

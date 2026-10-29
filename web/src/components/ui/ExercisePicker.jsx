@@ -5,6 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
+import ExerciseIllustration from './ExerciseIllustration.jsx';
 
 // Reusable exercise catalog browser/picker. Reads the global `exercises`,
 // `muscles`, and `equipment_items` tables. In `pick` mode each row has a + that
@@ -119,8 +120,9 @@ export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [] 
           const isAdded = added.has(x.id);
           return (
             <div key={x.id} style={{ border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
-              <div className="row between">
-                <div style={{ minWidth: 0 }}>
+              <div className="exercise-catalog-row">
+                <ExerciseIllustration exerciseId={x.id} name={x.name} />
+                <div className="exercise-catalog-row__info">
                   <strong>{x.name}</strong>
                   <div className="subtle" style={{ fontSize: 12 }}>
                     {mName[x.primary_muscle_id] || x.primary_muscle_id}{secs.length ? ` · ${secs.join(', ')}` : ''}
@@ -131,7 +133,7 @@ export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [] 
                   </div>
                 </div>
                 <div className="row" style={{ gap: 8, flexShrink: 0 }}>
-                  {x.cue_text && <button className="btn btn-ghost" style={{ minHeight: 26, padding: '0 8px' }} onClick={() => setOpenCue((o) => ({ ...o, [x.id]: !o[x.id] }))} title="How to perform">ⓘ</button>}
+                  {x.cue_text && <button className="btn btn-ghost" aria-label={`How to perform ${x.name}`} aria-expanded={!!openCue[x.id]} style={{ minHeight: 44, padding: '0 8px' }} onClick={() => setOpenCue((o) => ({ ...o, [x.id]: !o[x.id] }))} title="How to perform">ⓘ</button>}
                   {mode === 'pick' && <button className="btn btn-secondary" style={{ minHeight: 30, padding: '0 10px' }} disabled={isAdded} onClick={() => onPick?.(x)}>{isAdded ? 'Added' : '+ Add'}</button>}
                 </div>
               </div>

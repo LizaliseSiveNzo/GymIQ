@@ -37,3 +37,6 @@ supabase/.temp/
 # Misc
 coverage/
 .cache/
+
+# Original exercise exports; optimized website assets live in web/public/exercises.
+/exercises/

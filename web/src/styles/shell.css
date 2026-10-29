@@ -291,3 +291,26 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 .bank-log-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .calorie-bank .row > div { min-width:0; overflow-wrap:anywhere; }
 @media(max-width:600px) { .bank-log-grid { grid-template-columns:1fr; } }
+
+/* Exercise artwork: preserve every panel, including portrait source illustrations. */
+.exercise-catalog-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.exercise-catalog-row__info { min-width: 0; flex: 1 1 140px; overflow-wrap: anywhere; }
+.exercise-illustration { flex: 0 0 auto; }
+.exercise-illustration__open { display: block; padding: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #10140d; color: var(--ink); cursor: zoom-in; }
+.exercise-illustration__open:focus-visible { outline: 2px solid var(--accent, #c6ff3a); outline-offset: 3px; }
+.exercise-illustration__open img { display: block; object-fit: contain; }
+.exercise-illustration--thumbnail img { width: 76px; height: 104px; }
+.exercise-illustration--guide { margin: 0 0 18px; }
+.exercise-illustration--guide .exercise-illustration__open { width: 100%; }
+.exercise-illustration--guide img { width: 100%; height: 280px; }
+.exercise-illustration--guide span { display: block; padding: 10px; border-top: 1px solid var(--border); font-size: 12px; font-weight: 600; }
+.exercise-guide-dialog { box-sizing: border-box; width: min(760px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 14px; border: 1px solid var(--border-strong); border-radius: 18px; background: #10140d; color: var(--ink); overflow: auto; }
+.exercise-guide-dialog::backdrop { background: rgb(0 0 0 / 85%); }
+.exercise-guide-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.exercise-guide-dialog h2 { margin: 0; font-size: 17px; }
+.exercise-guide-dialog > img { display: block; width: 100%; height: auto; max-height: calc(100dvh - 125px); object-fit: contain; }
+@media (max-width: 420px) {
+  .exercise-catalog-row { gap: 10px; }
+  .exercise-catalog-row > .row { margin-left: auto; }
+  .exercise-illustration--thumbnail img { width: 64px; height: 88px; }
+}

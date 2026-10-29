@@ -1,0 +1,531 @@
+{
+  "source_folder": "exercises",
+  "placed": [
+    {
+      "exercise_id": "ee887699-dab3-4d5e-a988-1d67cd4a9922",
+      "exercise": "Ab Wheel Rollout",
+      "source": "Ab_wheel_rollout_exercise_illust\u2026_637b1343.jpg"
+    },
+    {
+      "exercise_id": "723bb508-fcfd-481f-8dda-8954793be358",
+      "exercise": "Barbell Front Raise",
+      "source": "Barbell_front_raise_exercise_ill\u2026_051e95de.jpg"
+    },
+    {
+      "exercise_id": "f6915d40-b113-413f-aacc-6135191c6ae7",
+      "exercise": "Bodyweight Pull-Up",
+      "source": "Bodyweight_pull-up_exercise_illu\u2026_56a75dcd.jpg"
+    },
+    {
+      "exercise_id": "4a8d0b6e-162f-4d38-8f50-3e2a4461897f",
+      "exercise": "Cable Rope Hammer Curl",
+      "source": "Cable_rope_hammer_curl_exercise_faab866c.jpg"
+    },
+    {
+      "exercise_id": "e42f95a9-fd2a-4441-a415-9cc4fc75851e",
+      "exercise": "Cat-Cow Mobility Stretch",
+      "source": "Cat-Cow_Mobility_Stretch_illustr\u2026_17f544e1.jpg"
+    },
+    {
+      "exercise_id": "fe61911f-33f6-4e71-916c-7d3451dc2d71",
+      "exercise": "Glute Ham Raise",
+      "source": "Glute_Ham_Raise_exercise_illustr\u2026_3ad0e643.jpg"
+    },
+    {
+      "exercise_id": "ed82ace4-cbd1-4442-88ae-26a2f8372960",
+      "exercise": "Leg Press Machine",
+      "source": "Leg_press_exercise_illustration_b2c739b4.jpg"
+    },
+    {
+      "exercise_id": "1522d396-34b1-474e-a3c0-56af9d15826a",
+      "exercise": "Pec Deck Machine",
+      "source": "Man_exercising_on_pec_deck_e470e18e.jpg"
+    },
+    {
+      "exercise_id": "63e70471-f4f0-4472-9ec6-58a978fd4e6d",
+      "exercise": "Forearm Plank Hold",
+      "source": "Man_holding_forearm_plank_pose_2fb696e1.jpg"
+    },
+    {
+      "exercise_id": "6dd762af-c295-4fd5-bf33-b5dc8601e7ef",
+      "exercise": "Abdominal Crunch",
+      "source": "Man_performing_abdominal_crunch_02c84fb4.jpg"
+    },
+    {
+      "exercise_id": "9c9ea87f-4b47-46e7-820a-eeed24ab4123",
+      "exercise": "Arnold Press",
+      "source": "Man_performing_Arnold_press_exer\u2026_2686dc93.jpg"
+    },
+    {
+      "exercise_id": "eb9399ae-d6e7-426d-a614-2efb62c4517e",
+      "exercise": "Band Face Pull",
+      "source": "Man_performing_band_face_pull_7b85e417.jpg"
+    },
+    {
+      "exercise_id": "096d68ba-2b05-44cf-8284-a3baa6744258",
+      "exercise": "Barbell Back Squat",
+      "source": "Man_performing_barbell_back_squat_18cf7215.jpg"
+    },
+    {
+      "exercise_id": "1fd1383d-81c4-40ad-b036-703444508cd8",
+      "exercise": "Barbell Bench Press",
+      "source": "Man_performing_barbell_bench_press_31f6ade3.jpg"
+    },
+    {
+      "exercise_id": "a7b8db65-660a-4bac-8e1f-59f5b5db19c8",
+      "exercise": "Barbell Front Squat",
+      "source": "Man_performing_barbell_front_squat_8017d1a4.jpg"
+    },
+    {
+      "exercise_id": "2f308ec6-9ced-4269-8b97-8c2f86ea32e5",
+      "exercise": "Barbell Hip Thrust",
+      "source": "Man_performing_barbell_hip_thrust_8c22abaa.jpg"
+    },
+    {
+      "exercise_id": "4c35fc1e-6139-42dd-a9f0-452e667a306d",
+      "exercise": "Bent-Over Barbell Row",
+      "source": "Man_performing_barbell_row_708b62ac.jpg"
+    },
+    {
+      "exercise_id": "a022a354-540f-4962-9e23-8d247ea8f867",
+      "exercise": "Barbell Shrug",
+      "source": "Man_performing_barbell_shrug_6ad551f4.jpg"
+    },
+    {
+      "exercise_id": "c5b9a7ea-f688-45e3-8566-2e42cfa20fa7",
+      "exercise": "Bench Dip",
+      "source": "Man_performing_bench_dip_exercise_a4090fef.jpg"
+    },
+    {
+      "exercise_id": "7e67b87f-e616-4f94-9d81-50810c4100a8",
+      "exercise": "Bicycle Crunch",
+      "source": "Man_performing_bicycle_crunch_ex\u2026_d8adef92.jpg"
+    },
+    {
+      "exercise_id": "1a8194d6-867e-40b8-a15d-0e993a598898",
+      "exercise": "Bird Dog Hold and Flex",
+      "source": "Man_performing_bird_dog_exercise_2dc30a33.jpg"
+    },
+    {
+      "exercise_id": "8db36a0b-6b54-4597-b23c-650d36a8d193",
+      "exercise": "Bulgarian Split Squat",
+      "source": "Man_performing_Bulgarian_split_s\u2026_d780db58.jpg"
+    },
+    {
+      "exercise_id": "596f9806-f757-4117-9411-d6b6462243c9",
+      "exercise": "Burpees",
+      "source": "Man_performing_burpee_exercise_20069795.jpg"
+    },
+    {
+      "exercise_id": "2b24e2a5-e7ae-4652-b588-fa109e7e0bb6",
+      "exercise": "Cable Crunch",
+      "source": "Man_performing_cable_crunch_exer\u2026_90de09b9.jpg"
+    },
+    {
+      "exercise_id": "b40432fd-f7e6-4134-8d72-9862c8b8a281",
+      "exercise": "Cable Face Pull",
+      "source": "Man_performing_cable_face_pull_f15fc67b.jpg"
+    },
+    {
+      "exercise_id": "c6fede66-0d67-4708-82b0-3f455bd76ebf",
+      "exercise": "Cable Glute Kickback",
+      "source": "Man_performing_cable_glute_kickback_8f8a97e1.jpg"
+    },
+    {
+      "exercise_id": "99ef16cf-00fb-4719-93bc-767a670e3774",
+      "exercise": "Cable Lateral Raise",
+      "source": "Man_performing_cable_lateral_raise_54331441.jpg"
+    },
+    {
+      "exercise_id": "81aefb6f-a5e1-41d4-8454-746a243332cd",
+      "exercise": "Cable Pull-Through",
+      "source": "Man_performing_cable_pull-through_c0ee41be.jpg"
+    },
+    {
+      "exercise_id": "3175209c-ef59-4f7e-aaab-eb679836894d",
+      "exercise": "Cable Overhead Tricep Extension",
+      "source": "Man_performing_cable_tricep_exte\u2026_fc6cbb94.jpg"
+    },
+    {
+      "exercise_id": "ba511d95-3477-48d7-8226-323113727e1a",
+      "exercise": "Machine Chest Press",
+      "source": "Man_performing_chest_press_machine_246c7f85.jpg"
+    },
+    {
+      "exercise_id": "32e5abb5-51e4-4f6f-b3a5-b0ef48bbaab0",
+      "exercise": "Chin-Up",
+      "source": "Man_performing_chin-up_exercise_1c659e42.jpg"
+    },
+    {
+      "exercise_id": "6db02d0b-4900-42d1-8c38-320bcbff8492",
+      "exercise": "Close-Grip Barbell Bench Press",
+      "source": "Man_performing_close_grip_bench_e8b8961d.jpg"
+    },
+    {
+      "exercise_id": "b147bbdc-faf2-4c54-bae5-dd2b281c467d",
+      "exercise": "Concentration Curl",
+      "source": "Man_performing_concentration_curl_3304ca2b.jpg"
+    },
+    {
+      "exercise_id": "04ab2e78-f4d4-411c-b629-b1944e4b8ed3",
+      "exercise": "Conventional Deadlift",
+      "source": "Man_performing_conventional_dead\u2026_c7da51d3.jpg"
+    },
+    {
+      "exercise_id": "a0e7cc9a-0a21-449e-8ccd-98e252d477d6",
+      "exercise": "Decline Barbell Bench Press",
+      "source": "Man_performing_decline_bench_press_47b5086c.jpg"
+    },
+    {
+      "exercise_id": "68c14a5b-ffb9-455e-b56b-7036a2251dda",
+      "exercise": "Dumbbell Bench Press",
+      "source": "Man_performing_dumbbell_bench_press_15650fef.jpg"
+    },
+    {
+      "exercise_id": "2ca54414-9757-45e2-9fde-12b00fb0d4fd",
+      "exercise": "Dumbbell Bicep Curl",
+      "source": "Man_performing_dumbbell_bicep_curl_2ba199d4.jpg"
+    },
+    {
+      "exercise_id": "43bd3967-1f41-4ce6-9792-1ba44382d7f9",
+      "exercise": "Dumbbell Chest Flys",
+      "source": "Man_performing_dumbbell_chest_flys_833d415d.jpg"
+    },
+    {
+      "exercise_id": "b537f60c-2c78-4052-8d70-9fba3d1e52f9",
+      "exercise": "Dumbbell Stiff-Legged Deadlift",
+      "source": "Man_performing_dumbbell_deadlift_73ff0529.jpg"
+    },
+    {
+      "exercise_id": "da214538-ce55-4231-a9b2-b8216f4d8432",
+      "exercise": "Dumbbell Lateral Raise",
+      "source": "Man_performing_dumbbell_lateral_\u2026_8df80181.jpg"
+    },
+    {
+      "exercise_id": "ddfc449c-c9d7-4971-97fc-3997f59d93f6",
+      "exercise": "Dumbbell Overhead Press",
+      "source": "Man_performing_dumbbell_overhead\u2026_62b45a8e.jpg"
+    },
+    {
+      "exercise_id": "224601d8-aeb3-4ec2-b62a-ec830f662688",
+      "exercise": "Dumbbell Pullover",
+      "source": "Man_performing_dumbbell_pullover_3f39369e.jpg"
+    },
+    {
+      "exercise_id": "9ee88abc-52d5-47fe-a470-4749c82de12b",
+      "exercise": "One-Arm Dumbbell Row",
+      "source": "Man_performing_dumbbell_row_da281d2f.jpg"
+    },
+    {
+      "exercise_id": "4c3c6a92-87c6-449a-8748-f69b7f4419bd",
+      "exercise": "Chest-Supported Dumbbell Row",
+      "source": "Man_performing_dumbbell_row_exer\u2026_9337c8e5.jpg"
+    },
+    {
+      "exercise_id": "788a815b-80a9-4997-8a4e-b63bb1182cee",
+      "exercise": "Dumbbell Skullcrusher",
+      "source": "Man_performing_dumbbell_skullcru\u2026_cad94702.jpg"
+    },
+    {
+      "exercise_id": "fb4e0b32-9385-4b77-9e2e-863ccf81c7bc",
+      "exercise": "EZ-Bar Curl",
+      "source": "Man_performing_EZ-bar_curl_d24a8406.jpg"
+    },
+    {
+      "exercise_id": "328d015c-0fb2-47cf-b843-98bc8a812f3b",
+      "exercise": "Goblet Squat",
+      "source": "Man_performing_goblet_squat_5e84096e.jpg"
+    },
+    {
+      "exercise_id": "b351a1be-6b73-4665-bfdf-cb408a4a6d19",
+      "exercise": "Good Morning",
+      "source": "Man_performing_good_morning_exer\u2026_6c59f964.jpg"
+    },
+    {
+      "exercise_id": "74fcdad7-2c29-4566-82c8-8febd9ca4a5f",
+      "exercise": "Hack Squat",
+      "source": "Man_performing_hack_squat_exercise_342df9dd.jpg"
+    },
+    {
+      "exercise_id": "728d5023-ee66-4b63-a002-d73b8307e951",
+      "exercise": "Hanging Leg Raise",
+      "source": "Man_performing_hanging_leg_raise_14e28a5e.jpg"
+    },
+    {
+      "exercise_id": "a5fbda9f-8a7e-4838-9d3f-f12fdf146166",
+      "exercise": "Hyperextension (Back Extension)",
+      "source": "Man_performing_hyperextension_ex\u2026_3d61a724.jpg"
+    },
+    {
+      "exercise_id": "bcd4a7cb-3ead-4516-b120-538ca5127818",
+      "exercise": "Incline Barbell Bench Press",
+      "source": "Man_performing_incline_bench_press_274e1ee5.jpg"
+    },
+    {
+      "exercise_id": "d0a2bb0e-0fe1-412e-a1df-a8f653a63d80",
+      "exercise": "Incline Cable Fly",
+      "source": "Man_performing_incline_cable_fly_19ec6fa3.jpg"
+    },
+    {
+      "exercise_id": "d91eb829-1d88-4059-9e2e-4494cc9d8728",
+      "exercise": "Incline Dumbbell Curl",
+      "source": "Man_performing_incline_dumbbell_\u2026_66ea210a.jpg"
+    },
+    {
+      "exercise_id": "970edfc2-0171-43ba-8a26-c7bab602b3f3",
+      "exercise": "Lat Pulldown",
+      "source": "Man_performing_lat_pulldown_50b52e8a.jpg"
+    },
+    {
+      "exercise_id": "a6b45d3f-5edc-4dae-9665-7bc28f704ba2",
+      "exercise": "90 Lat Stretch",
+      "source": "Man_performing_lat_stretch_exercise_dc5c2e74.jpg"
+    },
+    {
+      "exercise_id": "6341a061-0bb7-4ac1-9985-13d18e356c11",
+      "exercise": "Lying Leg Curl",
+      "source": "Man_performing_lying_leg_curl_71aec0fd.jpg"
+    },
+    {
+      "exercise_id": "92e64e79-944f-41d4-a4b8-44babf4e1bd8",
+      "exercise": "Lying Triceps Extension (Skullcrusher)",
+      "source": "Man_performing_lying_triceps_ext\u2026_90aaeed7.jpg"
+    },
+    {
+      "exercise_id": "181394f0-2b89-41ae-947c-d1c404bf2449",
+      "exercise": "Nordic Hamstring Curl",
+      "source": "Man_performing_Nordic_hamstring_\u2026_2fa62cf0.jpg"
+    },
+    {
+      "exercise_id": "7d9acb84-3f35-4db3-95cc-13735b32942a",
+      "exercise": "Overhead Military Press",
+      "source": "Man_performing_overhead_military\u2026_38aeb31c.jpg"
+    },
+    {
+      "exercise_id": "7412b262-8676-4def-b9a9-52eb00e46574",
+      "exercise": "Pallof Press",
+      "source": "Man_performing_Pallof_press_b29e6bff.jpg"
+    },
+    {
+      "exercise_id": "bfac2f90-40b7-4879-aa4a-f4a92bce5295",
+      "exercise": "Parallel Bar Chest Dips",
+      "source": "Man_performing_parallel_bar_dips_cf026010.jpg"
+    },
+    {
+      "exercise_id": "3b30e090-ed9e-4883-8b33-33f590e1a0aa",
+      "exercise": "Pendlay Row",
+      "source": "Man_performing_Pendlay_row_exercise_a83d91f0.jpg"
+    },
+    {
+      "exercise_id": "baf2faef-22d2-4f94-a042-5314359b85af",
+      "exercise": "Dynamic Plank Up-Downs",
+      "source": "Man_performing_plank_up-downs_60b864fb.jpg"
+    },
+    {
+      "exercise_id": "f4d42bb9-9bb5-43f0-9f3b-b3929d02b214",
+      "exercise": "Preacher Curl",
+      "source": "Man_performing_preacher_curl_b61abd8c.jpg"
+    },
+    {
+      "exercise_id": "35c86d01-c412-4291-b4db-775729635178",
+      "exercise": "Bent-Over Dumbbell Rear Delt Fly",
+      "source": "Man_performing_rear_delt_fly_9d4eac99.jpg"
+    },
+    {
+      "exercise_id": "8c9c685d-69b3-4b38-905f-913fb259d97f",
+      "exercise": "Reverse Cable Fly",
+      "source": "Man_performing_reverse_cable_fly_e8b92b4b.jpg"
+    },
+    {
+      "exercise_id": "8f4eb1b3-9c31-4574-8018-2e70d1a478fa",
+      "exercise": "Reverse Crunch",
+      "source": "Man_performing_reverse_crunch_ex\u2026_aeafbd95.jpg"
+    },
+    {
+      "exercise_id": "289e789e-b93b-486c-abe4-88cf7f681024",
+      "exercise": "Reverse Lunge",
+      "source": "Man_performing_reverse_lunge_34370273.jpg"
+    },
+    {
+      "exercise_id": "c033e367-354d-427b-a69d-52412dcef4b1",
+      "exercise": "Reverse Pec Deck",
+      "source": "Man_performing_reverse_pec_deck_4c520c47.jpg"
+    },
+    {
+      "exercise_id": "2b5dd82f-801b-46b0-9c98-ba295931f091",
+      "exercise": "Barbell Romanian Deadlift",
+      "source": "Man_performing_Romanian_deadlift_e59cc288.jpg"
+    },
+    {
+      "exercise_id": "b616a301-0da3-4e28-b229-d2e681674fa8",
+      "exercise": "Seated Cable Row",
+      "source": "Man_performing_seated_cable_row_9ab81818.jpg"
+    },
+    {
+      "exercise_id": "6497890d-c255-41ce-a38d-7a0d58619c0f",
+      "exercise": "Seated Calf Raise",
+      "source": "Man_performing_seated_calf_raise_1812b4dd.jpg"
+    },
+    {
+      "exercise_id": "437866e7-5805-49a0-8f70-0490e72c72f3",
+      "exercise": "Seated Russian Twist",
+      "source": "Man_performing_seated_Russian_twist_e47ecfac.jpg"
+    },
+    {
+      "exercise_id": "0587b955-ea1b-49db-9ee7-b10a8a824e56",
+      "exercise": "Seated Overhead Tricep Extension",
+      "source": "Man_performing_seated_tricep_ext\u2026_c9912f51.jpg"
+    },
+    {
+      "exercise_id": "a1c00666-fc48-46bf-929c-746d515c471e",
+      "exercise": "Seated Wrist Curls",
+      "source": "Man_performing_seated_wrist_curls_a00fa965.jpg"
+    },
+    {
+      "exercise_id": "a6f661e2-eebc-4136-89da-a7522a1a78d4",
+      "exercise": "Machine Shoulder Press",
+      "source": "Man_performing_shoulder_press_ex\u2026_12831f53.jpg"
+    },
+    {
+      "exercise_id": "4483afda-0d6b-490c-a622-caeba3b50af2",
+      "exercise": "Side Plank",
+      "source": "Man_performing_side_plank_exercise_dcda64b6.jpg"
+    },
+    {
+      "exercise_id": "27cc3adf-b12f-43f7-9444-80fea04752f5",
+      "exercise": "Single-Arm Cable Row",
+      "source": "Man_performing_single-arm_cable_row_8b71f5f7.jpg"
+    },
+    {
+      "exercise_id": "0403296b-7853-44ed-ad81-4a07a245cf3f",
+      "exercise": "Smith Machine Squat",
+      "source": "Man_performing_Smith_machine_squat_c5b6c677.jpg"
+    },
+    {
+      "exercise_id": "9acd098e-0bb6-4248-a8f5-9b9d15e65015",
+      "exercise": "Standing Machine Calf Raise",
+      "source": "Man_performing_standing_calf_raise_a2a47f4d.jpg"
+    },
+    {
+      "exercise_id": "66c6e81f-7bac-45a9-bfa9-1a8d683fb885",
+      "exercise": "Step-Up",
+      "source": "Man_performing_step-up_exercise_84300fea.jpg"
+    },
+    {
+      "exercise_id": "b5a2f804-598d-419a-838a-af15b468ed7c",
+      "exercise": "T-Bar Row",
+      "source": "Man_performing_T-bar_row_f5fc5c43.jpg"
+    },
+    {
+      "exercise_id": "4513f6ea-c4f8-4ce5-a4ed-f233b5b87ecb",
+      "exercise": "Tibialis Anterior Raise",
+      "source": "Man_performing_tibialis_anterior\u2026_403d6e05.jpg"
+    },
+    {
+      "exercise_id": "80e5f69c-2f96-4f5a-bb67-88ea81d05817",
+      "exercise": "Straight Bar Tricep Extension",
+      "source": "Man_performing_tricep_extension_3c397997.jpg"
+    },
+    {
+      "exercise_id": "7b6aee7c-29b4-47f9-91e4-4d1ef3d527a6",
+      "exercise": "Tricep Rope Pushdown",
+      "source": "Man_performing_tricep_rope_pushdown_5205a5c7.jpg"
+    },
+    {
+      "exercise_id": "c596946e-ba23-4eba-a431-8fccec247bf1",
+      "exercise": "Upright Row",
+      "source": "Man_performing_upright_row_exercise_85425f6b.jpg"
+    },
+    {
+      "exercise_id": "a2607e2c-4c72-436d-96d0-c93c42fe586f",
+      "exercise": "Walking Dumbbell Lunge",
+      "source": "Man_performing_walking_dumbbell_\u2026_f7af3dd2.jpg"
+    },
+    {
+      "exercise_id": "311da7e5-4085-49a3-a9b4-d2b7ba29201a",
+      "exercise": "Seated Hip Abduction Machine",
+      "source": "Man_using_hip_abduction_machine_a01ccc63.jpg"
+    },
+    {
+      "exercise_id": "7233b51a-47bd-4183-952b-3d4bba02dd84",
+      "exercise": "Leg Extension Machine",
+      "source": "Man_using_leg_extension_machine_b4842f6f.jpg"
+    },
+    {
+      "exercise_id": "e1dae52e-f579-45bf-b7c7-6a404314997b",
+      "exercise": "Seated Dumbbell Shoulder Press",
+      "source": "Seated_dumbbell_shoulder_press_e\u2026_1054b00b.jpg"
+    },
+    {
+      "exercise_id": "52555cdc-c41e-4ab7-885f-3daa3b935bb6",
+      "exercise": "Seated Leg Curl",
+      "source": "Seated_leg_curl_exercise_illustr\u2026_72c8e37f.jpg"
+    },
+    {
+      "exercise_id": "0a885dd4-5b17-4840-94c2-d22c7893013b",
+      "exercise": "Standing Barbell Biceps Curl",
+      "source": "Standing_barbell_biceps_curl_exe\u2026_56087180.jpg"
+    },
+    {
+      "exercise_id": "b52abd7b-2015-4bca-952d-8d097f0a1247",
+      "exercise": "Standing Cable Chest Fly",
+      "source": "Standing_cable_chest_fly_b7f6c650.jpg"
+    },
+    {
+      "exercise_id": "9611a05e-967b-49b7-83a4-47d6dab659f9",
+      "exercise": "Standing Cable Woodchopper",
+      "source": "Standing_cable_woodchopper_exerc\u2026_db628182.jpg"
+    },
+    {
+      "exercise_id": "8260c174-d22d-4352-9ae3-320915198332",
+      "exercise": "Standing Dumbbell Calf Raise",
+      "source": "Standing_dumbbell_calf_raise_exe\u2026_703cc807.jpg"
+    },
+    {
+      "exercise_id": "78d581f9-330a-4ea2-9d54-6d7c9063e5c9",
+      "exercise": "Straight-Arm Pulldown",
+      "source": "Straight-Arm_Pulldown_Exercise_I\u2026_d1c6168e.jpg"
+    },
+    {
+      "exercise_id": "1a3cad0d-6400-4770-ae37-fa9919ff383e",
+      "exercise": "Dumbbell Hammer Curl",
+      "source": "Training_mannequin_performing_du\u2026_8cc7b530.jpg"
+    }
+  ],
+  "held_for_replacement": [
+    {
+      "source": "Incline_dumbbell_bench_press_exe\u2026_245adbc0.jpg",
+      "exercise": "Incline Dumbbell Bench Press",
+      "reason": "Shows a shoulder press instead of an incline chest press."
+    },
+    {
+      "source": "Man_performing_spider_curl_exercise_48f1d8f5.jpg",
+      "exercise": "Spider Curl",
+      "reason": "Shows a chest-supported row instead of a spider curl."
+    },
+    {
+      "source": "Man_performing_trap_bar_deadlift_52ee7ef7.jpg",
+      "exercise": "Trap Bar Deadlift",
+      "reason": "Trap-bar frame and grip are unclear; needs replacement."
+    }
+  ],
+  "missing": [
+    "Spider Curl",
+    "Elliptical Trainer",
+    "High Knees",
+    "Jump Rope",
+    "Mountain Climbers",
+    "Outdoor Running",
+    "Rowing Machine",
+    "Stair Climber",
+    "Stationary Cycling",
+    "Treadmill Running",
+    "Bodyweight Push-Up",
+    "Incline Dumbbell Bench Press",
+    "Alternate Leg Push-off",
+    "BOSU Ball Balance Squat",
+    "Farmer's Carry",
+    "Kettlebell Swing",
+    "Trap Bar Deadlift"
+  ]
+}
