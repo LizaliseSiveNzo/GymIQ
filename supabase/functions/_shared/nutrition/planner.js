@@ -15,6 +15,29 @@ export const RECIPES = [
   {id:'tuna-rice',slot:'dinner',name:'Tuna, brown rice & vegetables',items:[item('173709',160),item('169704',200),item('169967',150),item('170393',100),item('171413',10)]},
   {id:'lentil-rice',slot:'dinner',name:'Lentils, rice & vegetables',items:[item('172421',230),item('169704',150),item('169967',150),item('170393',100),item('171413',10)]},
   {id:'tofu-bowl',slot:'dinner',name:'Tofu, rice & vegetables',items:[item('172475',160),item('169704',170),item('169967',150),item('170393',100),item('171413',8)]},
+  {id:'apple-yoghurt-oats',slot:'breakfast',name:'Apple & yoghurt oat bowl',items:[item('173904',55),item('170886',180),item('171688',150)]},
+  {id:'banana-almond-yoghurt',slot:'breakfast',name:'Banana & almond yoghurt bowl',items:[item('170886',250),item('173944',120),item('170567',25)]},
+  {id:'eggs-sweet-potato',slot:'breakfast',name:'Boiled eggs & sweet potato',items:[item('173424',100),item('168484',200),item('170457',100),item('171413',5)]},
+  {id:'egg-tomato-sandwich',slot:'breakfast',name:'Egg & tomato breakfast sandwich',items:[item('173424',100),item('172688',80),item('170457',100),item('168409',80)]},
+  {id:'apple-almond-yoghurt',slot:'breakfast',name:'Apple, almonds & yoghurt',items:[item('170886',250),item('171688',160),item('170567',25),item('173904',20)]},
+  {id:'banana-milk-oats',slot:'breakfast',name:'Banana overnight oats with milk',items:[item('173904',65),item('171267',200),item('173944',100)]},
+  {id:'chicken-avo-sandwich',slot:'lunch',name:'Chicken & avocado sandwich',items:[item('171477',130),item('172688',100),item('171705',60),item('170457',100)]},
+  {id:'tuna-rice-salad',slot:'lunch',name:'Tuna & brown rice salad',items:[item('173709',130),item('169704',180),item('168409',100),item('170457',100),item('171413',8)]},
+  {id:'chicken-sweet-potato-lunch',slot:'lunch',name:'Chicken & sweet potato lunchbox',items:[item('171477',130),item('168484',220),item('170393',100),item('171413',8)]},
+  {id:'tuna-bean-salad',slot:'lunch',name:'Tuna, bean & tomato salad',items:[item('173709',120),item('175194',150),item('170457',120),item('168409',100),item('171413',10)]},
+  {id:'chicken-lentil-lunch',slot:'lunch',name:'Chicken & lentil bowl',items:[item('171477',100),item('172421',180),item('170393',100),item('170457',100),item('171413',8)]},
+  {id:'chicken-veg-toast',slot:'lunch',name:'Chicken, broccoli & wholewheat toast',items:[item('171477',130),item('172688',100),item('169967',150),item('171413',8)]},
+  {id:'banana-yoghurt-snack',slot:'snack',name:'Banana & plain yoghurt',items:[item('173944',100),item('170886',150)]},
+  {id:'eggs-tomato-snack',slot:'snack',name:'Boiled eggs & tomato',items:[item('173424',100),item('170457',120)]},
+  {id:'avo-toast-snack',slot:'snack',name:'Avocado & tomato toast',items:[item('172688',40),item('171705',50),item('170457',60)]},
+  {id:'yoghurt-almond-snack',slot:'snack',name:'Plain yoghurt & almonds',items:[item('170886',170),item('170567',15)]},
+  {id:'tuna-cucumber-snack',slot:'snack',name:'Tuna & cucumber toast',items:[item('173709',70),item('172688',40),item('168409',80)]},
+  {id:'chicken-lentil-dinner',slot:'dinner',name:'Chicken, lentils & broccoli',items:[item('171477',140),item('172421',180),item('169967',160),item('171413',10)]},
+  {id:'tuna-sweet-potato',slot:'dinner',name:'Tuna, sweet potato & greens',items:[item('173709',160),item('168484',260),item('169967',180),item('171413',10)]},
+  {id:'chicken-bean-rice',slot:'dinner',name:'Chicken, beans & brown rice',items:[item('171477',130),item('175194',130),item('169704',150),item('170457',120),item('171413',8)]},
+  {id:'chicken-avo-rice',slot:'dinner',name:'Chicken, avocado & rice plate',items:[item('171477',150),item('169704',180),item('171705',70),item('168409',120),item('170457',100)]},
+  {id:'tuna-kidney-bowl',slot:'dinner',name:'Tuna, kidney beans & vegetables',items:[item('173709',150),item('175194',200),item('169967',140),item('170393',100),item('171413',10)]},
+  {id:'chicken-sweet-potato-carrot',slot:'dinner',name:'Chicken, sweet potato & carrots',items:[item('171477',150),item('168484',250),item('170393',150),item('170457',100),item('171413',10)]},
 ];
 export function mealTotals(items, foods) {
   if (!Array.isArray(items) || items.length < 1 || items.length > 30) throw new Error('Choose between 1 and 30 ingredients.');
@@ -52,6 +75,18 @@ export function buildPlan(target, foods, diet, excludes, selection={}) {
     const totals=mealTotals(items,foods);
     return {slot,name:r.name,recipe_id:r.id,items,...totals};
   });
+}
+export function shufflePlan(current, target, foods, diet='regular', excludes=[], slot='all', random=Math.random) {
+  if(slot!=='all'&&!SLOTS.includes(slot))throw new Error('Choose a valid meal to shuffle.');
+  if(!planMatchesDiet(current,foods,diet,excludes))throw new Error('Rebuild your plan to match your current preferences first.');
+  const eligible=eligibleRecipes(foods,diet,excludes), selection=Object.fromEntries(current.map(m=>[m.slot,m.recipe_id]));
+  for(const s of slot==='all'?SLOTS:[slot]){
+    const choices=eligible.filter(r=>r.slot===s&&r.id!==selection[s]);
+    if(!choices.length)throw new Error(`No different ${s} matches your preferences. Try adjusting your ingredient exclusions.`);
+    selection[s]=choices[Math.min(choices.length-1,Math.max(0,Math.floor(random()*choices.length)))].id;
+  }
+  const generated=buildPlan(target,foods,diet,excludes,selection);
+  return current.map(m=>slot==='all'||m.slot===slot?{...generated.find(n=>n.slot===m.slot),selection_method:'shuffle'}:m);
 }
 export function calorieGuide(s, recordedMinutesPerWeek=0) {
   const age=Number(s.age),h=Number(s.height_cm),w=Number(s.weight_kg),goal=Number(s.goal_weight_kg),loss=Number(s.monthly_loss_kg);

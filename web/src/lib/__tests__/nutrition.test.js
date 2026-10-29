@@ -1,8 +1,38 @@
 import {describe,it,expect} from 'vitest';
 import foods from '../../../../supabase/functions/_shared/nutrition/foods.json';
-import {calorieGuide,mealTotals,buildPlan,eligibleRecipes,periodSummary,planMatchesDiet} from '../../../../supabase/functions/_shared/nutrition/planner.js';
+import {calorieGuide,mealTotals,buildPlan,eligibleRecipes,periodSummary,planMatchesDiet,shufflePlan,RECIPES,SLOTS} from '../../../../supabase/functions/_shared/nutrition/planner.js';
 const base={sex:'male',age:30,height_cm:180,weight_kg:85,goal_weight_kg:78,monthly_loss_kg:1,activity_level:'sedentary',gym_days:3,gym_minutes:60,gym_basis:'planned',general_plan:true};
 describe('nutrition planning boundaries',()=>{
+ it('offers eight default meals per slot with unique recipe IDs and valid source ingredients',()=>{
+  expect(new Set(RECIPES.map(r=>r.id)).size).toBe(RECIPES.length);
+  for(const slot of SLOTS)expect(eligibleRecipes(foods).filter(r=>r.slot===slot)).toHaveLength(8);
+  for(const recipe of RECIPES){expect(recipe.items.length).toBeLessThanOrEqual(6);expect(mealTotals(recipe.items,foods).kcal).toBeGreaterThan(0);}
+ });
+ it('changes all four choices while preserving the calorie guide and mixed-meal policy',()=>{
+  const old=buildPlan(2300,foods,'regular',[]);
+  const next=shufflePlan(old,2300,foods,'regular',[],'all',()=>.5);
+  expect(next.every((m,i)=>m.recipe_id!==old[i].recipe_id)).toBe(true);
+  expect(planMatchesDiet(next,foods)).toBe(true);
+  expect(Math.abs(next.reduce((n,m)=>n+m.kcal,0)-2300)).toBeLessThan(20);
+  expect(old.every(m=>!m.selection_method)).toBe(true);
+ });
+ it('shuffles a single slot without changing any other cards or portions',()=>{
+  const old=buildPlan(2000,foods,'regular',[]),next=shufflePlan(old,2000,foods,'regular',[],'lunch',()=>0);
+  expect(next[1].recipe_id).not.toBe(old[1].recipe_id);
+  for(const i of [0,2,3])expect(next[i]).toBe(old[i]);
+  expect(shufflePlan(next,2000,foods,'regular',[],'lunch',()=>0)[1].recipe_id).not.toBe(next[1].recipe_id);
+ });
+ it('honours exclusions and explicit vegan preferences during shuffle',()=>{
+  const old=buildPlan(2000,foods,'vegan',['soy']),next=shufflePlan(old,2000,foods,'vegan',['soy'],'snack',()=>.9);
+  expect(planMatchesDiet(next,foods,'vegan',['soy'])).toBe(true);
+  expect(next[2].recipe_id).not.toBe(old[2].recipe_id);
+ });
+ it('explains unavailable alternatives and rejects invalid shuffle slots',()=>{
+  const old=buildPlan(2000,foods,'vegan',['soy']);
+  expect(()=>shufflePlan(old,2000,foods,'vegan',['soy'],'breakfast')).toThrow('No different breakfast');
+  expect(()=>shufflePlan(old,2000,foods,'vegan',['soy'],'supper')).toThrow('valid meal');
+  expect(()=>shufflePlan(old,2000,foods,'regular',[])).toThrow('Rebuild');
+ });
  it('keeps vegetarian main meals out of default presets and overrides incompatible AI choices',()=>{
   const allowed=eligibleRecipes(foods);
   for(const id of ['bean-bowl','lentil-rice','tofu-bowl','plant-oats'])expect(allowed.some(r=>r.id===id)).toBe(false);

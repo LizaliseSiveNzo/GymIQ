@@ -1,7 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 import { admin, authenticate, json } from '../_shared/launch.ts';
 import foods from '../_shared/nutrition/foods.json' with { type: 'json' };
-import { SLOTS, RECIPES, calorieGuide, buildPlan } from '../_shared/nutrition/planner.js';
+import { SLOTS, RECIPES, calorieGuide, buildPlan, shufflePlan } from '../_shared/nutrition/planner.js';
 
 Deno.serve(async(req:Request)=>{
   if(req.method==='OPTIONS')return json({});
@@ -35,10 +35,23 @@ Deno.serve(async(req:Request)=>{
       if(saved.error)throw Error('Goal save failed');
       return json({result,settings});
     }
-    if(body.action!=='plan')return json({error:'Invalid action'},400);
+    if(!['plan','shuffle'].includes(body.action))return json({error:'Invalid action'},400);
     const goal=await scoped.from('nutrition_goals').select('settings,result').eq('user_id',user.id).single();
     if(goal.error||!goal.data)return json({error:'Save your monthly goal first.'},400);
     const {settings,result}=goal.data;
+    if(body.action==='shuffle'){
+      const slot=body.slot||'all';
+      if(slot!=='all'&&!SLOTS.includes(slot))return json({error:'Choose a valid meal to shuffle.'},400);
+      const previous=await scoped.from('nutrition_meal_plans').select('*').eq('user_id',user.id).eq('day',today).single();
+      if(previous.error||!previous.data)return json({error:'Build today’s plan before shuffling.'},400);
+      if(previous.data.target!==result.target)return json({error:'Your calorie guide has changed. Rebuild today’s plan before shuffling.'},400);
+      let plan;
+      try{plan=shufflePlan(previous.data.plan,Number(result.target),foods,settings.diet,settings.excludes,slot);}catch(e){return json({error:(e as Error).message},400);}
+      // Compare-and-swap avoids overwriting a plan changed in another tab/device.
+      const saved=await db.from('nutrition_meal_plans').update({plan,source:'rules',created_at:new Date().toISOString()}).eq('user_id',user.id).eq('day',today).eq('created_at',previous.data.created_at).select('day').single();
+      if(saved.error)return json({error:'Your plan changed elsewhere. Reload this page before shuffling again.'},409);
+      return json({plan,source:'rules',target:result.target,reason:'shuffled'});
+    }
     try{buildPlan(Number(result.target),foods,settings.diet,settings.excludes);}catch(e){return json({error:(e as Error).message},400);}
     let source='rules',reason='basic_selected',selection={};
     const model=Deno.env.get('GROQ_MODEL')?.trim()||'openai/gpt-oss-120b';

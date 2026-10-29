@@ -33,6 +33,22 @@ Extra food never lowers tomorrow's target or creates compensation advice.
 
 ## Food provenance
 
+The catalogue includes eight default mixed-meal options each for breakfast,
+lunch, snack and dinner (32 total), plus four existing vegetarian/vegan opt-in
+recipes. Recipes use 3–5 familiar ingredients from the same verified food data.
+Default lunch and dinner require meat/fish; explicit diet preferences and
+ingredient exclusions filter all generated and shuffled choices.
+
+Each card has a shuffle control, and a central button replaces all four meals.
+Shuffle always excludes the current recipe from eligible alternatives, scales
+replacement portions to the saved daily guide, and preserves other cards exactly
+for a single-card change. It runs within GymIQ without a Groq request or quota
+reservation. It changes the saved plan only, never food diary rows or templates.
+Plans with outdated goals must be rebuilt first. A conditional timestamp update
+prevents simultaneous device requests from silently overwriting each other.
+With restrictive preferences, a slot may have no alternative; the API returns a
+clear explanation and leaves the plan unchanged.
+
 `supabase/functions/_shared/nutrition/foods.json` contains 21 curated USDA SR
 Legacy generic foods, with FDC IDs, descriptions and source URLs. Nutrients are
 per 100 g edible portion. Raw/dry/cooked/drained states are explicit. The
