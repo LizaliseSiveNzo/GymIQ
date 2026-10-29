@@ -3,6 +3,10 @@ import { supabase } from '../lib/supabaseClient.js';
 import foods from '../../../supabase/functions/_shared/nutrition/foods.json';
 import { RECIPES, SLOTS, calorieGuide, mealTotals, localDay, periodSummary, eligibleRecipes, planMatchesDiet } from '../../../supabase/functions/_shared/nutrition/planner.js';
 import './nutrition.css';
+import {useLogSync} from '../context/LogSyncContext.jsx';
+import {subscribeSynced} from '../lib/logQueue.js';
+import QuickMeals,{foodAsMeal,mealPayload} from './ui/QuickMeals.jsx';
+import BarcodeFood from './ui/BarcodeFood.jsx';
 
 const initial={sex:'female',age:'',height_cm:'',weight_kg:'',goal_weight_kg:'',monthly_loss_kg:1,activity_level:'sedentary',gym_days:3,gym_minutes:45,gym_basis:'planned',diet:'regular',excludes:[],general_plan:false};
 const blankMeal=()=>({id:crypto.randomUUID(),name:'',slot:'breakfast',items:[{food_id:foods[0].id,grams:50}],manual:false,kcal:''});
@@ -15,6 +19,8 @@ async function invoke(body){
   return data;
 }
 export default function NutritionHub({userId,openGoals=false}){
+  const sync=useLogSync();
+  const [recent,setRecent]=useState([]),[favourites,setFavourites]=useState([]);
   const [day,setDay]=useState(localDay()),[settings,setSettings]=useState(initial),[goal,setGoal]=useState(null),[showGoal,setShowGoal]=useState(false);
   const [days,setDays]=useState([]),[entries,setEntries]=useState([]),[saved,setSaved]=useState([]),[plan,setPlan]=useState(null);
   const [meal,setMeal]=useState(blankMeal),[editing,setEditing]=useState(false),[consent,setConsent]=useState(false),[period,setPeriod]=useState('day');
@@ -30,11 +36,14 @@ export default function NutritionHub({userId,openGoals=false}){
         supabase.from('saved_meals').select('*').eq('user_id',userId).order('created_at',{ascending:false}),
         supabase.from('nutrition_meal_plans').select('*').eq('user_id',userId).eq('day',day).maybeSingle(),
         supabase.from('calorie_bank').select('*').eq('user_id',userId).maybeSingle(),
+        supabase.from('calorie_transactions').select('id,label,kcal,meal_slot,meal_snapshot,log_day').eq('user_id',userId).eq('kind','food').order('occurred_at',{ascending:false}).limit(30),
+        supabase.from('food_favourites').select('*').eq('user_id',userId).order('created_at',{ascending:false}),
         supabase.from('body_metrics').select('metric_date,weight_kg').eq('client_id',userId).not('weight_kg','is',null).order('metric_date',{ascending:false}).limit(12),
       ]);
       if(!active)return;
       if(results.some(r=>r.error)){setError('Your nutrition records could not load. Reload this page to try again.');setLoading(false);return;}
-      const [g,d,e,m,p,legacy,w]=results.map(r=>r.data);
+      const [g,d,e,m,p,legacy,recent,favourites,w]=results.map(r=>r.data);
+      setRecent(recent||[]);setFavourites(favourites||[]);
       setGoal(g);setDays(d||[]);setEntries(e||[]);setSaved(m||[]);setPlan(p);
       setWeights(w||[]);
       if(g)setSettings({...initial,...g.settings});
@@ -49,6 +58,7 @@ export default function NutritionHub({userId,openGoals=false}){
     if(d.error||e.error)throw Error('Saved, but totals could not refresh. Reload to see the latest records.');
     setDays(d.data||[]);setEntries(e.data||[]);
   }
+  useEffect(()=>subscribeSynced(entry=>{if(entry.userId===userId&&entry.kind==='food'){void refresh().catch(()=>setError('Food synced, but totals could not refresh. Reload when connected.'));supabase.from('calorie_transactions').select('id,label,kcal,meal_slot,meal_snapshot,log_day').eq('user_id',userId).eq('kind','food').order('occurred_at',{ascending:false}).limit(30).then(({data,error})=>{if(!error)setRecent(data||[]);});}}),[userId,day]);
   async function action(fn){if(busy)return;setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Could not save. Please try again.');}finally{setBusy(false);}}
   async function saveGoal(e){e.preventDefault();await action(async()=>{
     const data=await invoke({action:'goal',settings});
@@ -66,11 +76,29 @@ export default function NutritionHub({userId,openGoals=false}){
     setNotice(slot==='all'?'All four meals shuffled. Your logged food is unchanged.':`${slot[0].toUpperCase()+slot.slice(1)} changed. The other meals and your food diary are unchanged.`);
   });}
   function choose(m){setMeal({id:crypto.randomUUID(),name:m.name,slot:m.slot,items:m.items.map(i=>({...i})),manual:false,kcal:''});setEditing(false);document.getElementById('meal-builder')?.scrollIntoView({behavior:'smooth',block:'start'});}
+  async function enqueueFood(value,id){
+    if(!value.name.trim())throw Error('Give the food a name first.');
+    if(value.items)mealTotals(value.items,foods);
+    else if(!Number.isInteger(Number(value.kcal))||Number(value.kcal)<1||Number(value.kcal)>10000)throw Error('Enter 1–10,000 whole calories.');
+    await sync.enqueue('food',mealPayload(value,day),id);
+    setNotice('Food saved on this device. It enters your diary and totals after sync.');
+  }
   async function logMeal(e){e.preventDefault();await action(async()=>{
-    const {error}=await supabase.rpc('log_nutrition_food',{p_id:meal.id,p_day:day,p_slot:meal.slot,p_name:meal.name,p_items:meal.manual?null:meal.items,p_kcal:meal.manual?Number(meal.kcal):null});
-    if(error)throw Error(error.message);
-    await refresh();setMeal(blankMeal());setEditing(false);setNotice(editing?'Food entry corrected. Totals updated.':'Food logged. Your totals are updated.');
+    if(editing){
+      if(!sync.online)throw Error('Connect before correcting a saved entry. New food entries can be queued offline.');
+      const {error}=await supabase.rpc('log_nutrition_food',{p_id:meal.id,p_day:day,p_slot:meal.slot,p_name:meal.name,p_items:meal.manual?null:meal.items,p_kcal:meal.manual?Number(meal.kcal):null});
+      if(error)throw Error(error.message);await refresh();setNotice('Food entry corrected. Totals updated.');
+    }else await enqueueFood({name:meal.name,slot:meal.slot,items:meal.manual?null:meal.items,kcal:Number(meal.kcal)},meal.id);
+    setMeal(blankMeal());setEditing(false);
   });}
+  async function saveFavourite(){await action(async()=>{
+    const value={name:meal.name.trim(),slot:meal.slot,items:meal.manual?null:meal.items,kcal:meal.manual?Number(meal.kcal):null};
+    if(!value.name)throw Error('Give your favourite a name first.');
+    if(value.items)mealTotals(value.items,foods);else if(!Number.isInteger(value.kcal)||value.kcal<1||value.kcal>10000)throw Error('Enter valid label calories.');
+    const {data,error}=await supabase.from('food_favourites').upsert({user_id:userId,...value},{onConflict:'user_id,fingerprint'}).select().single();
+    if(error)throw Error('Could not save your favourite. Connect and try again.');setFavourites(v=>[data,...v.filter(f=>f.id!==data.id)]);setNotice('Favourite saved. It has not been logged as eaten.');
+  });}
+  function useQuick(value){if(value.items)choose(value);else{setMeal({...blankMeal(),name:value.name,slot:value.slot||'snack',manual:true,kcal:String(value.kcal)});setEditing(false);document.getElementById('meal-builder')?.scrollIntoView({behavior:'smooth',block:'start'});}}
   async function saveMeal(){await action(async()=>{
     mealTotals(meal.items,foods);
     if(!meal.name.trim())throw Error('Give your meal a name first.');
@@ -129,16 +157,18 @@ export default function NutritionHub({userId,openGoals=false}){
       {plan&&planCompatible&&<><p className="subtle">{plan.plan.some(m=>m.selection_method==='shuffle')?'Shuffled options · GymIQ calculated portions.':plan.source==='groq'?'Groq chose recipes; GymIQ filtered preferences and calculated portions.':'Basic plan · rule-based choices.'} Plan: {format(plan.plan.reduce((n,m)=>n+m.kcal,0))} kcal · guide when built: {format(plan.target)}. {goal&&plan.target!==goal.result.target?'Your guide has changed; rebuild the plan.':''}</p><div className="nutrition-plan-grid">{plan.plan.map((m,index)=><Fragment key={m.slot}><article className="nutrition-meal"><div className="nutrition-meal-heading"><span className="nutrition-eyebrow">{m.slot}</span><button className="btn btn-ghost nutrition-shuffle-one" aria-label={`Shuffle ${m.slot}`} disabled={busy||day!==today} onClick={()=>shuffle(m.slot)}>↻ Shuffle</button></div><h3>{m.name}</h3><strong>{format(m.kcal)} <small>kcal</small></strong><p className="subtle">{format(m.protein)} g protein · {format(m.carbs)} g carbs · {format(m.fat)} g fat</p><details><summary>Ingredients & portions</summary><ul>{m.items.map((i,n)=><li key={n}>{format(i.grams)} g {foods.find(f=>f.id===i.food_id)?.name}</li>)}</ul></details><button className="btn btn-secondary" disabled={busy} onClick={()=>choose(m)}>Use in meal builder</button></article>{index===1&&<div className="nutrition-shuffle-center"><button className="btn btn-primary" disabled={busy||day!==today} onClick={()=>shuffle('all')}>↻ Shuffle all meals</button><small>New choices. Same daily calorie guide.</small></div>}</Fragment>)}</div></>}
       {!plan&&<p className="subtle">{goal?'Build today’s plan, or start with a preset below.':'Save your goal above to generate a plan. The meal builder below works without a goal.'}</p>}
     </section>
+    <QuickMeals recent={recent} favourites={favourites} day={day} busy={busy} onUse={useQuick} onLog={value=>action(()=>enqueueFood(value))} onRemove={entry=>action(async()=>{const {error}=await supabase.from('food_favourites').delete().eq('user_id',userId).eq('id',entry.id);if(error)throw Error('Could not remove favourite. Connect and try again.');setFavourites(v=>v.filter(f=>f.id!==entry.id));})}/>
+    <BarcodeFood disabled={busy||!sync.online} onUse={value=>useQuick({...value,slot:'snack',items:null})}/>
     <section className="mf-card" id="meal-builder"><h2>{editing?'Correct food entry':'Meal builder & extra food'}</h2><p className="subtle">Log what you actually ate on {day}. Include drinks, sauces, oil and extras. Weights are edible portions; cooked and dry foods differ.</p>
       <label>Start with a preset or saved meal<select value="" disabled={busy} onChange={e=>{const m=[...RECIPES,...saved].find(m=>m.id===e.target.value);if(m)choose(m);}}><option value="">Choose a meal…</option>{SLOTS.map(slot=><optgroup key={slot} label={`${slot[0].toUpperCase()+slot.slice(1)} · ${presets.filter(m=>m.slot===slot).length} options`}>{presets.filter(m=>m.slot===slot).map(m=><option value={m.id} key={m.id}>{m.name}</option>)}</optgroup>)}<optgroup label="My saved meals">{saved.map(m=><option value={m.id} key={m.id}>{m.name}</option>)}</optgroup></select></label>
       <form onSubmit={logMeal} className="nutrition-form"><div className="nutrition-fields"><label>Meal or food name<input required maxLength="100" value={meal.name} onChange={e=>setMeal(m=>({...m,name:e.target.value}))}/></label><label>Meal time<select value={meal.slot} onChange={e=>setMeal(m=>({...m,slot:e.target.value}))}>{SLOTS.map(s=><option value={s} key={s}>{s}</option>)}</select></label></div>
       <label className="nutrition-check"><input type="checkbox" checked={meal.manual} onChange={e=>setMeal(m=>({...m,manual:e.target.checked}))}/>Enter calories from a food label instead</label>
       {meal.manual?<label>Calories eaten · kcal<input type="number" min="1" max="10000" required step="1" value={meal.kcal} onChange={e=>setMeal(m=>({...m,kcal:e.target.value}))}/></label>:<><div className="nutrition-ingredients">{meal.items.map((i,n)=><div className="nutrition-ingredient" key={n}><label>Ingredient {n+1}<select value={i.food_id} onChange={e=>updateItem(n,'food_id',e.target.value)}>{foods.map(f=><option value={f.id} key={f.id}>{f.name}</option>)}</select></label><label>Grams<input type="number" inputMode="decimal" step="0.1" min="1" max="1500" required value={i.grams} onChange={e=>updateItem(n,'grams',e.target.value)}/></label><button type="button" className="btn btn-ghost" aria-label={`Remove ingredient ${n+1}`} disabled={meal.items.length===1} onClick={()=>setMeal(m=>({...m,items:m.items.filter((_,j)=>j!==n)}))}>×</button></div>)}</div><button type="button" className="btn btn-ghost" disabled={meal.items.length>=30} onClick={()=>setMeal(m=>({...m,items:[...m.items,{food_id:foods[0].id,grams:50}]}))}>+ Add ingredient</button><p className="nutrition-preview">{mealTotal?`${format(mealTotal.kcal)} kcal · ${format(mealTotal.protein)} g protein · ${format(mealTotal.carbs)} g carbs · ${format(mealTotal.fat)} g fat`:'Check ingredient quantities.'}</p></>}
-      <div className="launch-actions"><button type="submit" className="btn btn-primary" disabled={busy}>{busy?'Saving…':editing?'Save correction':'Log as eaten'}</button>{!meal.manual&&<button type="button" className="btn btn-secondary" disabled={busy} onClick={saveMeal}>Save meal template</button>}<button type="button" className="btn btn-ghost" disabled={busy} onClick={()=>{setMeal(blankMeal());setEditing(false);}}>Cancel / clear</button></div></form>
+      <div className="launch-actions"><button type="submit" className="btn btn-primary" disabled={busy}>{busy?'Saving…':editing?'Save correction':'Log as eaten'}</button><button type="button" className="btn btn-secondary" disabled={busy||!sync.online} onClick={saveFavourite}>★ Save favourite</button>{!meal.manual&&<button type="button" className="btn btn-secondary" disabled={busy} onClick={saveMeal}>Save meal template</button>}<button type="button" className="btn btn-ghost" disabled={busy} onClick={()=>{setMeal(blankMeal());setEditing(false);}}>Cancel / clear</button></div></form>
       {saved.length>0&&<details><summary>Manage saved meals · {saved.length}</summary>{saved.map(m=><div className="nutrition-log" key={m.id}><span>{m.name}</span><button className="btn btn-ghost" disabled={busy} onClick={()=>action(async()=>{const {error}=await supabase.from('saved_meals').delete().eq('id',m.id).eq('user_id',userId);if(error)throw Error('Could not remove template.');setSaved(v=>v.filter(s=>s.id!==m.id));})}>Remove template</button></div>)}</details>}
     </section>
-    <section className="mf-card"><h2>Food diary</h2>{entries.length===0?<p className="subtle">Nothing logged for this day. Missing logs do not mean no food was eaten.</p>:entries.map(e=><div className="nutrition-log" key={e.id}><div><strong>{e.label||'Food'}</strong><p className="subtle">{e.meal_slot||'Food'} · {format(Math.abs(e.kcal))} kcal</p></div><div className="launch-actions"><button className="btn btn-ghost" disabled={busy} onClick={()=>edit(e)}>Edit</button><button className="btn btn-ghost" disabled={busy} onClick={()=>removeFood(e)}>Remove</button></div></div>)}
-      <label className="nutrition-check"><input type="checkbox" checked={dayData?.complete||false} disabled={busy||entries.length===0} onChange={e=>{const complete=e.target.checked;const previous=dayData?.complete||false;setDays(v=>v.map(d=>d.day===day?{...d,complete}:d));action(async()=>{const {error}=await supabase.from('nutrition_day_status').upsert({user_id:userId,day,complete},{onConflict:'user_id,day'});if(error){setDays(v=>v.map(d=>d.day===day?{...d,complete:previous}:d));throw Error('Could not update day status.');}await refresh();});}}/>I’ve finished logging all food and drinks for this day</label>
+    <section className="mf-card"><h2>Food diary</h2>{sync.pending.filter(e=>e.kind==='food'&&e.payload.day===day).map(e=><div className="nutrition-log pending-food" key={e.id}><strong>{e.payload.name}</strong><span>Saved on device · {e.status==='conflict'?'review conflict':'not yet in totals'}</span></div>)}{entries.length===0?<p className="subtle">Nothing logged for this day. Missing logs do not mean no food was eaten.</p>:entries.map(e=><div className="nutrition-log" key={e.id}><div><strong>{e.label||'Food'}</strong><p className="subtle">{e.meal_slot||'Food'} · {format(Math.abs(e.kcal))} kcal</p></div><div className="launch-actions"><button className="btn btn-ghost" disabled={busy} onClick={()=>edit(e)}>Edit</button><button className="btn btn-ghost" disabled={busy} onClick={()=>removeFood(e)}>Remove</button></div></div>)}
+      <label className="nutrition-check"><input type="checkbox" checked={dayData?.complete||false} disabled={busy||entries.length===0||sync.pending.some(e=>e.kind==='food'&&e.payload.day===day)} onChange={e=>{const complete=e.target.checked;const previous=dayData?.complete||false;setDays(v=>v.map(d=>d.day===day?{...d,complete}:d));action(async()=>{const {error}=await supabase.from('nutrition_day_status').upsert({user_id:userId,day,complete},{onConflict:'user_id,day'});if(error){setDays(v=>v.map(d=>d.day===day?{...d,complete:previous}:d));throw Error('Could not update day status.');}await refresh();});}}/>I’ve finished logging all food and drinks for this day</label>
     </section>
     <section className="mf-card"><h2>The bigger picture</h2><div className="nutrition-periods" aria-label="Food summary period">{['day','week','month'].map(p=><button className={`btn ${period===p?'btn-primary':'btn-ghost'}`} aria-pressed={period===p} key={p} onClick={()=>setPeriod(p)}>{p==='day'?'Day':p==='week'?'Week to date':'Month to date'}</button>)}</div>
       <div className="nutrition-numbers"><div><span>Food logged</span><strong>{format(summary.logged)}<small> kcal</small></strong></div><div><span>Guide · {summary.guideDays} known days</span><strong>{summary.guideDays?format(summary.guide):'—'}<small>{summary.guideDays?' kcal':''}</small></strong></div></div>

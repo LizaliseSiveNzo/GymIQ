@@ -11,6 +11,8 @@ import ProgressionCoach from '../../components/ui/ProgressionCoach.jsx';
 import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import {useLogSync} from '../../context/LogSyncContext.jsx';
+import {subscribeSynced,queueStore} from '../../lib/logQueue.js';
 import { detectPRs, plateBreakdown } from '../../lib/engines/prs.js';
 import useSessionTimer from '../../hooks/useSessionTimer.js';
 import SessionTiming from '../../components/ui/SessionTiming.jsx';
@@ -38,13 +40,25 @@ export default function SessionPlayer() {
   const dayId = params.dayId && params.dayId !== 'free' ? params.dayId : null;
   const isFree = !dayId;
   const { profile } = useAuth();
+  const sync=useLogSync();
   const navigate = useNavigate();
 
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [errText, setErrText] = useState('');
   const [logId, setLogId] = useState(null);
   const [plan, setPlan] = useState([]);       // [{key,name,exerciseId,peId,laterality,equipmentIds,scheme}]
-  const [done, setDone] = useState({});        // key → [inserted set rows]
+  const [serverDone, setDone] = useState({});        // key → [inserted set rows]
+  const queuedSets=sync.pending.filter(e=>e.kind==='set'&&e.payload.log_id===logId);
+  const done=useMemo(()=>{
+    const result=Object.fromEntries(Object.entries(serverDone).map(([key,rows])=>[key,[...rows]]));
+    for(const entry of queuedSets){const row={...entry.payload,id:entry.id,_queued:true,completed:true,set_type:'normal'},key=keyFor(row.programme_exercise_id,row.exercise_name);if(!Object.values(result).flat().some(s=>s.id===row.id))(result[key]||=[]).push(row);}
+    return result;
+  },[serverDone,sync.pending,logId]);
+  useEffect(()=>subscribeSynced(entry=>{
+    if(entry.userId!==profile?.id||entry.kind!=='set'||entry.payload.log_id!==logId)return;
+    const row=entry.result?.record;if(!row)return;const key=keyFor(row.programme_exercise_id,row.exercise_name);
+    setDone(old=>({...old,[key]:[...(old[key]||[]).filter(s=>s.id!==row.id),row].sort((a,b)=>a.set_number-b.set_number)}));
+  }),[profile?.id,logId]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showFinish, setShowFinish] = useState(false);
   const [finishing, setFinishing] = useState(false);
@@ -283,11 +297,9 @@ export default function SessionPlayer() {
       target_rep_min: item.scheme.repMin, target_rep_max: item.scheme.repMax,
       target_rir: item.scheme.rir, completed: true,
     };
-    const { data, error } = await supabase.from('logged_sets').insert(row).select('*').single();
-    pendingSets.current.delete(pendingKey);
-    if (error) { setErrText(error.message); return; }
-    setDone((prev) => ({ ...prev, [item.key]: [...(prev[item.key] || []), data] }));
-    beginRest(item.scheme.restSeconds || 90);
+    try{await sync.enqueue('set',row);beginRest(item.scheme.restSeconds || 90);}
+    catch(error){setErrText(error.message||'Could not save on this device. Keep this session open and retry.');}
+    finally{pendingSets.current.delete(pendingKey);}
   }
 
   async function addFreeExercise(ex) {
@@ -335,11 +347,13 @@ export default function SessionPlayer() {
     timer.saveRecovery();forceRender();
   }
   function editSessionSet(row) {
+    if(row._queued){setErrText('Sync this set before editing it.');return;}
     if(pendingSets.current.size){setErrText('Wait for your set to finish saving first.');return;}
     pauseSession();setEditingSet(row);
   }
 
   function requestDiscard(action) {
+    if(queuedSets.length){setErrText('Sync or review the queued sets before removing an exercise or cancelling this workout.');return;}
     if (pendingSets.current.size) { setErrText('Wait for your set to finish saving, then try again.'); return; }
     pauseSession(); setDiscardError(''); setDiscard(action);
   }
@@ -388,6 +402,8 @@ export default function SessionPlayer() {
   }, [sessionSets, timer.clock.elapsedMs, progressUnavailable]);
 
   async function finishWorkout() {
+    let pending;try{pending=await queueStore.list(profile.id);}catch{setErrText('Could not check device saves. Keep this workout open and retry.');return;}
+    if(pending.some(e=>e.kind==='set'&&e.payload.log_id===logIdRef.current)){setErrText('Your sets are saved on this device. Connect and sync them before finishing the workout.');setShowFinish(false);return;}
     if (pendingSets.current.size) { setErrText('Wait for your set to finish saving, then try again.'); return; }
     setFinishing(true);
     try {
@@ -514,7 +530,7 @@ export default function SessionPlayer() {
             </div>
 
             {item.originalName&&<p className="subtle">Session replacement for {item.originalName}. Loads below belong to {item.name}.</p>}
-            <ProgressionCoach key={`coach:${targetKey(item)}`} item={item} progress={progress} feedback={coachFeedback} preferences={coachPreferences} readiness={readiness} defaultIncrement={(item.equipmentIds||[]).includes('barbell')?knownBarIncrement:null} userId={profile.id} logId={logId} hasLogged={committed.length>0} locked={readinessBusy||swapBusy||discardBusy} unavailable={coachUnavailable||progressUnavailable} onApply={suggestion=>applyCoach(item,suggestion)} onFeedback={row=>setCoachFeedback(rows=>[row,...rows.filter(f=>!(f.log_id===row.log_id&&f.exercise_key===row.exercise_key))])} onPreference={row=>setCoachPreferences(rows=>[row,...rows.filter(p=>p.exercise_key!==row.exercise_key)])}/>
+            <ProgressionCoach key={`coach:${targetKey(item)}`} item={item} progress={progress} feedback={coachFeedback} preferences={coachPreferences} readiness={readiness} defaultIncrement={(item.equipmentIds||[]).includes('barbell')?knownBarIncrement:null} userId={profile.id} logId={logId} hasLogged={committed.length>0} locked={readinessBusy||swapBusy||discardBusy||committed.some(s=>s._queued)} unavailable={coachUnavailable||progressUnavailable} onApply={suggestion=>applyCoach(item,suggestion)} onFeedback={row=>setCoachFeedback(rows=>[row,...rows.filter(f=>!(f.log_id===row.log_id&&f.exercise_key===row.exercise_key))])} onPreference={row=>setCoachPreferences(rows=>[row,...rows.filter(p=>p.exercise_key!==row.exercise_key)])}/>
             {planned&&<div className="exercise-previous planned-target"><strong>Planned target · {Number(planned.weight)} kg × {planned.reps}</strong><p>Saved as your starting default. Session edits or accepted coach suggestions do not change this saved target or count as a PR.</p></div>}
             {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>{planned ? 'Your saved target is shown above. Review the inputs; an accepted coach suggestion applies to this session only.' : 'Previous working sets are your starting defaults. Review a coach suggestion or edit the inputs; tick a set only after performing it.'}</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
             {!previous && !planned && <p className="subtle" style={{fontSize:12}}>Enter your starting weight and reps. Finished working sets become your defaults next time.</p>}
@@ -543,7 +559,7 @@ export default function SessionPlayer() {
                   <span className="subtle" style={{ fontSize: 12.5, lineHeight: 1.25 }}>
                     {reference}
                     <span style={{ display: 'block', color: rirColor(item.scheme.rir), fontSize: 11.5 }}>{item.scheme.rir} RIR</span>
-                    {isDone&&<button type="button" className="set-inline-edit" onClick={()=>editSessionSet(c)} aria-label={`Edit ${item.name} set ${idx+1}`}>Edit</button>}
+                    {c?._queued&&<small style={{display:'block'}}>Waiting to sync</small>}{isDone&&!c._queued&&<button type="button" className="set-inline-edit" onClick={()=>editSessionSet(c)} aria-label={`Edit ${item.name} set ${idx+1}`}>Edit</button>}
                   </span>
                   <input aria-label={`Set ${idx+1} weight in kg`} type="number" inputMode="decimal" value={kg} disabled={isDone || timer.clock.paused || discardBusy}
                     onChange={(e) => setRowDraft(item, idx, { kg: e.target.value })} style={cellInput} />
@@ -555,7 +571,7 @@ export default function SessionPlayer() {
                       aria-label="Cycle RIR"
                       style={{ position: 'absolute', right: -6, bottom: -6, width: 20, height: 20, borderRadius: 999, background: rirColor(rir), color: '#fff', fontSize: 11, fontWeight: 800, border: '2px solid var(--surface)', cursor: isDone ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{rir ?? '–'}</button>
                   </div>
-                  <button type="button" disabled={timer.clock.paused || discardBusy} onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
+                  <button type="button" disabled={timer.clock.paused || discardBusy || c?._queued} onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
                     aria-label={isDone ? 'Uncheck set' : 'Complete set'}
                     style={{ width: 26, height: 26, borderRadius: 7, border: `2px solid ${isDone ? 'var(--green-600)' : 'var(--border-strong)'}`, background: isDone ? 'var(--green-600)' : 'transparent', color: 'var(--on-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, justifySelf: 'center' }}>{isDone ? '✓' : ''}</button>
                 </div>

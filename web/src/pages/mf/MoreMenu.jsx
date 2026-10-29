@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import {queueStore} from '../../lib/logQueue.js';
 import { supabase } from '../../lib/supabaseClient.js';
 
 async function functionError(error, fallback) {
@@ -60,7 +61,8 @@ export default function MoreMenu() {
   async function exportData() {
     const { data, error } = await supabase.rpc('export_my_data');
     if (error) throw error;
-    const url = URL.createObjectURL(new Blob([JSON.stringify({ exported_at: new Date().toISOString(), data }, null, 2)], { type: 'application/json' }));
+    const pending_device_logs=await queueStore.list(profile.id);
+    const url = URL.createObjectURL(new Blob([JSON.stringify({ pending_device_logs, exported_at: new Date().toISOString(), data }, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = 'gymiq-data.json'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     setNotice('Your data export has been downloaded.');
@@ -70,6 +72,7 @@ export default function MoreMenu() {
     if (error) throw new Error(await functionError(error, 'Account deletion failed. Please contact support.'));
     if (!data.deleted) throw new Error('Deletion has not completed.');
     for (const key of Object.keys(localStorage)) if (key.startsWith(`gymiq_session_${profile.id}_`)) localStorage.removeItem(key);
+    try{for(const entry of await queueStore.list(profile.id))await queueStore.remove(entry.id,profile.id);}catch{/* Browser storage may be unavailable. */}
     await logout();
     window.location.assign('/login');
   }

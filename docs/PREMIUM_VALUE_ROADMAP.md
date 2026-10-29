@@ -9,10 +9,10 @@ Work through these as reviewable stages while keeping Workouts the flagship.
    completion, load/reps, weight averages and complete food-log comparisons.
    Review and approve future exercise targets; calorie goals use their existing
    explicit form. Missing food records never imply a deficit. See WEEKLY_CHECK_IN.md.
-3. Practical food planning — next: grocery lists, servings, batch cooking, ingredient
-   reuse and budget preferences; expand verified local food labels.
-4. Lower-friction logging — offline queue with conflict handling, repeat meals,
-   favourites, barcode lookup and fast swaps. Session swapping is already present.
+3. Practical food planning — skipped at the owner’s request.
+4. Lower-friction logging — implemented: durable new-entry queue with conflict
+   handling, repeat meals, favourites and barcode lookup. Existing individual meal
+   shuffles and session swaps provide quick replacements. See QUICK_LOGGING.md.
 5. Progress story — understandable monthly strength, consistency and weight
    trends, with fair comparisons and clear missing-data indicators.
 
