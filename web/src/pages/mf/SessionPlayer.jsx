@@ -11,10 +11,14 @@ import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { detectPRs, plateBreakdown } from '../../lib/engines/prs.js';
+import useSessionTimer from '../../hooks/useSessionTimer.js';
+import SessionTiming from '../../components/ui/SessionTiming.jsx';
+import { formatSessionTime } from '../../lib/sessionClock.js';
+import { createRestBell } from '../../lib/restBell.js';
 
 const SET_TYPES = ['normal', 'warmup', 'drop', 'myorep', 'partial', 'failure'];
 const DEFAULT_SCHEME = { sets: 3, repMin: 8, repMax: 12, rir: 2, restSeconds: 90 };
-const fmtClock = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+const fmtClock = formatSessionTime;
 
 /**
  * Live workout logger.
@@ -31,7 +35,6 @@ export default function SessionPlayer() {
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [errText, setErrText] = useState('');
   const [logId, setLogId] = useState(null);
-  const [startedAt, setStartedAt] = useState(Date.now());
   const [plan, setPlan] = useState([]);       // [{key,name,exerciseId,peId,laterality,equipmentIds,scheme}]
   const [done, setDone] = useState({});        // key → [inserted set rows]
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -44,24 +47,49 @@ export default function SessionPlayer() {
   const logIdRef = useRef(null);
   const pendingSets = useRef(new Set());
 
-  // timers
-  const [nowTick, setNowTick] = useState(Date.now());
-  const [restLeft, setRestLeft] = useState(0);
+  const bellRef = useRef(null);
+  if (!bellRef.current) bellRef.current = createRestBell();
+  const [soundOn, setSoundOn] = useState(() => {
+    try { return localStorage.getItem('gymiq_rest_bell') !== 'off'; } catch { return true; }
+  });
+  const [restComplete, setRestComplete] = useState(false);
+  const [soundUnavailable, setSoundUnavailable] = useState(false);
+  const [timingSyncError, setTimingSyncError] = useState(false);
+  const timer = useSessionTimer({
+    getRecovery: () => ({ drafts: drafts.current, activeIdx, extraRows }),
+    onRestEnd: () => {
+      setRestComplete(true);
+      void bellRef.current.play().then((played) => { if (soundOn && !played) setSoundUnavailable(true); });
+    },
+    onCheckpoint: async (seconds) => {
+      if (!logIdRef.current) return;
+      try {
+        const { error } = await supabase.rpc('checkpoint_workout_duration', { p_log: logIdRef.current, p_duration: seconds });
+        setTimingSyncError(!!error);
+      } catch { setTimingSyncError(true); }
+    },
+  });
   useEffect(() => {
-    const t = setInterval(() => {
-      setNowTick(Date.now());
-      setRestLeft((r) => (r > 0 ? r - 1 : 0));
-    }, 1000);
-    return () => clearInterval(t);
-  }, []);
+    bellRef.current.setEnabled(soundOn);
+    try { localStorage.setItem('gymiq_rest_bell', soundOn ? 'on' : 'off'); } catch { /* optional preference */ }
+  }, [soundOn]);
+  useEffect(() => { if (timer.clock.paused) bellRef.current.stop(); }, [timer.clock.paused]);
+  useEffect(() => () => bellRef.current.dispose(), []);
+  useEffect(() => { timer.saveRecovery(); }, [activeIdx, extraRows, timer.saveRecovery]);
+  const beginRest = (seconds) => { setRestComplete(false); timer.changeRest(seconds); };
+  const pauseSession = () => { timer.pause(); bellRef.current.stop(); };
+  const resumeSession = () => { void bellRef.current.unlock(); timer.resume(); };
+  const testBell = async () => { setSoundUnavailable(!await bellRef.current.play()); };
 
   /* ------------------------------ load ------------------------------ */
   useEffect(() => {
     if (!profile?.id || profile.demo) { setStatus('error'); setErrText('Sign in to track workouts.'); return; }
+    timer.pause();
+    setStatus('loading');
     let cancelled = false;
     (async () => {
       try {
-        // Reuse an open (unfinished) log for this day today; else create one.
+        // Recover an unfinished log for this day, including an earlier paused workout.
         const opened = await supabase.rpc('open_workout', { p_day: dayId });
         if (opened.error) throw opened.error;
         const log = Array.isArray(opened.data) ? opened.data[0] : opened.data;
@@ -69,7 +97,6 @@ export default function SessionPlayer() {
         if (cancelled) return;
         logIdRef.current = log.id;
         setLogId(log.id);
-        setStartedAt(new Date(log.created_at).getTime());
 
         // Plan
         let items = [];
@@ -145,6 +172,14 @@ export default function SessionPlayer() {
         }
 
         if (cancelled) return;
+        const recovery = timer.initialize({
+          key: `gymiq_timing_${profile.id}_${log.id}`,
+          serverSeconds: Number(log.duration_sec) || 0,
+          startFresh: log.duration_sec == null && !existing.data?.length && Date.now() - new Date(log.created_at).getTime() < 60000,
+        });
+        drafts.current = recovery?.drafts && typeof recovery.drafts === 'object' ? recovery.drafts : {};
+        setActiveIdx(Number.isInteger(recovery?.activeIdx) ? Math.max(0, recovery.activeIdx) : 0);
+        setExtraRows(recovery?.extraRows && typeof recovery.extraRows === 'object' ? recovery.extraRows : {});
         setPlan(items);
         setStatus('ready');
       } catch (e) {
@@ -205,10 +240,11 @@ export default function SessionPlayer() {
 
     setDone((prev) => ({ ...prev, [item.key]: [...(prev[item.key] || []), data] }));
     drafts.current[item.key] = { ...d, repsR: '', repsL: '' };
-    if (d.setType !== 'warmup') setRestLeft(item.scheme.restSeconds || 90);
+    if (d.setType !== 'warmup') beginRest(item.scheme.restSeconds || 90);
   }
 
   async function removeSet(item, setId) {
+    if (timer.isPaused()) return;
     const { error } = await supabase.from('logged_sets').delete().eq('id', setId);
     if (error) { setErrText(error.message); return; }
     setDone((prev) => ({ ...prev, [item.key]: (prev[item.key] || []).filter((s) => s.id !== setId) }));
@@ -225,10 +261,13 @@ export default function SessionPlayer() {
     const k = `rows_${item.key}`;
     const store = (drafts.current[k] ||= {});
     store[idx] = { ...rowDraft(item, idx), ...patch };
+    timer.saveRecovery();
     forceRender();
   }
   // Commit a set when its tick-box is checked.
   async function logSet(item, idx) {
+    if (timer.isPaused()) return;
+    void bellRef.current.unlock();
     const pendingKey = `${item.key}_${idx}`;
     if (pendingSets.current.has(pendingKey)) return;
     const rd = rowDraft(item, idx);
@@ -252,7 +291,7 @@ export default function SessionPlayer() {
     pendingSets.current.delete(pendingKey);
     if (error) { setErrText(error.message); return; }
     setDone((prev) => ({ ...prev, [item.key]: [...(prev[item.key] || []), data] }));
-    setRestLeft(item.scheme.restSeconds || 90);
+    beginRest(item.scheme.restSeconds || 90);
   }
 
   function addFreeExercise(ex) {
@@ -275,10 +314,10 @@ export default function SessionPlayer() {
   const summary = useMemo(() => {
     const hard = sessionSets.filter((s) => s.setType !== 'warmup');
     const volume = hard.reduce((a, s) => a + (s.weight * s.reps) + (s.weightLeft * s.repsLeft), 0);
-    const durationSec = Math.max(0, Math.round((nowTick - startedAt) / 1000));
+    const durationSec = Math.floor(timer.clock.elapsedMs / 1000);
     const { prs } = detectPRs(sessionSets, priorPrRef.current);
     return { sets: hard.length, volume: Math.round(volume), durationSec, prs };
-  }, [sessionSets, nowTick, startedAt]);
+  }, [sessionSets, timer.clock.elapsedMs]);
 
   async function finishWorkout() {
     if (pendingSets.current.size) { setErrText('Wait for your set to finish saving, then try again.'); return; }
@@ -287,8 +326,9 @@ export default function SessionPlayer() {
       const day = new Date();
       const today = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
       const { error } = await supabase.rpc('finish_workout', { p_log: logIdRef.current,
-        p_duration: summary.durationSec, p_day: today, p_prs: summary.prs });
+        p_duration: timer.getSeconds(), p_day: today, p_prs: summary.prs });
       if (error) throw error;
+      timer.complete();
       try { localStorage.removeItem(`gymiq_session_${profile.id}_${logIdRef.current}`); } catch { /* ignore */ }
       navigate(`/workout/history/${logIdRef.current}`, { replace: true });
     } catch (e) {
@@ -303,7 +343,6 @@ export default function SessionPlayer() {
   if (status === 'loading') return <TabShell active="workout" title="Session"><div className="mf-card"><div className="subtle">Preparing your session…</div></div></TabShell>;
   if (status === 'error') return <TabShell active="workout" title="Session"><div className="mf-card"><h4>⚠️ {errText}</h4></div></TabShell>;
 
-  const elapsed = Math.max(0, Math.round((nowTick - startedAt) / 1000));
   const initials = (name = '') => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').slice(0, 3).toUpperCase() || '?';
   const workingDone = (item) => (done[item.key] || []).filter((s) => s.set_type !== 'warmup').length;
   const targetMet = (item) => workingDone(item) >= (item.scheme.sets || 0);
@@ -313,23 +352,19 @@ export default function SessionPlayer() {
   return (
     <TabShell active="workout" title={isFree ? 'Freestyle workout' : 'Your session'}>
       {errText && <div className="inline-error" role="alert">{errText}</div>}
-      {/* status chips */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-        <span style={chipStyle}>⏱ {fmtClock(elapsed)}</span>
-        {restLeft > 0 && (
-          <span style={{ ...chipStyle, color: restLeft <= 10 ? 'var(--energy)' : undefined }}>
-            🔔 Rest {fmtClock(restLeft)}
-          </span>
-        )}
-        {restLeft > 0 && (
-          <>
-            <button style={miniBtn} onClick={() => setRestLeft((r) => r + 15)}>+15s</button>
-            <button style={miniBtn} onClick={() => setRestLeft(0)}>skip</button>
-          </>
-        )}
-        <span style={{ flex: 1 }} />
-        {plan.length > 0 && <span className="subtle" style={{ fontSize: 12 }}>{plan.filter(targetMet).length}/{plan.length} done</span>}
-      </div>
+      <SessionTiming clock={timer.clock} soundOn={soundOn} restComplete={restComplete}
+        onPause={pauseSession} onResume={resumeSession}
+        onAddRest={() => timer.addRest(15)}
+        onSkipRest={() => { setRestComplete(false); timer.changeRest(0); bellRef.current.stop(); }}
+        onSoundToggle={() => {
+          const enabled = !soundOn;
+          bellRef.current.setEnabled(enabled);
+          if (enabled) void bellRef.current.unlock();
+          setSoundOn(enabled); setSoundUnavailable(false);
+        }} onTestBell={testBell} />
+      {soundUnavailable && <p className="subtle" role="status">Bell audio is unavailable in this browser. The rest-complete message will still appear.</p>}
+      {(timingSyncError || timer.storageError) && <p className="subtle" role="status">{timer.storageError ? 'Device recovery storage is unavailable. Keep this session open until it finishes saving online.' : 'Active time is saved on this device. Cloud sync will retry when connected.'}</p>}
+      {plan.length > 0 && <p className="subtle" style={{ fontSize: 12 }}>{plan.filter(targetMet).length}/{plan.length} exercises done</p>}
 
       {/* exercise filmstrip — tap a card to jump to that exercise */}
       {plan.length > 0 && (
@@ -430,17 +465,17 @@ export default function SessionPlayer() {
                     {autoLine}
                     <span style={{ display: 'block', color: rirColor(item.scheme.rir), fontSize: 11.5 }}>{item.scheme.rir} RIR</span>
                   </span>
-                  <input type="number" inputMode="decimal" value={kg} disabled={isDone}
+                  <input type="number" inputMode="decimal" value={kg} disabled={isDone || timer.clock.paused}
                     onChange={(e) => setRowDraft(item, idx, { kg: e.target.value })} style={cellInput} />
                   <div style={{ position: 'relative' }}>
-                    <input type="number" inputMode="numeric" value={reps} disabled={isDone}
+                    <input type="number" inputMode="numeric" value={reps} disabled={isDone || timer.clock.paused}
                       onChange={(e) => setRowDraft(item, idx, { reps: e.target.value })} style={cellInput} />
-                    <button type="button" disabled={isDone}
+                    <button type="button" disabled={isDone || timer.clock.paused}
                       onClick={() => setRowDraft(item, idx, { rir: (((rd.rir ?? 0) + 1) % 5) })}
                       aria-label="Cycle RIR"
                       style={{ position: 'absolute', right: -6, bottom: -6, width: 20, height: 20, borderRadius: 999, background: rirColor(rir), color: '#fff', fontSize: 11, fontWeight: 800, border: '2px solid var(--surface)', cursor: isDone ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{rir ?? '–'}</button>
                   </div>
-                  <button type="button" onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
+                  <button type="button" disabled={timer.clock.paused} onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
                     aria-label={isDone ? 'Uncheck set' : 'Complete set'}
                     style={{ width: 26, height: 26, borderRadius: 7, border: `2px solid ${isDone ? 'var(--green-600)' : 'var(--border-strong)'}`, background: isDone ? 'var(--green-600)' : 'transparent', color: 'var(--on-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, justifySelf: 'center' }}>{isDone ? '✓' : ''}</button>
                 </div>
@@ -467,7 +502,7 @@ export default function SessionPlayer() {
       {/* sticky complete/finish */}
       {plan.length > 0 && (
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px)', padding: '0 16px', zIndex: 40 }}>
-          <button className="btn btn-primary btn-lg btn-block" disabled={summary.sets === 0} onClick={() => setShowFinish(true)}>
+          <button className="btn btn-primary btn-lg btn-block" disabled={summary.sets === 0} onClick={() => { pauseSession(); setShowFinish(true); }}>
             {allMet ? 'Complete workout' : 'Finish workout'}
           </button>
         </div>

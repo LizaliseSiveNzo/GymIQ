@@ -295,6 +295,16 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 /* Exercise artwork: preserve every panel, including portrait source illustrations. */
 .exercise-catalog-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .exercise-catalog-row__info { min-width: 0; flex: 1 1 140px; overflow-wrap: anywhere; }
+.session-timing { padding: 16px; border: 1px solid var(--border-strong); border-radius: 18px; background: var(--surface); margin-bottom: 16px; }
+.session-timing__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.session-timing__row strong { display: block; font-size: 28px; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.session-timing__label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); }
+.session-timing__hint { font-size: 12px; line-height: 1.5; color: var(--text-muted); margin: 12px 0 0; }
+.session-paused, .session-rest-done { padding: 12px; border-radius: 10px; background: rgb(198 255 58 / 8%); color: var(--ink); font-size: 13px; line-height: 1.5; margin: 12px 0 0; }
+.session-rest { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 14px; }
+.session-timing__sound { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.session-timing__sound .btn { padding: 6px 10px; min-height: 44px; font-size: 12px; }
+.session-timing__sound span { font-size: 11px; color: var(--text-muted); }
 .exercise-illustration { flex: 0 0 auto; }
 .exercise-illustration__open { display: block; padding: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #10140d; color: var(--ink); cursor: zoom-in; }
 .exercise-illustration__open:focus-visible { outline: 2px solid var(--accent, #c6ff3a); outline-offset: 3px; }

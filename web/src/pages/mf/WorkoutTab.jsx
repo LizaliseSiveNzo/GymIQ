@@ -25,6 +25,7 @@ export default function WorkoutTab() {
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [nextIndex, setNextIndex] = useState(0);
+  const [unfinished, setUnfinished] = useState(null);
   const monday = new Date();
   monday.setHours(0, 0, 0, 0);
   monday.setDate(monday.getDate() - todayDow);
@@ -71,25 +72,38 @@ export default function WorkoutTab() {
   // Sessions finished since Monday → which day is up next in the rotation.
   useEffect(() => {
     if (!profile?.id || profile.demo) return;
+    let cancelled = false;
     (async () => {
       const now = new Date();
       const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
-      const { data, error } = await supabase.from('workout_logs')
+      const [finishedResult, unfinishedResult] = await Promise.all([supabase.from('workout_logs')
         .select('id,day_id')
         .eq('client_id', profile.id)
         .not('completed_at', 'is', null)
-        .gte('completed_at', monday.toISOString());
-      if (error) { setError(error.message); return; }
-      const rows = data || [];
+        .gte('completed_at', monday.toISOString()),
+        supabase.from('workout_logs').select('id,day_id').eq('client_id', profile.id)
+          .is('completed_at', null).or('day_id.not.is.null,note.eq.freeform')
+          .order('created_at', { ascending: false }).limit(1),
+      ]);
+      if (cancelled) return;
+      if (finishedResult.error || unfinishedResult.error) { setError('Could not load your session status. Please try again.'); return; }
+      setUnfinished(unfinishedResult.data?.[0] || null);
+      const rows = finishedResult.data || [];
       setWeekCount(rows.length);
       setCompleted(new Set(rows.map((r) => r.day_id).filter(Boolean)));
     })();
-  }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { cancelled = true; };
+  }, [profile?.id, retry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <TabShell active="workout" title="Your training.">
       <div className="training-intro"><p>Your programme, your pace. Make every session count.</p><Link to="/workout/history">View history ↗</Link></div>
       {error && <div className="inline-error" role="alert">{error} <button className="btn btn-ghost" onClick={() => setRetry(r => r + 1)}>Try again</button></div>}
+      {unfinished && <div className="mf-card" style={{ marginBottom: 16 }}>
+        <h3 style={{ marginTop: 0 }}>Continue your workout</h3>
+        <p className="subtle">Your unfinished session is saved. Return to review it, then tap Resume session when you’re ready.</p>
+        <Link className="btn btn-primary" to={`/workout/session/${unfinished.day_id || 'free'}`}>Return to session →</Link>
+      </div>}
       <div className="daystrip">
         {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
           <div key={i} className={`day-pill ${i === todayDow ? 'today' : ''}`}>
