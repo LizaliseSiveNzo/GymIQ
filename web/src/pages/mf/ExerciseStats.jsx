@@ -9,6 +9,7 @@ import { loadExerciseProgress } from '../../lib/loadExerciseProgress.js';
 import { buildExerciseProgress } from '../../lib/exerciseProgress.js';
 import { loadExerciseTargets, targetKey } from '../../lib/exerciseTargets.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import AiReviewCard from '../../components/ui/AiReviewCard.jsx';
 export default function ExerciseStats() {
   const { profile } = useAuth();
   const [progress,setProgress] = useState(null), [targets,setTargets]=useState([]), [error,setError] = useState(''), [retry,setRetry] = useState(0);
@@ -26,6 +27,7 @@ export default function ExerciseStats() {
     {error && <div className="inline-error" role="alert">{error} <button className="btn btn-ghost" onClick={()=>setRetry(n=>n+1)}>Try again</button></div>}
     {!progress && !error && <p role="status">Loading exercise records…</p>}
     {progress&&<>
+      <AiReviewCard domain="training"/>
       <section className="mf-card exercise-targets"><h2>Next-session targets</h2><p className="subtle">Plan weight and reps before an exercise, even if you haven’t logged it before. Targets prefill unlogged sets until cleared. They never count as records.</p>
         <button className="btn btn-secondary" onClick={()=>setPicker(open=>!open)}>{picker?'Close exercise picker':'+ Set exercise target'}</button>
         {picker&&<ExercisePicker mode="pick" pickLabel="Set target" onPick={exercise=>{setTargetExercise({exerciseId:exercise.id,name:exercise.name});setPicker(false);}}/>}

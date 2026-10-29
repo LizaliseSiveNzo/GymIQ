@@ -365,3 +365,13 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 .target-list-row .btn { font-size: 12px; }
 .set-inline-edit { padding: 7px 0; border: 0; background: transparent; color: var(--accent); cursor: pointer; min-height: 32px; font: inherit; font-size: 12px; }
 .planned-target { border-color: var(--accent); }
+
+.ai-review-card { margin: 20px 0; }
+.ai-review-card .section-heading { margin: 0 0 8px; }
+.ai-review-card .section-heading h2 { font-size: 20px; margin: 0; }
+.ai-review-card > p { font-size: 13px; line-height: 1.6; }
+.ai-review-consent { display: flex; align-items: flex-start; gap: 10px; padding: 12px; margin: 14px 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; font-size: 12px; line-height: 1.6; }
+.ai-review-consent input { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 2px; accent-color: var(--accent); }
+.ai-review-note { font-size: 11px !important; line-height: 1.6; }
+.ai-review-result { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; font-size: 13px; line-height: 1.65; }
+.ai-review-next { background: var(--surface-2); padding: 12px; border-radius: 12px; }
