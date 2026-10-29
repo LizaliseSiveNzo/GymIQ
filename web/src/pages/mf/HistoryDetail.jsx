@@ -8,18 +8,20 @@ import { Link, useParams } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import SetEditDialog from '../../components/ui/SetEditDialog.jsx';
 
 const fmtFull = (d) => new Date(d).toLocaleString([], {
   weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
 });
 const clock = (s) => (s ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : '—');
 
-// One finished session, read-only.
+// Saved sessions: corrections update the actual set and derived totals.
 export function HistoryDetail() {
   const { logId } = useParams();
   const { profile } = useAuth();
   const [log, setLog] = useState(undefined);
   const [error, setError] = useState('');
+  const [editing,setEditing]=useState(null);
 
   useEffect(() => {
     if (!profile?.id || !logId) return;
@@ -61,18 +63,20 @@ export function HistoryDetail() {
         <div key={g.name} className="mf-card" style={{ marginBottom: 10 }}>
           <h4 style={{ fontSize: 14 }}>{g.name}</h4>
           {g.rows.map((s) => (
-            <div key={s.id} className="prev-row">
+            <div key={s.id} className="prev-row progress-edit-row">
               <b>#{s.set_number}{s.set_type !== 'normal' ? ` ${s.set_type}` : ''}</b>
               <span>
                 {s.weight ?? '—'} kg × {s.reps ?? '—'}
                 {s.reps_left != null ? ` · L ${s.weight_left ?? '—'}×${s.reps_left}` : ''}
                 {s.rir != null ? ` @ RIR ${s.rir}` : ''}
               </span>
+              {!log.cancelled_at&&<button className="btn btn-ghost" aria-label={`Edit ${s.exercise_name} set ${s.set_number}`} onClick={()=>setEditing(s)}>Edit</button>}
             </div>
           ))}
         </div>
       ))}
 
+      <SetEditDialog row={editing} onClose={()=>setEditing(null)} onSaved={row=>setLog(log=>({...log,sets:log.sets.map(s=>s.id===row.id?row:s)}))}/>
       <Link className="btn btn-secondary btn-block" to="/workout/history" style={{ marginTop: 4 }}>All sessions</Link>
     </TabShell>
   );

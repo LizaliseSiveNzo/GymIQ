@@ -18,6 +18,9 @@ import { createRestBell } from '../../lib/restBell.js';
 import { loadExerciseProgress } from '../../lib/loadExerciseProgress.js';
 import { previousFor, setDescription } from '../../lib/exerciseProgress.js';
 import SessionDiscardDialog from '../../components/ui/SessionDiscardDialog.jsx';
+import SetEditDialog from '../../components/ui/SetEditDialog.jsx';
+import ExerciseTargetDialog from '../../components/ui/ExerciseTargetDialog.jsx';
+import { exerciseDefault, loadExerciseTargets, targetKey } from '../../lib/exerciseTargets.js';
 
 const DEFAULT_SCHEME = { sets: 3, repMin: 8, repMax: 12, rir: 2, restSeconds: 90 };
 const fmtClock = formatSessionTime;
@@ -49,6 +52,10 @@ export default function SessionPlayer() {
   const logIdRef = useRef(null);
   const pendingSets = useRef(new Set());
   const [progress,setProgress] = useState([]);
+  const [targets,setTargets]=useState([]);
+  const [targetsUnavailable,setTargetsUnavailable]=useState(false);
+  const [editingSet,setEditingSet]=useState(null);
+  const [targetExercise,setTargetExercise]=useState(null);
   const [progressUnavailable,setProgressUnavailable] = useState(false);
   const [excludedKeys,setExcludedKeys] = useState([]);
   const [discard,setDiscard] = useState(null);
@@ -151,13 +158,15 @@ export default function SessionPlayer() {
         }
         setDone(doneMap);
 
-        // Recover defaults only from finished, included working sets.
-        try {
-          const history = await loadExerciseProgress(()=>cancelled);
-          if(cancelled)return;
-          setProgress(history); setProgressUnavailable(false);
-          priorPrRef.current = Object.fromEntries(history.map(p=>[p.name,{e1rm:p.estimatedMax,volume:p.topVolume}]));
-        } catch { setProgress([]); setProgressUnavailable(true); priorPrRef.current={}; }
+        // Planned defaults and performed records stay separate.
+        const [historyResult,targetResult]=await Promise.allSettled([loadExerciseProgress(()=>cancelled),loadExerciseTargets()]);
+        if(cancelled)return;
+        if(historyResult.status==='fulfilled') {
+          setProgress(historyResult.value);setProgressUnavailable(false);
+          priorPrRef.current=Object.fromEntries(historyResult.value.map(p=>[p.name,{e1rm:p.estimatedMax,volume:p.topVolume}]));
+        }else{setProgress([]);setProgressUnavailable(true);priorPrRef.current={};}
+        setTargets(targetResult.status==='fulfilled'?targetResult.value:[]);
+        setTargetsUnavailable(targetResult.status!=='fulfilled');
 
         // Bar denominations from default gym profile
         const gp = await supabase.from('gym_profiles').select('id').eq('user_id', profile.id).eq('is_default', true).limit(1);
@@ -210,16 +219,16 @@ export default function SessionPlayer() {
   function rowDraft(item, idx) {
     const k = `rows_${item.key}`;
     const store = (drafts.current[k] ||= {});
-    if (!store[idx]) {
-      const previous = previousFor(progress,item,idx);
-      store[idx] = { kg: previous ? String(previous.weight) : '', reps: previous ? String(previous.reps) : '', rir: item.scheme.rir };
+    const initial=exerciseDefault(progress,targets,item,idx);
+    if (!store[idx] || (store[idx].source && store[idx].source!=='manual' && store[idx].signature!==initial.signature)) {
+      store[idx]={kg:String(initial.weight),reps:String(initial.reps),rir:item.scheme.rir,source:initial.source,signature:initial.signature};
     }
     return store[idx];
   }
   function setRowDraft(item, idx, patch) {
     const k = `rows_${item.key}`;
     const store = (drafts.current[k] ||= {});
-    store[idx] = { ...rowDraft(item, idx), ...patch };
+    store[idx] = { ...rowDraft(item, idx), ...patch, source:'manual' };
     timer.saveRecovery();
     forceRender();
   }
@@ -260,6 +269,23 @@ export default function SessionPlayer() {
       scheme: { ...DEFAULT_SCHEME },
     }]);
     setPickerOpen(false);
+  }
+
+  function correctSessionSet(row) {
+    setDone(done=>Object.fromEntries(Object.entries(done).map(([key,sets])=>[key,sets.map(s=>s.id===row.id?row:s)])));
+  }
+  function savedTarget(target,key) {
+    setTargets(items=>[...items.filter(t=>t.exercise_key!==key),...(target?[target]:[])]);
+    const item=plan.find(item=>targetKey(item)===key);
+    if(item) {
+      const store=drafts.current[`rows_${item.key}`];
+      if(store)Object.keys(store).forEach(index=>{if(!(done[item.key]||[])[Number(index)])delete store[index];});
+    }
+    timer.saveRecovery();forceRender();
+  }
+  function editSessionSet(row) {
+    if(pendingSets.current.size){setErrText('Wait for your set to finish saving first.');return;}
+    pauseSession();setEditingSet(row);
   }
 
   function requestDiscard(action) {
@@ -416,6 +442,7 @@ export default function SessionPlayer() {
         const repsLabel = uni ? 'Reps/Side' : 'Reps';
         const rirColor = (r) => (r == null ? 'var(--text-subtle)' : r <= 1 ? 'var(--danger)' : r <= 3 ? 'var(--warning)' : 'var(--success)');
         const previous = previousFor(progress,item);
+        const planned=targets.find(t=>t.exercise_key===targetKey(item));
         const totalRows = Math.max((item.scheme.sets || 3) + (extraRows[item.key] || 0), committed.length);
         const idxs = [...Array(totalRows).keys()];
         const cellInput = { width: '100%', textAlign: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 4px', color: 'var(--ink)', font: 'inherit', fontSize: 14, MozAppearance: 'textfield' };
@@ -427,14 +454,15 @@ export default function SessionPlayer() {
         return (
           <div className="mf-card" style={{ marginBottom: 96 }}>
             <div style={{ minWidth: 0, marginBottom: 10 }}>
-              <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
+              <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b><button type="button" className="btn btn-ghost" onClick={()=>{pauseSession();setTargetExercise({exerciseId:item.exerciseId,name:item.name,weight:previous?.weight,reps:previous?.reps});}}>Set target</button><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
               <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
                 Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
               </div>
             </div>
 
-            {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>Your previous working sets are prefilled below. Edit them as needed; tick a set only after performing it.</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
-            {!previous && <p className="subtle" style={{fontSize:12}}>Enter your starting weight and reps. Finished working sets become your defaults next time.</p>}
+            {planned&&<div className="exercise-previous planned-target"><strong>Planned target · {Number(planned.weight)} kg × {planned.reps}</strong><p>Used for unlogged sets until cleared. This target is not a performed set or a PR.</p></div>}
+            {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>{planned ? 'Your target prefills the inputs below. Your last performance is shown for comparison.' : 'Your previous working sets are prefilled below. Edit them as needed; tick a set only after performing it.'}</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
+            {!previous && !planned && <p className="subtle" style={{fontSize:12}}>Enter your starting weight and reps. Finished working sets become your defaults next time.</p>}
             <p className="subtle" style={{fontSize:12}}>Target: {item.scheme.repMin}–{item.scheme.repMax} reps @ {item.scheme.rir} RIR. Build reps within your range; review the load when your working sets reach the upper end with good form.</p>
             <ExerciseIllustration key={item.exerciseId || item.key} exerciseId={item.exerciseId} name={item.name} variant="guide" />
 
@@ -460,6 +488,7 @@ export default function SessionPlayer() {
                   <span className="subtle" style={{ fontSize: 12.5, lineHeight: 1.25 }}>
                     {reference}
                     <span style={{ display: 'block', color: rirColor(item.scheme.rir), fontSize: 11.5 }}>{item.scheme.rir} RIR</span>
+                    {isDone&&<button type="button" className="set-inline-edit" onClick={()=>editSessionSet(c)} aria-label={`Edit ${item.name} set ${idx+1}`}>Edit</button>}
                   </span>
                   <input aria-label={`Set ${idx+1} weight in kg`} type="number" inputMode="decimal" value={kg} disabled={isDone || timer.clock.paused || discardBusy}
                     onChange={(e) => setRowDraft(item, idx, { kg: e.target.value })} style={cellInput} />
@@ -498,6 +527,9 @@ export default function SessionPlayer() {
       {plan.some(item=>excludedKeys.includes(item.key)) && <div className="mf-card"><h3>Removed from this session</h3><p className="subtle">These exercises and their sets won’t count when you finish.</p>{plan.filter(item=>excludedKeys.includes(item.key)).map(item=><div className="prev-row" key={item.key}><span>{item.name}</span><button className="btn btn-ghost" disabled={discardBusy} onClick={()=>restoreExercise(item)}>Restore</button></div>)}</div>}
       {progressUnavailable && <p className="subtle" role="status">Previous exercise records are unavailable. Enter your weights and reps manually for this session.</p>}
       <button className="btn btn-ghost session-cancel-button" disabled={discardBusy || finishing} onClick={()=>requestDiscard({type:'workout'})}>Cancel workout</button>
+      {targetsUnavailable&&<p className="subtle" role="status">Saved targets are unavailable. Your previous working sets are shown instead.</p>}
+      <SetEditDialog row={editingSet} onClose={()=>setEditingSet(null)} onSaved={correctSessionSet}/>
+      <ExerciseTargetDialog exercise={targetExercise} target={targetExercise?targets.find(t=>t.exercise_key===targetKey(targetExercise)):null} onClose={()=>setTargetExercise(null)} onSaved={savedTarget}/>
       <SessionDiscardDialog action={discard} busy={discardBusy} error={discardError} onClose={()=>setDiscard(null)} onConfirm={confirmDiscard}/>
       {/* sticky complete/finish */}
       {plan.length > 0 && (

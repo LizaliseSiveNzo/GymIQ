@@ -10,7 +10,7 @@ import ExerciseIllustration from './ExerciseIllustration.jsx';
 // Reusable exercise catalog browser/picker. Reads the global `exercises`,
 // `muscles`, and `equipment_items` tables. In `pick` mode each row has a + that
 // calls onPick(exercise). The equipment filter narrows to a chosen gym set.
-export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [] }) {
+export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [], pickLabel = '+ Add' }) {
   const [exercises, setExercises] = useState(null);
   const [muscles, setMuscles] = useState([]);
   const [equipment, setEquipment] = useState([]);
@@ -134,7 +134,7 @@ export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [] 
                 </div>
                 <div className="row" style={{ gap: 8, flexShrink: 0 }}>
                   {x.cue_text && <button className="btn btn-ghost" aria-label={`How to perform ${x.name}`} aria-expanded={!!openCue[x.id]} style={{ minHeight: 44, padding: '0 8px' }} onClick={() => setOpenCue((o) => ({ ...o, [x.id]: !o[x.id] }))} title="How to perform">ⓘ</button>}
-                  {mode === 'pick' && <button className="btn btn-secondary" style={{ minHeight: 30, padding: '0 10px' }} disabled={isAdded} onClick={() => onPick?.(x)}>{isAdded ? 'Added' : '+ Add'}</button>}
+                  {mode === 'pick' && <button className="btn btn-secondary" style={{ minHeight: 30, padding: '0 10px' }} disabled={isAdded} onClick={() => onPick?.(x)}>{isAdded ? 'Added' : pickLabel}</button>}
                 </div>
               </div>
               {openCue[x.id] && x.cue_text && <p style={{ margin: '8px 0 0', fontSize: 13, borderTop: '1px solid var(--border)', paddingTop: 8 }}>{x.cue_text}</p>}
