@@ -4,8 +4,10 @@ export function addDays(day,n){const d=new Date(`${day}T12:00:00Z`);d.setUTCDate
 export function weekStart(day=dayKey()){const dow=new Date(`${day}T12:00:00Z`).getUTCDay();return addDays(day,-((dow+6)%7));}
 export const exerciseIdentity=e=>e.exercise_id||`name:${String(e.name||e.exercise_name||'').trim().toLowerCase()}`;
 export function performedExercises(sessions){return new Set(sessions.flatMap(s=>(s.sets||[]).map(exerciseIdentity)));}
+export function performedSlots(sessions){return new Set(sessions.flatMap(s=>(s.sets||[]).map(e=>e.programme_exercise_id).filter(Boolean)));}
 export function makeUpExercises(days, exercises, previousSessions, currentSessions, blockedDays=[], sourceWeek){
   const previous=performedExercises(previousSessions),current=performedExercises(currentSessions);
+  const previousSlots=performedSlots(previousSessions),currentSlots=performedSlots(currentSessions);
   const blocked=new Set([...blockedDays,...currentSessions.map(s=>s.day_id)]);
   const destinations=days.filter(d=>!blocked.has(d.id));
   const assignments=new Map(destinations.map(d=>[d.id,[]]));
@@ -14,7 +16,7 @@ export function makeUpExercises(days, exercises, previousSessions, currentSessio
   const queues=days.map(d=>exercises.filter(e=>e.day_id===d.id));
   for(let i=0;i<Math.max(0,...queues.map(q=>q.length));i++)for(const q of queues){
     const e=q[i];if(!e)continue;const key=exerciseIdentity(e);
-    if(previous.has(key)||current.has(key)||seen.has(key))continue;
+    if(previous.has(key)||current.has(key)||previousSlots.has(e.id)||currentSlots.has(e.id)||seen.has(key))continue;
     seen.add(key);candidates.push(e);
   }
   const extras=[];
@@ -32,8 +34,9 @@ export function makeUpExercises(days, exercises, previousSessions, currentSessio
 }
 export function dayProgress(day,exercises,sessions,past=false){
   const performed=performedExercises(sessions);
-  const done=exercises.filter(e=>performed.has(exerciseIdentity(e)));
+  const slots=performedSlots(sessions);
+  const done=exercises.filter(e=>performed.has(exerciseIdentity(e))||slots.has(e.id));
   const finished=sessions.some(s=>s.day_id===day.id);
   const complete=finished;
-  return {complete,performed:done.map(e=>e.id),missing:exercises.filter(e=>!performed.has(exerciseIdentity(e))).map(e=>e.id),status:complete?'complete':past?'missed':'planned'};
+  return {complete,performed:done.map(e=>e.id),missing:exercises.filter(e=>!performed.has(exerciseIdentity(e))&&!slots.has(e.id)).map(e=>e.id),status:complete?'complete':past?'missed':'planned'};
 }

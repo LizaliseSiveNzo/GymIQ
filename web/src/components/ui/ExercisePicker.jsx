@@ -6,11 +6,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import ExerciseIllustration from './ExerciseIllustration.jsx';
+import {swapMatches} from '../../lib/progressionCoach.js';
 
 // Reusable exercise catalog browser/picker. Reads the global `exercises`,
 // `muscles`, and `equipment_items` tables. In `pick` mode each row has a + that
 // calls onPick(exercise). The equipment filter narrows to a chosen gym set.
-export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [], pickLabel = '+ Add' }) {
+export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [], pickLabel = '+ Add', swapFor=null,availableEquipment=null }) {
   const [exercises, setExercises] = useState(null);
   const [muscles, setMuscles] = useState([]);
   const [equipment, setEquipment] = useState([]);
@@ -18,7 +19,7 @@ export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [],
   const [muscle, setMuscle] = useState('all');
   const [type, setType] = useState('all');        // all | weighted | bodyweight
   const [lat, setLat] = useState('all');           // all | bilateral | unilateral
-  const [equipSet, setEquipSet] = useState(null);  // Set of enabled ids, null = all
+  const [equipSet, setEquipSet] = useState(()=>availableEquipment?new Set(availableEquipment):null);
   const [showEquip, setShowEquip] = useState(false);
   const [openCue, setOpenCue] = useState({});
   const added = useMemo(() => new Set(addedIds), [addedIds]);
@@ -39,6 +40,7 @@ export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [],
     if (!exercises) return [];
     const query = q.trim().toLowerCase();
     return exercises.filter((x) => {
+      if(swapFor&&!swapMatches(exercises.find(e=>e.id===swapFor.exerciseId),x,addedIds))return false;
       const secKeys = Object.keys(x.secondary_muscle_fraction || {});
       if (muscle !== 'all' && x.primary_muscle_id !== muscle && !secKeys.includes(muscle)) return false;
       if (type === 'weighted' && !x.is_weighted) return false;
@@ -53,7 +55,7 @@ export default function ExercisePicker({ mode = 'browse', onPick, addedIds = [],
       }
       return true;
     });
-  }, [exercises, q, muscle, type, lat, equipSet, mName, eName]);
+  }, [exercises, q, muscle, type, lat, equipSet, mName, eName,swapFor,addedIds]);
 
   function toggleEquip(id) {
     setEquipSet((prev) => {

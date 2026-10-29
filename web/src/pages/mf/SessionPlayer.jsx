@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import ExercisePicker from '../../components/ui/ExercisePicker.jsx';
+import ProgressionCoach from '../../components/ui/ProgressionCoach.jsx';
 import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -55,6 +56,10 @@ export default function SessionPlayer() {
   const pendingSets = useRef(new Set());
   const [progress,setProgress] = useState([]);
   const [targets,setTargets]=useState([]);
+  const [coachFeedback,setCoachFeedback]=useState([]),[coachPreferences,setCoachPreferences]=useState([]),[coachUnavailable,setCoachUnavailable]=useState(false);
+  const [readiness,setReadiness]=useState('ready'),[readinessBusy,setReadinessBusy]=useState(false);
+  const [knownBarIncrement,setKnownBarIncrement]=useState(null),[availableEquipment,setAvailableEquipment]=useState(null);
+  const [swapItem,setSwapItem]=useState(null),[swapBusy,setSwapBusy]=useState(false);
   const [targetsUnavailable,setTargetsUnavailable]=useState(false);
   const [editingSet,setEditingSet]=useState(null);
   const [targetExercise,setTargetExercise]=useState(null);
@@ -121,7 +126,7 @@ export default function SessionPlayer() {
         if (!log?.id) throw new Error('Could not open your workout. Please try again.');
         if (cancelled) return;
         logIdRef.current = log.id;
-        setLogId(log.id);
+        setLogId(log.id);setReadiness(log.coach_readiness||'ready');
         setExcludedKeys(log.excluded_exercises || []);
         if(!isFree){
           const logWeek=weekStart(dayKey(new Date(log.created_at)));
@@ -150,6 +155,8 @@ export default function SessionPlayer() {
           });
         }
 
+        if(!isFree&&Array.isArray(log.session_plan))items=log.session_plan;
+
         // Resume: sets already logged in THIS log
         const existing = await supabase.from('logged_sets')
           .select('*').eq('log_id', log.id).order('created_at');
@@ -157,7 +164,7 @@ export default function SessionPlayer() {
         if (isFree) {
           let saved = [];
           try { saved = JSON.parse(localStorage.getItem(`gymiq_session_${profile.id}_${log.id}`) || '[]'); } catch { /* use logged sets */ }
-          items = Array.isArray(saved) ? saved : [];
+          items = Array.isArray(log.session_plan)?log.session_plan:Array.isArray(saved)?saved:[];
           for (const s of existing.data || []) {
             const key = keyFor(null, s.exercise_name);
             if (!items.some(item => item.key === key)) items.push({ key, name: s.exercise_name,
@@ -172,7 +179,9 @@ export default function SessionPlayer() {
         setDone(doneMap);
 
         // Planned defaults and performed records stay separate.
-        const [historyResult,targetResult]=await Promise.allSettled([loadExerciseProgress(()=>cancelled),loadExerciseTargets()]);
+        const [historyResult,targetResult,feedbackResult,preferencesResult]=await Promise.allSettled([loadExerciseProgress(()=>cancelled),loadExerciseTargets(),
+          supabase.from('exercise_coach_feedback').select('*').eq('user_id',profile.id).order('updated_at',{ascending:false}).limit(1000),
+          supabase.from('exercise_coach_preferences').select('*').eq('user_id',profile.id)]);
         if(cancelled)return;
         if(historyResult.status==='fulfilled') {
           setProgress(historyResult.value);setProgressUnavailable(false);
@@ -180,15 +189,21 @@ export default function SessionPlayer() {
         }else{setProgress([]);setProgressUnavailable(true);priorPrRef.current={};}
         setTargets(targetResult.status==='fulfilled'?targetResult.value:[]);
         setTargetsUnavailable(targetResult.status!=='fulfilled');
+        const coachFailed=feedbackResult.status!=='fulfilled'||preferencesResult.status!=='fulfilled'||feedbackResult.value?.error||preferencesResult.value?.error;
+        setCoachUnavailable(!!coachFailed);
+        setCoachFeedback(feedbackResult.status==='fulfilled'&&!feedbackResult.value.error?feedbackResult.value.data||[]:[]);
+        setCoachPreferences(preferencesResult.status==='fulfilled'&&!preferencesResult.value.error?preferencesResult.value.data||[]:[]);
 
         // Bar denominations from default gym profile
         const gp = await supabase.from('gym_profiles').select('id').eq('user_id', profile.id).eq('is_default', true).limit(1);
         if (gp.data?.[0]) {
+          const kit=await supabase.from('gym_profile_equipment').select('equipment_id').eq('profile_id',gp.data[0].id);
+          if(!kit.error)setAvailableEquipment((kit.data||[]).map(e=>e.equipment_id));
           const ge = await supabase.from('gym_profile_equipment')
             .select('denominations_kg,equipment_id').eq('profile_id', gp.data[0].id)
             .eq('equipment_id', 'barbell').limit(1);
           const d = ge.data?.[0]?.denominations_kg;
-          if (Array.isArray(d) && d.length) setBarDenoms(d.map(Number));
+          if (Array.isArray(d) && d.length){setBarDenoms(d.map(Number));const smallest=Math.min(...d.map(Number).filter(n=>n>0));if(Number.isFinite(smallest))setKnownBarIncrement(smallest*2);}
         }
 
         if (cancelled) return;
@@ -275,15 +290,38 @@ export default function SessionPlayer() {
     beginRest(item.scheme.restSeconds || 90);
   }
 
-  function addFreeExercise(ex) {
-    setPlan((p) => [...p, {
-      key: keyFor(null, ex.name), peId: null, exerciseId: ex.id,
-      name: ex.name, laterality: ex.laterality, equipmentIds: ex.equipment_ids || [],
-      scheme: { ...DEFAULT_SCHEME },
-    }]);
-    setPickerOpen(false);
+  async function addFreeExercise(ex) {
+    if(swapBusy)return;setSwapBusy(true);setErrText('');
+    const updated=[...plan,{key:keyFor(null,ex.name),peId:null,exerciseId:ex.id,name:ex.name,laterality:ex.laterality,equipmentIds:ex.equipment_ids||[],scheme:{...DEFAULT_SCHEME}}];
+    try{const {data,error}=await supabase.rpc('save_workout_session_plan',{p_log:logIdRef.current,p_plan:updated});if(error)throw error;setPlan(data);setPickerOpen(false);}
+    catch(e){setErrText(e.message||'Could not save the exercise.');}finally{setSwapBusy(false);}
   }
 
+  async function updateReadiness(value){
+    if(readinessBusy)return;setReadinessBusy(true);setErrText('');
+    try{const {error}=await supabase.rpc('set_workout_readiness',{p_log:logIdRef.current,p_readiness:value});if(error)throw error;setReadiness(value);}
+    catch{setErrText('Could not save your readiness check-in. Please retry.');}finally{setReadinessBusy(false);}
+  }
+  function applyCoach(item,suggestion){
+    if((done[item.key]||[]).length||pendingSets.current.size||discardBusy)return;
+    const k=`rows_${item.key}`;drafts.current[k]||={};
+    for(let i=0;i<(item.scheme.sets||3);i++)drafts.current[k][i]={...rowDraft(item,i),kg:String(suggestion.weight),reps:String(suggestion.rowReps?.[i]??suggestion.reps),source:'manual',coachSignature:suggestion.signature};
+    timer.saveRecovery();forceRender();
+  }
+  async function replaceExercise(ex){
+    if(!swapItem||swapBusy||pendingSets.current.size)return;
+    if((done[swapItem.key]||[]).length){setErrText('Remove the logged sets before swapping this exercise.');return;}
+    setSwapBusy(true);setErrText('');
+    const replacement={...swapItem,key:swapItem.peId?swapItem.key:keyFor(null,ex.name),exerciseId:ex.id,name:ex.name,laterality:ex.laterality,equipmentIds:ex.equipment_ids||[],replacesKey:swapItem.key,originalName:swapItem.originalName||swapItem.name};
+    try{
+      const updated=plan.map(item=>item.key===swapItem.key?replacement:item);
+      const {data,error}=await supabase.rpc('save_workout_session_plan',{p_log:logIdRef.current,p_plan:updated});
+      if(error)throw error;
+      delete drafts.current[`rows_${swapItem.key}`];delete drafts.current[`rows_${replacement.key}`];
+      setExtraRows(rows=>{const next={...rows};delete next[swapItem.key];return next;});
+      setPlan(data);setSwapItem(null);timer.saveRecovery();forceRender();
+    }catch(e){setErrText(e.message||'Could not save this exercise replacement.');}finally{setSwapBusy(false);}
+  }
   function correctSessionSet(row) {
     setDone(done=>Object.fromEntries(Object.entries(done).map(([key,sets])=>[key,sets.map(s=>s.id===row.id?row:s)])));
   }
@@ -432,9 +470,11 @@ export default function SessionPlayer() {
         </div>
       )}
 
+      <section className="mf-card coach-readiness" aria-label="Workout readiness"><strong>How are you feeling today?</strong><div className="launch-actions">{[['ready','Ready'],['tired','Tired'],['sore','Sore']].map(([value,label])=><button type="button" key={value} className={`btn ${readiness===value?'btn-primary':'btn-ghost'}`} aria-pressed={readiness===value} disabled={readinessBusy||discardBusy} onClick={()=>updateReadiness(value)}>{label}</button>)}</div><p className="subtle">Tired or sore days do not receive progression increases. Review your recovery before training; stop movements that cause pain.</p></section>
+      {swapItem&&<section className="mf-card session-swap-panel" aria-label="Exercise replacement"><div className="row between"><h3>Replace {swapItem.name}</h3><button type="button" className="btn btn-ghost" disabled={swapBusy} onClick={()=>setSwapItem(null)}>Cancel replacement</button></div><p className="subtle">Choose an alternative with the same primary muscle and movement pattern. This session only; your base programme and previous records stay intact. Use the equipment filter for the kit available today.</p>{swapBusy?<p role="status">Saving replacement…</p>:<ExercisePicker mode="pick" pickLabel="Use instead" swapFor={swapItem} availableEquipment={availableEquipment} addedIds={plan.map(p=>p.exerciseId)} onPick={replaceExercise}/>}</section>}
       {pickerOpen && (
         <div style={{ marginBottom: 14 }}>
-          <ExercisePicker mode="pick" onPick={addFreeExercise} addedIds={plan.map((p) => p.exerciseId)} />
+          {swapBusy?<p role="status">Saving exercise…</p>:<ExercisePicker mode="pick" onPick={addFreeExercise} addedIds={plan.map((p) => p.exerciseId)} />}
         </div>
       )}
 
@@ -467,14 +507,16 @@ export default function SessionPlayer() {
         return (
           <div className="mf-card" style={{ marginBottom: 96 }}>
             <div style={{ minWidth: 0, marginBottom: 10 }}>
-              <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b>{item.optional&&<span className="badge badge-neutral">Optional make-up · up to 2 sets</span>}<button type="button" className="btn btn-ghost" onClick={()=>{pauseSession();setTargetExercise({exerciseId:item.exerciseId,name:item.name,weight:previous?.weight,reps:previous?.reps});}}>Set target</button><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
+              <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b>{item.optional&&<span className="badge badge-neutral">Optional make-up · up to 2 sets</span>}<button type="button" className="btn btn-ghost" onClick={()=>{pauseSession();setTargetExercise({exerciseId:item.exerciseId,name:item.name,weight:previous?.weight,reps:previous?.reps});}}>Set target</button><button type="button" className="btn btn-ghost" disabled={discardBusy||swapBusy||committed.length>0} onClick={()=>{pauseSession();setSwapItem(item);}}>Swap exercise</button><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
               <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
                 Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
               </div>
             </div>
 
-            {planned&&<div className="exercise-previous planned-target"><strong>Planned target · {Number(planned.weight)} kg × {planned.reps}</strong><p>Used for unlogged sets until cleared. This target is not a performed set or a PR.</p></div>}
-            {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>{planned ? 'Your target prefills the inputs below. Your last performance is shown for comparison.' : 'Your previous working sets are prefilled below. Edit them as needed; tick a set only after performing it.'}</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
+            {item.originalName&&<p className="subtle">Session replacement for {item.originalName}. Loads below belong to {item.name}.</p>}
+            <ProgressionCoach key={`coach:${targetKey(item)}`} item={item} progress={progress} feedback={coachFeedback} preferences={coachPreferences} readiness={readiness} defaultIncrement={(item.equipmentIds||[]).includes('barbell')?knownBarIncrement:null} userId={profile.id} logId={logId} hasLogged={committed.length>0} locked={readinessBusy||swapBusy||discardBusy} unavailable={coachUnavailable||progressUnavailable} onApply={suggestion=>applyCoach(item,suggestion)} onFeedback={row=>setCoachFeedback(rows=>[row,...rows.filter(f=>!(f.log_id===row.log_id&&f.exercise_key===row.exercise_key))])} onPreference={row=>setCoachPreferences(rows=>[row,...rows.filter(p=>p.exercise_key!==row.exercise_key)])}/>
+            {planned&&<div className="exercise-previous planned-target"><strong>Planned target · {Number(planned.weight)} kg × {planned.reps}</strong><p>Saved as your starting default. Session edits or accepted coach suggestions do not change this saved target or count as a PR.</p></div>}
+            {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>{planned ? 'Your saved target is shown above. Review the inputs; an accepted coach suggestion applies to this session only.' : 'Previous working sets are your starting defaults. Review a coach suggestion or edit the inputs; tick a set only after performing it.'}</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
             {!previous && !planned && <p className="subtle" style={{fontSize:12}}>Enter your starting weight and reps. Finished working sets become your defaults next time.</p>}
             <p className="subtle" style={{fontSize:12}}>Target: {item.scheme.repMin}–{item.scheme.repMax} reps @ {item.scheme.rir} RIR. Build reps within your range; review the load when your working sets reach the upper end with good form.</p>
             <ExerciseIllustration key={item.exerciseId || item.key} exerciseId={item.exerciseId} name={item.name} variant="guide" />

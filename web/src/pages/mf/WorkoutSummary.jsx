@@ -73,7 +73,8 @@ export default function WorkoutSummary() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 90 }}>
         {rows.length === 0 && <div className="mf-card"><h4>Rest day</h4><div className="subtle">No exercises on this day.</div></div>}
         {rows.map((r) => {
-          const performed=weekData?.sessions?.some(session=>(session.sets||[]).some(set=>exerciseIdentity(set)===exerciseIdentity(r)));
+          const replacement=(weekData?.sessions||[]).flatMap(session=>session.sets||[]).find(set=>set.programme_exercise_id===r.id&&set.exercise_id!==r.exercise_id&&set.name!==r.name);
+          const performed=weekData?.sessions?.some(session=>(session.sets||[]).some(set=>set.programme_exercise_id===r.id||exerciseIdentity(set)===exerciseIdentity(r)));
           const missed=past&&weekData?.full_week&&!performed;
           const secs = Object.keys(r.exercises?.secondary_muscle_fraction || {});
           const chips = [r.exercises?.primary_muscle_id, ...secs].filter(Boolean).map((id) => mName[id] || id).slice(0, 4);
@@ -82,7 +83,7 @@ export default function WorkoutSummary() {
             <div key={r.id} className={`mf-card week-exercise ${performed?'is-complete':missed?'is-missed':''}`} style={{ display: 'flex', gap: 12 }}>
               <ExerciseIllustration exerciseId={r.exercise_id} name={r.name} />
               <div className="week-exercise-copy" style={{ flex: 1, minWidth: 0 }}>
-                <b style={{ fontSize: 15 }}>{r.name}</b><span className="subtle">{performed?'✓ Performed this week':missed?'Missed this week':'Planned'}</span>{r.optional&&<span className="week-extra-label">Optional make-up · {r.target_sets} sets · from week of {r.source_week}</span>}
+                <b style={{ fontSize: 15 }}>{r.name}</b><span className="subtle">{replacement?`✓ Replaced with ${replacement.name}`:performed?'✓ Performed this week':missed?'Missed this week':'Planned'}</span>{r.optional&&<span className="week-extra-label">Optional make-up · {r.target_sets} sets · from week of {r.source_week}</span>}
                 <div className="subtle" style={{ fontSize: 12.5, marginTop: 2 }}>
                   {r.target_sets || 3} × {hi ? `${lo}–${hi}` : lo} reps{r.target_rir != null ? ` @ RIR ${r.target_rir}` : ''}
                 </div>
