@@ -1,0 +1,292 @@
+[
+  {
+    "id": "173904",
+    "name": "Oats \u00b7 dry",
+    "kcal": 379.0,
+    "protein": 13.15,
+    "fat": 6.52,
+    "carbs": 67.7,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Cereals, oats, regular and quick, not fortified, dry",
+    "source_url": "https://fdc.nal.usda.gov/food-details/173904/nutrients"
+  },
+  {
+    "id": "171267",
+    "name": "Milk \u00b7 2%",
+    "kcal": 50.0,
+    "protein": 3.3,
+    "fat": 1.98,
+    "carbs": 4.8,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "source_description": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D",
+    "source_url": "https://fdc.nal.usda.gov/food-details/171267/nutrients"
+  },
+  {
+    "id": "170886",
+    "name": "Plain low-fat yoghurt",
+    "kcal": 63.0,
+    "protein": 5.25,
+    "fat": 1.55,
+    "carbs": 7.04,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "source_description": "Yogurt, plain, low fat",
+    "source_url": "https://fdc.nal.usda.gov/food-details/170886/nutrients"
+  },
+  {
+    "id": "173944",
+    "name": "Banana",
+    "kcal": 89.0,
+    "protein": 1.09,
+    "fat": 0.33,
+    "carbs": 22.84,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Bananas, raw",
+    "source_url": "https://fdc.nal.usda.gov/food-details/173944/nutrients"
+  },
+  {
+    "id": "171688",
+    "name": "Apple \u00b7 with skin",
+    "kcal": 52.0,
+    "protein": 0.26,
+    "fat": 0.17,
+    "carbs": 13.81,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+    "source_url": "https://fdc.nal.usda.gov/food-details/171688/nutrients"
+  },
+  {
+    "id": "173424",
+    "name": "Egg \u00b7 hard-boiled",
+    "kcal": 155.0,
+    "protein": 12.58,
+    "fat": 10.61,
+    "carbs": 1.12,
+    "allergens": [
+      "egg"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "source_description": "Egg, whole, cooked, hard-boiled",
+    "source_url": "https://fdc.nal.usda.gov/food-details/173424/nutrients"
+  },
+  {
+    "id": "172688",
+    "name": "Wholewheat bread",
+    "kcal": 252.0,
+    "protein": 12.45,
+    "fat": 3.5,
+    "carbs": 42.71,
+    "allergens": [
+      "wheat",
+      "gluten"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Bread, whole-wheat, commercially prepared",
+    "source_url": "https://fdc.nal.usda.gov/food-details/172688/nutrients"
+  },
+  {
+    "id": "169704",
+    "name": "Brown rice \u00b7 cooked",
+    "kcal": 123.0,
+    "protein": 2.74,
+    "fat": 0.97,
+    "carbs": 25.58,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)",
+    "source_url": "https://fdc.nal.usda.gov/food-details/169704/nutrients"
+  },
+  {
+    "id": "171477",
+    "name": "Chicken breast \u00b7 cooked",
+    "kcal": 165.0,
+    "protein": 31.02,
+    "fat": 3.57,
+    "carbs": 0.0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "source_description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted",
+    "source_url": "https://fdc.nal.usda.gov/food-details/171477/nutrients"
+  },
+  {
+    "id": "173709",
+    "name": "Tuna \u00b7 water-packed, drained",
+    "kcal": 86.0,
+    "protein": 19.44,
+    "fat": 0.96,
+    "carbs": 0.0,
+    "allergens": [
+      "fish"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "source_description": "Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)",
+    "source_url": "https://fdc.nal.usda.gov/food-details/173709/nutrients"
+  },
+  {
+    "id": "172421",
+    "name": "Lentils \u00b7 cooked, no salt",
+    "kcal": 116.0,
+    "protein": 9.02,
+    "fat": 0.38,
+    "carbs": 20.13,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Lentils, mature seeds, cooked, boiled, without salt",
+    "source_url": "https://fdc.nal.usda.gov/food-details/172421/nutrients"
+  },
+  {
+    "id": "175194",
+    "name": "Kidney beans \u00b7 cooked, no salt",
+    "kcal": 127.0,
+    "protein": 8.67,
+    "fat": 0.5,
+    "carbs": 22.8,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Beans, kidney, red, mature seeds, cooked, boiled, without salt",
+    "source_url": "https://fdc.nal.usda.gov/food-details/175194/nutrients"
+  },
+  {
+    "id": "172475",
+    "name": "Firm tofu",
+    "kcal": 144.0,
+    "protein": 17.27,
+    "fat": 8.72,
+    "carbs": 2.78,
+    "allergens": [
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Tofu, raw, firm, prepared with calcium sulfate",
+    "source_url": "https://fdc.nal.usda.gov/food-details/172475/nutrients"
+  },
+  {
+    "id": "169967",
+    "name": "Broccoli \u00b7 cooked",
+    "kcal": 35.0,
+    "protein": 2.38,
+    "fat": 0.41,
+    "carbs": 7.18,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Broccoli, cooked, boiled, drained, without salt",
+    "source_url": "https://fdc.nal.usda.gov/food-details/169967/nutrients"
+  },
+  {
+    "id": "170393",
+    "name": "Carrot \u00b7 raw",
+    "kcal": 41.0,
+    "protein": 0.93,
+    "fat": 0.24,
+    "carbs": 9.58,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Carrots, raw",
+    "source_url": "https://fdc.nal.usda.gov/food-details/170393/nutrients"
+  },
+  {
+    "id": "170457",
+    "name": "Tomato \u00b7 raw",
+    "kcal": 18.0,
+    "protein": 0.88,
+    "fat": 0.2,
+    "carbs": 3.89,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Tomatoes, red, ripe, raw, year round average",
+    "source_url": "https://fdc.nal.usda.gov/food-details/170457/nutrients"
+  },
+  {
+    "id": "168409",
+    "name": "Cucumber \u00b7 raw",
+    "kcal": 15.0,
+    "protein": 0.65,
+    "fat": 0.11,
+    "carbs": 3.63,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Cucumber, with peel, raw",
+    "source_url": "https://fdc.nal.usda.gov/food-details/168409/nutrients"
+  },
+  {
+    "id": "168484",
+    "name": "Sweet potato \u00b7 boiled",
+    "kcal": 76.0,
+    "protein": 1.37,
+    "fat": 0.14,
+    "carbs": 17.72,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Sweet potato, cooked, boiled, without skin",
+    "source_url": "https://fdc.nal.usda.gov/food-details/168484/nutrients"
+  },
+  {
+    "id": "171413",
+    "name": "Olive oil",
+    "kcal": 884.0,
+    "protein": 0.0,
+    "fat": 100.0,
+    "carbs": 0.0,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Oil, olive, salad or cooking",
+    "source_url": "https://fdc.nal.usda.gov/food-details/171413/nutrients"
+  },
+  {
+    "id": "170567",
+    "name": "Almonds",
+    "kcal": 579.0,
+    "protein": 21.15,
+    "fat": 49.93,
+    "carbs": 21.55,
+    "allergens": [
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Nuts, almonds",
+    "source_url": "https://fdc.nal.usda.gov/food-details/170567/nutrients"
+  },
+  {
+    "id": "171705",
+    "name": "Avocado",
+    "kcal": 160.0,
+    "protein": 2.0,
+    "fat": 14.66,
+    "carbs": 8.53,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "source_description": "Avocados, raw, all commercial varieties",
+    "source_url": "https://fdc.nal.usda.gov/food-details/171705/nutrients"
+  }
+]

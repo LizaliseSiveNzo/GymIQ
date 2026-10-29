@@ -29,7 +29,7 @@ be reset by deleting accounts. This table intentionally has no browser grants or
 RLS policies; only the service role can access it. An RLS-without-policies
 informational advisory is expected for this server-only table.
 
-## Stage 2: meal builder (next stage, not part of Stage 1)
+## Stage 2: meal builder and monthly goals (implemented)
 
 - Breakfast, lunch, snack and dinner slots.
 - Ingredient/portion-based calorie totals from traceable food composition data.
@@ -39,11 +39,16 @@ informational advisory is expected for this server-only table.
   silently rewrite past food transactions.
 - AI may explain or suggest choices; it must not invent food calorie values.
 
+Implemented with monthly loss goals, net activity estimates, dated calorie
+guides, locally calculated meal portions, extra-food logging, corrections and
+day/week/month summaries. Groq receives only public recipes for meal selection.
+See [MEAL_PLANNING.md](MEAL_PLANNING.md) for the data model and limitations.
+
 ## Stage 3: manual steps in Workouts (after meal builder)
 
 - Input and edit a day's step total from the Workouts section.
 - Label step energy as an estimate and explain the calculation assumptions.
-- Update a single linked Calorie Bank credit when steps change; never add the
-  whole day's credit again on every save.
+- Keep a single editable steps record per day. Do not credit activity already
+  included in the new calorie guide or increase food targets automatically.
 - Account for activity already included in the calorie target to avoid counting
   the same activity twice. Preserve a clear transaction trail and undo behaviour.

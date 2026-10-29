@@ -4,11 +4,11 @@
  */
 
 import TabShell from '../../shell/TabShell.jsx';
-import CalorieBank from '../../components/CalorieBank.jsx';
+import NutritionHub from '../../components/NutritionHub.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import AiReviewCard from '../../components/ui/AiReviewCard.jsx';
 
-// Calorie Bank tab — full setup, balance ring, food/exercise logging, and ledger.
+// Food planning and actual intake share one dated calorie guide.
 export default function BankTab() {
   const { session, profile } = useAuth();
   if (session?.demo || !profile) {
@@ -16,8 +16,8 @@ export default function BankTab() {
   }
   return (
     <TabShell active="bank" title="Calorie Bank">
-      <p className="bank-intro">Fuel the work you put in. Log food and activity, and keep your calorie balance in view.</p>
-      <CalorieBank clientId={profile.id} />
+      <p className="bank-intro">Build meals, track the extras and keep your longer-term goal in view.</p>
+      <NutritionHub userId={profile.id} />
       <AiReviewCard domain="nutrition"/>
     </TabShell>
   );
