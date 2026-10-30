@@ -2,9 +2,9 @@ import {useEffect,useId,useRef} from 'react';
 import {Link} from 'react-router-dom';
 import './bankMenu.css';
 
-export const BANK_SECTIONS={home:'Daily food & calories',goals:'Monthly goal',plan:'Daily meal plan',quick:'Favourites & recent meals',builder:'Meal builder',diary:'Food diary',summary:'Day, week & month totals',barcode:'Barcode lookup',weight:'Weight check-ins',insights:'Food & calorie insights',sources:'Estimates & food sources'};
-export function bankSection(search){const value=search.get('section');return Object.hasOwn(BANK_SECTIONS,value)?value:search.get('goals')==='1'?'goals':'home';}
-const groups=[{label:'Food & logging',keys:['home','plan','quick','builder','diary','barcode']},{label:'Goals & progress',keys:['goals','summary','weight','insights']},{label:'About the numbers',keys:['sources']}];
+export const BANK_SECTIONS={home:'Calorie overview',goals:'Monthly goal',plan:'Daily meal plan',quick:'Favourites & recent meals',builder:'Meal builder',diary:'Food diary',barcode:'Barcode lookup',weight:'Weight check-ins',insights:'Food & calorie insights',sources:'Estimates & food sources'};
+export function bankSection(search){const value=search.get('section');if(value==='summary')return 'home';return Object.hasOwn(BANK_SECTIONS,value)?value:search.get('goals')==='1'?'goals':'home';}
+const groups=[{label:'Food & logging',keys:['home','plan','quick','builder','diary','barcode']},{label:'Goals & progress',keys:['goals','weight','insights']},{label:'About the numbers',keys:['sources']}];
 export default function BankMenu({section}){
  const details=useRef(null),menuId=useId();
  useEffect(()=>{

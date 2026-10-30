@@ -23,7 +23,7 @@ export default function BankTab() {
   return (
     <TabShell active="bank" title="Calorie Bank">
       <div className="bank-page-intro"><p className="bank-intro">Build meals, track the extras and keep your longer-term goal in view.</p><BankMenu section={section}/></div>
-      {section!=='home'&&<button className="btn btn-ghost bank-section-back" onClick={()=>navigateSection('home')}>← Daily food & calories</button>}
+      {section!=='home'&&<button className="btn btn-ghost bank-section-back" onClick={()=>navigateSection('home')}>← Calorie overview</button>}
       <NutritionHub userId={profile.id} section={section} onSectionChange={navigateSection}/>
     </TabShell>
   );
