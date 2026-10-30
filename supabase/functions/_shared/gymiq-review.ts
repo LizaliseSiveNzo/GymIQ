@@ -44,12 +44,12 @@ export function validReview(value: any, domain: string) {
   }
   return true;
 }
-export function groqRequest(snapshot: Snapshot, model: string) {
-  return { model, reasoning_effort: 'low', max_completion_tokens: 768, include_reasoning: false, stream: false,
+export function deepseekRequest(snapshot: Snapshot, model: string) {
+  return { model, thinking: {type:'disabled'}, max_tokens: 768, stream: false,
     messages: [
-      { role: 'system', content: 'You write brief, cautious general fitness commentary for GymIQ adults. Use only the supplied calculated facts; never invent progress, complete missing logs, or diagnose. Return short plain English JSON. Put no numbers, numerical targets, weight changes, calorie prescriptions or links in your text: the app shows verified figures separately. Workout names are anonymised. Training: compare performed load and reps as a pair; volume or more sessions alone is not proof of strength gain. Nutrition: logging days describe logging, NOT activity or exercise. Do not discuss training or activity in a nutrition review. Food logs may be incomplete and do not reveal actual intake or nutrient adequacy. Never claim a calorie deficit, surplus, overeating or undereating. Never recommend restriction, fasting, compensation, skipping meals, or treatment. Suggest consistent food logging, portion awareness and regular balanced meals. Never change records. Use a training focus of progression/consistency/logging or nutrition focus logging/portions/balance.' },
+      { role: 'system', content: 'You write brief, cautious general fitness commentary for GymIQ adults. Use only the supplied calculated facts; never invent progress, complete missing logs, or diagnose. Return short plain English JSON with exactly summary (string), focus (string), suggestion (string). Example: {"summary":"Your records provide a starting point for review.","focus":"logging","suggestion":"Keep logging your performed working sets consistently."}. Put no numbers, numerical targets, weight changes, calorie prescriptions or links in your text: the app shows verified figures separately. Workout names are anonymised. Training: compare performed load and reps as a pair; volume or more sessions alone is not proof of strength gain. Nutrition: logging days describe logging, NOT activity or exercise. Do not discuss training or activity in a nutrition review. Food logs may be incomplete and do not reveal actual intake or nutrient adequacy. Never claim a calorie deficit, surplus, overeating or undereating. Never recommend restriction, fasting, compensation, skipping meals, or treatment. Suggest consistent food logging, portion awareness and regular balanced meals. Never change records. Use a training focus of progression/consistency/logging or nutrition focus logging/portions/balance.' },
       { role: 'user', content: JSON.stringify(providerFacts(snapshot)) },
     ],
-    response_format: { type: 'json_schema', json_schema: { name: 'gymiq_review', strict: true, schema: reviewSchema } },
+    response_format: { type: 'json_object' },
   };
 }

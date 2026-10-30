@@ -54,9 +54,9 @@ Deno.serve(async(req:Request)=>{
     }
     try{buildPlan(Number(result.target),foods,settings.diet,settings.excludes);}catch(e){return json({error:(e as Error).message},400);}
     let source='rules',reason='basic_selected',selection={};
-    const model=Deno.env.get('GROQ_MODEL')?.trim()||'openai/gpt-oss-120b';
-    const key=Deno.env.get('GROQ_API_KEY')?.trim();
-    if(body.consent===true&&key&&['openai/gpt-oss-120b','openai/gpt-oss-20b'].includes(model)){
+    const model=Deno.env.get('DEEPSEEK_MODEL')?.trim()||'deepseek-flash';
+    const key=Deno.env.get('DEEPSEEK_API_KEY')?.trim();
+    if(body.consent===true&&key&&['deepseek-flash','deepseek-v4-pro'].includes(model)){
       // Public catalogue only: no target, measurements, preferences, logs or identifiers are sent.
       const facts={task:'public-meal-selection-v3-mixed-default',options:RECIPES.map(r=>({id:r.id,slot:r.slot,name:r.name}))};
       const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify({model,...facts})));
@@ -64,20 +64,20 @@ Deno.serve(async(req:Request)=>{
       const valid=(v:any)=>v&&SLOTS.every((s:string)=>RECIPES.some(r=>r.slot===s&&r.id===v[s]));
       const cached=await db.from('ai_review_cache').select('review').eq('user_id',user.id).eq('review_domain','nutrition').eq('snapshot_hash',hash).maybeSingle();
       if(cached.error)reason='temporarily_unavailable';
-      else if(valid(cached.data?.review)){selection=cached.data!.review;source='groq';reason='cached';}
+      else if(valid(cached.data?.review)){selection=cached.data!.review;source='deepseek';reason='cached';}
       else{
         const reservation=await db.rpc('reserve_ai_review',{p_user:user.id,p_domain:'nutrition',p_hash:hash});
         reason=reservation.data?.status||'temporarily_unavailable';
         if(!reservation.error&&reason==='reserved')try{
           const properties=Object.fromEntries(SLOTS.map((s:string)=>[s,{type:'string',enum:RECIPES.filter(r=>r.slot===s).map(r=>r.id)}]));
-          const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},signal:AbortSignal.timeout(18000),body:JSON.stringify({model,reasoning_effort:'low',include_reasoning:false,max_completion_tokens:768,messages:[{role:'system',content:'Choose varied everyday mixed meals from this public catalogue. Prefer chicken or fish for lunch and dinner and eggs or dairy for breakfast. Fruit, oats and yoghurt are ordinary breakfast/snack foods. Vegetarian or vegan main dishes require an explicit preference, which GymIQ applies locally. Return only recipe IDs. Do not calculate calories or invent meals.'},{role:'user',content:JSON.stringify(facts)}],response_format:{type:'json_schema',json_schema:{name:'meal_selection',strict:true,schema:{type:'object',additionalProperties:false,required:SLOTS,properties}}}})});
+          const response=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},signal:AbortSignal.timeout(45000),body:JSON.stringify({model,thinking:{type:'disabled'},max_tokens:768,messages:[{role:'system',content:'Choose varied everyday mixed meals from this public catalogue. Prefer chicken or fish for lunch and dinner and eggs or dairy for breakfast. Fruit, oats and yoghurt are ordinary breakfast/snack foods. Vegetarian or vegan main dishes require an explicit preference, which GymIQ applies locally. Return a JSON object with exactly breakfast, lunch, snack, dinner keys, each holding a recipe ID string. Do not calculate calories or invent meals.'},{role:'user',content:JSON.stringify(facts)}],response_format:{type:'json_object'}})});
           if(!response.ok)throw Error('Provider unavailable');
           const data=await response.json();
           const tokens=Number(data.usage?.total_tokens);
           if(Number.isInteger(tokens)&&tokens>=0)await db.from('ai_review_attempts').update({total_tokens:tokens}).eq('id',reservation.data.id);
           const proposed=JSON.parse(data.choices?.[0]?.message?.content||'null');
           if(data.choices?.[0]?.finish_reason!=='stop'||!valid(proposed))throw Error('Invalid selection');
-          selection=proposed;source='groq';reason='generated';
+          selection=proposed;source='deepseek';reason='generated';
           await db.from('ai_review_cache').upsert({user_id:user.id,review_domain:'nutrition',snapshot_hash:hash,review:selection,model,consented_at:new Date().toISOString()},{onConflict:'user_id,review_domain,snapshot_hash'});
         }catch{reason='temporarily_unavailable';}
       }

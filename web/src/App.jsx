@@ -17,6 +17,7 @@ const Stats = lazy(() => import('./pages/mf/ExerciseStats.jsx'));
 const Analytics = lazy(() => import('./pages/mf/TrainingAnalytics.jsx'));
 const ProgressStory = lazy(() => import('./pages/mf/ProgressStory.jsx'));
 const WeeklyCheckIn = lazy(() => import('./pages/mf/WeeklyCheckIn.jsx'));
+const PersonalCoach = lazy(() => import('./pages/mf/PersonalCoach.jsx'));
 const secure = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
 export default function App() {
   return <Suspense fallback={<div className="app-loading" role="status">Loading GymIQ…</div>}>
@@ -28,6 +29,7 @@ export default function App() {
       <Route path="/workout" element={secure(<Workout />)} />
       <Route path="/bank" element={secure(<Bank />)} />
       <Route path="/more" element={secure(<Account />)} />
+      <Route path="/coach" element={secure(<PersonalCoach />)} />
       <Route path="/exercises" element={secure(<Exercises />)} />
       <Route path="/workout/day/:dayId" element={secure(<Summary />)} />
       <Route path="/workout/session/free" element={secure(<Session />)} />

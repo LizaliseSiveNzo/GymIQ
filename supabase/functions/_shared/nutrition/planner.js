@@ -61,7 +61,15 @@ export function eligibleRecipes(foods, diet='regular', excludes=[]) {
 }
 export function planMatchesDiet(plan, foods, diet='regular', excludes=[]) {
   const eligible=eligibleRecipes(foods,diet,excludes);
-  return Array.isArray(plan)&&plan.length===SLOTS.length&&SLOTS.every(slot=>plan.some(m=>m.slot===slot&&eligible.some(r=>r.id===m.recipe_id&&r.slot===slot)));
+  return Array.isArray(plan)&&plan.length===SLOTS.length&&SLOTS.every(slot=>plan.filter(m=>m.slot===slot).length===1&&plan.some(m=>{
+    if(m.slot!==slot)return false;
+    if(m.recipe_id!=='coach-custom')return eligible.some(r=>r.id===m.recipe_id&&r.slot===slot);
+    try{
+      mealTotals(m.items,foods);
+      return m.items.every(i=>{const f=foods.find(f=>f.id===i.food_id);return f&&(diet==='regular'||f[diet]===true)&&!f.allergens.some(a=>excludes.includes(a));})&&
+        (diet!=='regular'||!['lunch','dinner'].includes(slot)||m.items.some(i=>foods.find(f=>f.id===i.food_id)?.vegetarian===false));
+    }catch{return false;}
+  }));
 }
 export function buildPlan(target, foods, diet, excludes, selection={}) {
   if(!Number.isFinite(target)||target<1500||target>6000)throw new Error('Set an eligible calorie guide first.');

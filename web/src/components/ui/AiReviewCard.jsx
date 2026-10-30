@@ -41,12 +41,12 @@ export default function AiReviewCard({ domain }) {
   return <section className="mf-card ai-review-card" aria-label={`${training?'Training':'Calorie'} review`}>
     <div className="section-heading"><h2>{training?'Training insights':'Food & calorie insights'}</h2><span className="badge badge-neutral">Optional</span></div>
     <p className="subtle">{training?'Review recent finished working sets and spot what to focus on next.':'Review logged food and calorie estimates. This is a food-logging review, not a personalised diet prescription.'}</p>
-    <label className="ai-review-consent"><input type="checkbox" checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/><span>Share a limited numerical summary with Groq for this AI review. Your name, email, date of birth and free-text notes are omitted. <Link to="/privacy#ai-reviews">How reviews use data</Link></span></label>
+    <label className="ai-review-consent"><input type="checkbox" checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/><span>Share a limited numerical summary with DeepSeek for this AI review. Your name, email, date of birth and free-text notes are omitted. <Link to="/privacy#ai-reviews">How reviews use data</Link></span></label>
     <div className="launch-actions"><button className="btn btn-primary" disabled={busy||!consent} onClick={()=>review(true)}>{busy?'Preparing review…':'Review with AI'}</button><button className="btn btn-secondary" disabled={busy} onClick={()=>review(false)}>Basic review</button></div>
     <p className="subtle ai-review-note">AI reviews are limited and reused when the figures are unchanged. Reviews suggest things to consider; they never edit your targets, PRs or Calorie Bank.</p>
     {error&&<p className="inline-error" role="alert">{error}</p>}
     {result&&<div className="ai-review-result" aria-live="polite">
-      <div className="row between"><strong>{result.source==='groq'?'Groq AI review':'Basic review · rules-based'}</strong>{result.cached&&<span className="subtle">Saved review</span>}</div>
+      <div className="row between"><strong>{result.source==='deepseek'?'DeepSeek AI review':'Basic review · rules-based'}</strong>{result.cached&&<span className="subtle">Saved review</span>}</div>
       {notice&&<p className="subtle" role="status">{notice}</p>}
       <div className="exercise-progress-grid">
         {training?<><div><span>Finished sessions · last 7 days</span><strong>{s.sessions_recent7}</strong></div><div><span>Working sets · last 7 days</span><strong>{s.working_sets_recent7}</strong></div></>:<><div><span>Daily target · estimate</span><strong>{Number(s.daily_target)>0?`${s.daily_target} kcal`:'Not set'}</strong></div><div><span>Food logged today</span><strong>{s.food_kcal_today} kcal</strong><small>{s.food_entries_today} entries · may be incomplete</small></div></>}
@@ -54,7 +54,7 @@ export default function AiReviewCard({ domain }) {
       {training&&(s.exercises||[]).length>0&&<details className="exercise-progress-history"><summary>Exercises included · recent 90 days</summary>{s.exercises.map(e=><div className="prev-row" key={e.exercise_key}><span>{e.name}</span><strong>{Number(e.last_weight)} kg × {e.last_reps}</strong></div>)}</details>}
       <p>{result.review.summary}</p><p className="ai-review-next"><strong>Next focus</strong><br/>{result.review.suggestion}</p>
       <p className="subtle ai-review-note">Based on the records available when requested · {new Date(result.created_at).toLocaleString()}. {training?'General fitness guidance; choose loads appropriate to your ability.':'Food, targets and activity calories are estimates. Missing logs are not evidence of low intake.'}</p>
-      {result.source==='groq'&&<button className="btn btn-ghost" disabled={busy} onClick={clear}>Remove saved AI reviews</button>}
+      {result.source==='deepseek'&&<button className="btn btn-ghost" disabled={busy} onClick={clear}>Remove saved AI reviews</button>}
     </div>}
   </section>;
 }
