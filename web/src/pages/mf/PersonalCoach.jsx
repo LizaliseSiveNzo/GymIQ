@@ -4,7 +4,8 @@ import TabShell from '../../shell/TabShell.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
 import {supabase} from '../../lib/supabaseClient.js';
 import foods from '../../../../supabase/functions/_shared/nutrition/foods.json';
-import {speechRecognitionClass,startCoachDictation} from '../../lib/coachVoice.js';
+import {speechRecognitionClass,startCoachDictation,coachVoices,chooseCoachVoice} from '../../lib/coachVoice.js';
+import {createCoachAudio} from '../../lib/coachAudio.js';
 import './personalCoach.css';
 
 const toggle=(values,id)=>values.includes(id)?values.filter(x=>x!==id):[...values,id];
@@ -30,9 +31,19 @@ export default function PersonalCoach(){
  const [kitchen,setKitchen]=useState({pantry:[],equipment:[]}),[savedKitchen,setSavedKitchen]=useState(null);
  const [turns,setTurns]=useState([]),[proposals,setProposals]=useState([]),[message,setMessage]=useState('');
  const [listening,setListening]=useState(false),[readingId,setReadingId]=useState(null);
+ const [voices,setVoices]=useState([]),[voiceUri,setVoiceUri]=useState('microsoft-cloud');
  const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),loadedUser=useRef(null);
+ const cloudAudio=useRef(null),readingVersion=useRef(0);
  const dirty=JSON.stringify(kitchen)!==JSON.stringify(savedKitchen);
+ const selectedVoice=chooseCoachVoice(voices);
+ useEffect(()=>{
+  readingVersion.current++;cloudAudio.current?.stop();cloudAudio.current=null;setReadingId(null);
+  try{setVoiceUri(localStorage.getItem(`gymiq_coach_voice_${profile.id}`)??'microsoft-cloud');}catch{/* Device preference is optional. */}
+  const synthesis=globalThis.speechSynthesis,update=()=>setVoices(coachVoices(synthesis));
+  update();synthesis?.addEventListener?.('voiceschanged',update);
+  return()=>synthesis?.removeEventListener?.('voiceschanged',update);
+ },[profile.id]);
  async function refresh(){
   const results=await Promise.all([
    supabase.from('coach_settings').select('pantry,equipment').eq('user_id',profile.id).maybeSingle(),
@@ -56,7 +67,7 @@ export default function PersonalCoach(){
  useEffect(()=>{
   const stop=()=>{voice.current?.abort();voice.current=null;setListening(false);};
   const hidden=()=>{if(document.hidden){stop();stopReading();}};document.addEventListener('visibilitychange',hidden);
-  return()=>{document.removeEventListener('visibilitychange',hidden);voice.current?.abort();speech.current=null;globalThis.speechSynthesis?.cancel();};
+  return()=>{document.removeEventListener('visibilitychange',hidden);voice.current?.abort();readingVersion.current++;cloudAudio.current?.stop();speech.current=null;globalThis.speechSynthesis?.cancel();};
  },[]);
  async function run(key,fn){if(busy)return;setBusy(key);setError('');setNotice('');try{await fn();}catch(e){setError(e.message);}finally{setBusy('');}}
  async function saveKitchen(){await run('settings',async()=>{
@@ -82,10 +93,27 @@ export default function PersonalCoach(){
   stopReading();
   try{voice.current=startCoachDictation({onText:text=>{setMessage(previous=>((previous?previous+' ':'')+text).slice(0,2000));request.current=null;},onError:setError,onEnd:()=>{setListening(false);voice.current=null;}});setListening(true);}catch(e){setError(e.message);}
  }
- function stopReading(){speech.current=null;globalThis.speechSynthesis?.cancel();setReadingId(null);}
- function readReply(id,text){
-  stopReading();if(!globalThis.speechSynthesis||!globalThis.SpeechSynthesisUtterance)return;
-  const utterance=new SpeechSynthesisUtterance(text);utterance.lang='en-ZA';speech.current=utterance;
+ function stopReading(){readingVersion.current++;cloudAudio.current?.stop();speech.current=null;globalThis.speechSynthesis?.cancel();setReadingId(null);}
+ async function readReply(id,text){
+  stopReading();const version=readingVersion.current;
+  if(voiceUri==='microsoft-cloud'&&navigator.onLine){
+   setReadingId(id);
+   cloudAudio.current ||= createCoachAudio({load:async(turnId,signal)=>{
+    const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId},signal});
+    if(error)throw Error('Microsoft speech is unavailable.');return data;
+   }});
+   try{await cloudAudio.current.read(id,error=>{if(readingVersion.current===version){stopReading();if(error)setError(error.message);}});return;}
+   catch(error){
+    if(readingVersion.current!==version)return;
+    if(error.name==='NotAllowedError'){setReadingId(null);setNotice('Audio ready. Tap Read aloud again to play.');return;}
+    setNotice('Microsoft voice is unavailable. Using your device voice.');
+   }
+  }
+  if(readingVersion.current!==version)return;
+  if(!globalThis.speechSynthesis||!globalThis.SpeechSynthesisUtterance){setReadingId(null);setError('Audio is unavailable. Please try again online.');return;}
+
+  const utterance=new SpeechSynthesisUtterance(text),chosen=chooseCoachVoice(coachVoices(),voiceUri);
+  if(chosen)utterance.voice=chosen;utterance.lang=chosen?.lang||'en-ZA';speech.current=utterance;
   const ended=()=>{if(speech.current===utterance){speech.current=null;setReadingId(null);}};
   utterance.onend=ended;utterance.onerror=ended;setReadingId(id);
   try{globalThis.speechSynthesis.speak(utterance);}catch{ended();setError('Read aloud is unavailable. Please try again.');}
@@ -102,6 +130,7 @@ export default function PersonalCoach(){
     {gyms.length>0&&<label className="coach-gym">Use equipment from a saved gym<select defaultValue="" disabled={!!busy} onChange={e=>{if(e.target.value)setKitchen(k=>({...k,equipment:gymEquipment.filter(x=>x.profile_id===e.target.value).map(x=>x.equipment_id)}));}}><option value="">Choose a gym</option>{gyms.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}
     <fieldset disabled={!!busy}><legend>Available equipment</legend><div className="coach-choice-grid">{equipment.filter(e=>e.id!=='bodyweight').map(e=><label key={e.id}><input type="checkbox" checked={kitchen.equipment.includes(e.id)} onChange={()=>setKitchen(k=>({...k,equipment:toggle(k.equipment,e.id)}))}/>{e.name}</label>)}</div></fieldset>
     <button className="btn btn-primary" disabled={!!busy||!dirty} onClick={saveKitchen}>Save ingredients & equipment</button>
+    {<div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={voiceUri==='microsoft-cloud'||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:''} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="microsoft-cloud">Microsoft Leah · South Africa (online)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>}
    </details>
 
    <div className="coach-workspace">
@@ -110,7 +139,7 @@ export default function PersonalCoach(){
      {turns.map(turn=><article className="coach-turn" key={turn.id}>
       <div className="coach-user-message"><span className="coach-visually-hidden">You</span><p className="coach-text">{turn.prompt}</p></div>
       <div className="coach-assistant-message"><div className="coach-assistant-label"><span aria-hidden="true">✦</span> Coach</div>
-       {turn.reply?<><p className="coach-text">{turn.reply}</p>{globalThis.speechSynthesis&&globalThis.SpeechSynthesisUtterance&&<button type="button" className="coach-read" aria-label={readingId===turn.id?'Stop reading reply':'Read reply aloud'} onClick={()=>readingId===turn.id?stopReading():readReply(turn.id,turn.reply)}>{readingId===turn.id?'■ Stop reading':'◖ Read aloud'}</button>}</>:<p className="subtle">{turn.status==='error'?'Couldn’t complete this request. Please try again.':'Preparing your reply…'}</p>}
+       {turn.reply?<><p className="coach-text">{turn.reply}</p>{(globalThis.Audio||globalThis.speechSynthesis)&&<button type="button" className="coach-read" aria-label={readingId===turn.id?'Stop reading reply':'Read reply aloud'} onClick={()=>readingId===turn.id?stopReading():readReply(turn.id,turn.reply)}>{readingId===turn.id?'■ Stop reading':'◖ Read aloud'}</button>}</>:<p className="subtle">{turn.status==='error'?'Couldn’t complete this request. Please try again.':'Preparing your reply…'}</p>}
        {proposals.filter(p=>p.turn_id===turn.id).map(p=><Proposal key={p.id} action={p} busy={!!busy} onAction={apply}/>)}
       </div>
      </article>)}

@@ -1,6 +1,16 @@
 export function speechRecognitionClass(scope=globalThis) {
   return scope.SpeechRecognition || scope.webkitSpeechRecognition || null;
 }
+export function coachVoices(synthesis=globalThis.speechSynthesis){
+ try{return (synthesis?.getVoices?.()||[]).filter(voice=>/^en(?:[-_]|$)/i.test(voice.lang)).slice().sort((a,b)=>voiceScore(b)-voiceScore(a)||a.name.localeCompare(b.name));}catch{return [];}
+}
+function voiceScore(voice){
+ const microsoft=/microsoft/i.test(voice.name||'');
+ return (microsoft?100:0)+(microsoft&&/natural|neural/i.test(voice.name||'')?50:0)+(/^en[-_]ZA$/i.test(voice.lang)?20:0)+(voice.default?1:0);
+}
+export function chooseCoachVoice(voices,uri=''){
+ return voices.find(voice=>voice.voiceURI===uri)||voices.slice().sort((a,b)=>voiceScore(b)-voiceScore(a))[0]||null;
+}
 export function startCoachDictation({scope=globalThis,onText,onError,onEnd}) {
   const Recognition=speechRecognitionClass(scope);
   if(!Recognition)throw Error('Voice input is unavailable in this browser. Type your message instead.');
