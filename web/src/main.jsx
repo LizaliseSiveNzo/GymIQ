@@ -7,6 +7,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import DeferredAnalytics from './components/DeferredAnalytics.jsx';
+import RouteLoadBoundary from './components/RouteLoadBoundary.jsx';
 import {registerOfflineApp} from './lib/offlineApp.js';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
@@ -17,11 +18,11 @@ import './styles/shell.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <RouteLoadBoundary><BrowserRouter>
       <AuthProvider>
         <LogSyncProvider><App /></LogSyncProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </BrowserRouter></RouteLoadBoundary>
     <DeferredAnalytics />
   </React.StrictMode>
 );
