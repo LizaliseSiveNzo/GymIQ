@@ -13,6 +13,6 @@ export default function SessionTiming({ clock, soundOn, restComplete, onPause, o
       <div className="row"><button className="btn btn-ghost" onClick={onAddRest}>+15s</button><button className="btn btn-ghost" onClick={onSkipRest}>Skip rest</button></div>
     </div>}
     {restComplete && <p className="session-rest-done" role="status">Rest complete. Ready for your next set.</p>}
-    <div className="session-timing__sound"><button className="btn btn-ghost" aria-pressed={soundOn} onClick={onSoundToggle}>Bell {soundOn ? 'on' : 'off'}</button><button className="btn btn-ghost" onClick={onTestBell} disabled={!soundOn}>Test bell</button><span>Two short taps</span></div>
+    <div className="session-timing__sound"><button className="btn btn-ghost" aria-pressed={soundOn} onClick={onSoundToggle}>Bell {soundOn ? 'on' : 'off'}</button><button className="btn btn-ghost" onClick={onTestBell} disabled={!soundOn}>Test bell</button><span>Two bell strikes</span></div>
   </section>;
 }

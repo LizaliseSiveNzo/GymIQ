@@ -15,12 +15,13 @@ function fixture() {
   return { bell: createRestBell(environment), context, tones, environment };
 }
 describe('short rest bell', () => {
-  it('schedules exactly two taps that finish in under one second and chooses ambient mixing', async () => {
+  it('schedules two resonant strikes with a lower bell body that finish in under two seconds', async () => {
     const { bell, tones, environment, context } = fixture();
     expect(await bell.play()).toBe(true);
-    expect(tones).toHaveLength(6); // three quiet harmonics per tap
+    expect(tones).toHaveLength(12);
+    expect(Math.min(...tones.map(t=>t.frequency.value))).toBeLessThan(300);
     expect(new Set(tones.map(t => t.start.mock.calls[0][0])).size).toBe(2);
-    expect(Math.max(...tones.map(t => t.stop.mock.calls[0][0])) - context.currentTime).toBeLessThan(0.8);
+    expect(Math.max(...tones.map(t => t.stop.mock.calls[0][0])) - context.currentTime).toBeLessThan(1.8);
     expect(environment.navigator.audioSession.type).toBe('ambient');
     tones.forEach(t => t.onended());
     expect(context.suspend).toHaveBeenCalledOnce();
