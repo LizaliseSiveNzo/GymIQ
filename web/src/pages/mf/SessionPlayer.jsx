@@ -20,7 +20,7 @@ import SessionReadinessDialog from '../../components/ui/SessionReadinessDialog.j
 import { formatSessionTime } from '../../lib/sessionClock.js';
 import { createRestBell } from '../../lib/restBell.js';
 import { loadExerciseProgress } from '../../lib/loadExerciseProgress.js';
-import { previousFor, setDescription } from '../../lib/exerciseProgress.js';
+import { previousFor } from '../../lib/exerciseProgress.js';
 import SessionDiscardDialog from '../../components/ui/SessionDiscardDialog.jsx';
 import SetEditDialog from '../../components/ui/SetEditDialog.jsx';
 import ExerciseTargetDialog from '../../components/ui/ExerciseTargetDialog.jsx';
@@ -540,7 +540,6 @@ export default function SessionPlayer() {
         const repsLabel = uni ? 'Reps/Side' : 'Reps';
         const rirColor = (r) => (r == null ? 'var(--text-subtle)' : r <= 1 ? 'var(--danger)' : r <= 3 ? 'var(--warning)' : 'var(--success)');
         const previous = previousFor(progress,item);
-        const planned=targets.find(t=>t.exercise_key===targetKey(item));
         const totalRows = Math.max((item.scheme.sets || 3) + (extraRows[item.key] || 0), Math.max(0,...byNumber.keys()));
         const idxs = [...Array(totalRows).keys()];
         const cellInput = { width: '100%', minHeight:44, boxSizing:'border-box', textAlign: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 4px', color: 'var(--ink)', font: 'inherit', fontSize: 16, MozAppearance: 'textfield' };
@@ -560,10 +559,7 @@ export default function SessionPlayer() {
 
             {item.originalName&&<p className="subtle">Session replacement for {item.originalName}. Loads below belong to {item.name}.</p>}
             <ProgressionCoach key={`coach:${targetKey(item)}`} item={item} progress={progress} feedback={coachFeedback} preferences={coachPreferences} readiness={readiness} defaultIncrement={(item.equipmentIds||[]).includes('barbell')?knownBarIncrement:null} userId={profile.id} logId={logId} hasLogged={committed.length>0} locked={readinessBusy||swapBusy||discardBusy||committed.some(s=>s._queued)} unavailable={coachUnavailable||progressUnavailable} onApply={suggestion=>applyCoach(item,suggestion)} onFeedback={row=>setCoachFeedback(rows=>[row,...rows.filter(f=>!(f.log_id===row.log_id&&f.exercise_key===row.exercise_key))])} onPreference={row=>setCoachPreferences(rows=>[row,...rows.filter(p=>p.exercise_key!==row.exercise_key)])}/>
-            {planned&&<div className="exercise-previous planned-target"><strong>Planned target · {Number(planned.weight)} kg × {planned.reps}</strong><p>Saved as your starting default. Session edits or accepted coach suggestions do not change this saved target or count as a PR.</p></div>}
-            {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>{planned ? 'Your saved target is shown above. Review the inputs; an accepted coach suggestion applies to this session only.' : 'Previous working sets are your starting defaults. Review a coach suggestion or edit the inputs; tick a set only after performing it.'}</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
-            {!previous && !planned && <p className="subtle" style={{fontSize:12}}>Enter your starting weight and reps. Finished working sets become your defaults next time.</p>}
-            <p className="subtle" style={{fontSize:12}}>Target: {item.scheme.repMin}–{item.scheme.repMax} reps @ {item.scheme.rir} RIR. Build reps within your range; review the load when your working sets reach the upper end with good form.</p>
+            <Link className="btn btn-secondary btn-block" style={{marginBottom:16}} to="/workout/stats">View exercise records ↗</Link>
 
             {timer.clock.paused&&<p className="session-entry-status" role="status">Timer paused · entering and logging sets still works.</p>}
             {committed.length>0&&<p className="subtle" style={{fontSize:12}}>Checked rows are saved in this session. Tap a saved weight/reps value or Edit to correct it, or add another set below.</p>}
