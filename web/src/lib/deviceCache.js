@@ -20,5 +20,9 @@ export function clearViews(userId){
  if(!userId)return;
  for(const storage of stores())try{for(const key of Object.keys(storage))if(key.startsWith(`${DEVICE_PREFIX}${userId}:`))storage.removeItem(key);}catch{/* Best effort, current UI is cleared separately. */}
 }
+export function removeView(userId,key){
+ if(!userId)return;
+ for(const storage of stores())try{storage.removeItem(`${DEVICE_PREFIX}${userId}:${key}`);}catch{/* Optional display cache. */}
+}
 export function profileSnapshot(profile){return Object.fromEntries(['id','name','email','role','onboarded_at'].filter(k=>Object.hasOwn(profile,k)).map(k=>[k,profile[k]]));}
 export function offlineWeek(snapshot){return {...snapshot,can_write:false,fromDevice:true};}

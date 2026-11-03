@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import RouteLoadBoundary from './components/RouteLoadBoundary.jsx';
+import WorkoutRecoveryPrompt from './components/ui/WorkoutRecoveryPrompt.jsx';
 const Landing = lazy(() => import('./pages/Landing.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Privacy = lazy(() => import('./pages/Privacy.jsx'));
@@ -44,5 +45,5 @@ export default function App() {
       <Route path="/customer/calorie-bank" element={<Navigate to="/bank" replace />} />
       <Route path="*" element={<Navigate to="/workout" replace />} />
     </Routes>
-  </Suspense></RouteLoadBoundary>;
+  </Suspense><WorkoutRecoveryPrompt/></RouteLoadBoundary>;
 }

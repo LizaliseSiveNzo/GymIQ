@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import ExercisePicker from '../../components/ui/ExercisePicker.jsx';
 import ProgressionCoach from '../../components/ui/ProgressionCoach.jsx';
@@ -26,6 +26,7 @@ import ExerciseTargetDialog from '../../components/ui/ExerciseTargetDialog.jsx';
 import { exerciseDefault, loadExerciseTargets, targetKey } from '../../lib/exerciseTargets.js';
 
 import {loadWorkoutWeek,weekStart,dayKey,exerciseIdentity} from '../../lib/workoutWeek.js';
+import {loadResumedWorkout,rememberWorkout,forgetWorkout} from '../../lib/workoutRecovery.js';
 
 const DEFAULT_SCHEME = { sets: 3, repMin: 8, repMax: 12, rir: 2, restSeconds: 90 };
 const fmtClock = formatSessionTime;
@@ -37,6 +38,8 @@ const fmtClock = formatSessionTime;
  */
 export default function SessionPlayer() {
   const params = useParams();
+  const [search]=useSearchParams();
+  const resumeId=search.get('resume');
   const dayId = params.dayId && params.dayId !== 'free' ? params.dayId : null;
   const isFree = !dayId;
   const { profile } = useAuth();
@@ -126,19 +129,23 @@ export default function SessionPlayer() {
     let cancelled = false;
     (async () => {
       try {
-        let weekly=null,programmeId=null;
+        let log=await loadResumedWorkout(supabase,{userId:profile.id,dayId,resumeId});
+        let weekly=null,programmeId=null,workoutName=isFree?'Freestyle workout':'Your workout';
         if(!isFree){
-          const dayLookup=await supabase.from('programme_days').select('programme_id').eq('id',dayId).single();
+          const dayLookup=await supabase.from('programme_days').select('programme_id,name').eq('id',dayId).single();
           if(dayLookup.error)throw dayLookup.error;
-          programmeId=dayLookup.data.programme_id;
+          programmeId=dayLookup.data.programme_id;workoutName=dayLookup.data.name||workoutName;
           weekly=await loadWorkoutWeek({programmeId});
         }
         // Recover an unfinished log for this day, including an earlier paused workout.
-        const opened = await supabase.rpc('open_workout', { p_day: dayId });
-        if (opened.error) throw opened.error;
-        const log = Array.isArray(opened.data) ? opened.data[0] : opened.data;
+        if(!log){
+          const opened = await supabase.rpc('open_workout', { p_day: dayId });
+          if (opened.error) throw opened.error;
+          log = Array.isArray(opened.data) ? opened.data[0] : opened.data;
+        }
         if (!log?.id) throw new Error('Could not open your workout. Please try again.');
         if (cancelled) return;
+        rememberWorkout(profile.id,log,workoutName);
         logIdRef.current = log.id;
         setLogId(log.id);setReadiness(log.coach_readiness||'ready');
         setExcludedKeys(log.excluded_exercises || []);
@@ -224,7 +231,7 @@ export default function SessionPlayer() {
         const recovery = timer.initialize({
           key: `gymiq_timing_${profile.id}_${log.id}`,
           serverSeconds: Number(log.duration_sec) || 0,
-          startFresh: log.duration_sec == null && !existing.data?.length && Date.now() - new Date(log.created_at).getTime() < 60000,
+          startFresh: resumeId===null && log.duration_sec == null && !existing.data?.length && Date.now() - new Date(log.created_at).getTime() < 60000,
         });
         drafts.current = recovery?.drafts && typeof recovery.drafts === 'object' ? recovery.drafts : {};
         setActiveIdx(Number.isInteger(recovery?.activeIdx) ? Math.max(0, recovery.activeIdx) : 0);
@@ -237,7 +244,7 @@ export default function SessionPlayer() {
       }
     })();
     return () => { cancelled = true; };
-  }, [profile?.id, dayId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [profile?.id, dayId,resumeId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isFree && logId && status === 'ready') {
       try { localStorage.setItem(`gymiq_session_${profile.id}_${logId}`, JSON.stringify(plan)); } catch { /* saved sets remain on server */ }
@@ -367,7 +374,7 @@ export default function SessionPlayer() {
       if(error)throw error;
       timer.changeRest(0); setRestComplete(false); bellRef.current.stop();
       if(discard.type==='workout') {
-        timer.complete();
+        timer.complete();forgetWorkout(profile.id,logIdRef.current);
         try {localStorage.removeItem(`gymiq_session_${profile.id}_${logIdRef.current}`);}catch{/* retained on server */}
         navigate('/workout',{replace:true});
       } else { setExcludedKeys(keys=>[...new Set([...keys,discard.key])]); setActiveIdx(0); setDiscard(null); }
@@ -412,7 +419,7 @@ export default function SessionPlayer() {
       const { error } = await supabase.rpc('finish_workout', { p_log: logIdRef.current,
         p_duration: timer.getSeconds(), p_day: today, p_prs: summary.prs });
       if (error) throw error;
-      timer.complete();
+      timer.complete();forgetWorkout(profile.id,logIdRef.current);
       try { localStorage.removeItem(`gymiq_session_${profile.id}_${logIdRef.current}`); } catch { /* ignore */ }
       navigate(`/workout/history/${logIdRef.current}`, { replace: true });
     } catch (e) {
@@ -425,7 +432,7 @@ export default function SessionPlayer() {
 
   /* ------------------------------- render ------------------------------- */
   if (status === 'loading') return <TabShell active="workout" title="Session"><div className="mf-card"><div className="subtle">Preparing your session…</div></div></TabShell>;
-  if (status === 'error') return <TabShell active="workout" title="Session"><div className="mf-card"><h4>⚠️ {errText}</h4></div></TabShell>;
+  if (status === 'error') return <TabShell active="workout" title="Session"><div className="mf-card"><h4>⚠️ {errText}</h4><Link className="btn btn-secondary" to="/workout">Return to Training</Link></div></TabShell>;
 
   const initials = (name = '') => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').slice(0, 3).toUpperCase() || '?';
   const workingDone = (item) => (done[item.key] || []).filter((s) => s.set_type !== 'warmup').length;
