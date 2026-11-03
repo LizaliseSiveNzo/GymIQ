@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 export default function AiReviewCard({ domain }) {
   const {profile}=useAuth();
-  const [consent,setConsent]=useState(false),[result,setResult]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const [result,setResult]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const training=domain==='training';
   async function review(withAi){
-    if(busy||withAi&&!consent)return;
+    if(busy)return;
     setBusy(true);setError('');
     const date=new Date();
     const day=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     try {
-      const {data,error}=await supabase.functions.invoke('gymiq-review',{body:{domain,day,offset:date.getTimezoneOffset(),consent:withAi&&consent}});
+      const {data,error}=await supabase.functions.invoke('gymiq-review',{body:{domain,day,offset:date.getTimezoneOffset(),consent:withAi}});
       if(error)throw error;
       if(!data?.review||!data?.snapshot)throw new Error('Invalid review');
       setResult(data);
@@ -24,7 +23,7 @@ export default function AiReviewCard({ domain }) {
     try {
       const {error}=await supabase.from('ai_review_cache').delete().eq('user_id',profile.id).eq('review_domain',domain);
       if(error)throw error;
-      setResult(null);setConsent(false);
+      setResult(null);
     }catch{setError('Could not remove the saved review. Please try again.');}
     finally{setBusy(false);}
   }
@@ -41,9 +40,7 @@ export default function AiReviewCard({ domain }) {
   return <section className="mf-card ai-review-card" aria-label={`${training?'Training':'Calorie'} review`}>
     <div className="section-heading"><h2>{training?'Training insights':'Food & calorie insights'}</h2><span className="badge badge-neutral">Optional</span></div>
     <p className="subtle">{training?'Review recent finished working sets and spot what to focus on next.':'Review logged food and calorie estimates. This is a food-logging review, not a personalised diet prescription.'}</p>
-    <label className="ai-review-consent"><input type="checkbox" checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/><span>Share a limited numerical summary with DeepSeek for this AI review. Your name, email, date of birth and free-text notes are omitted. <Link to="/privacy#ai-reviews">How reviews use data</Link></span></label>
-    <div className="launch-actions"><button className="btn btn-primary" disabled={busy||!consent} onClick={()=>review(true)}>{busy?'Preparing review…':'Review with AI'}</button><button className="btn btn-secondary" disabled={busy} onClick={()=>review(false)}>Basic review</button></div>
-    <p className="subtle ai-review-note">AI reviews are limited and reused when the figures are unchanged. Reviews suggest things to consider; they never edit your targets, PRs or Calorie Bank.</p>
+    <div className="launch-actions"><button className="btn btn-primary" disabled={busy} onClick={()=>review(true)}>{busy?'Preparing review…':'Review with AI'}</button><button className="btn btn-secondary" disabled={busy} onClick={()=>review(false)}>Basic review</button></div>
     {error&&<p className="inline-error" role="alert">{error}</p>}
     {result&&<div className="ai-review-result" aria-live="polite">
       <div className="row between"><strong>{result.source==='deepseek'?'DeepSeek AI review':'Basic review · rules-based'}</strong>{result.cached&&<span className="subtle">Saved review</span>}</div>

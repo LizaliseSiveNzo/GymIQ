@@ -29,9 +29,9 @@ export default function PersonalCoach(){
  const [access,setAccess]=useState(null),[equipment,setEquipment]=useState([]),[gyms,setGyms]=useState([]),[gymEquipment,setGymEquipment]=useState([]);
  const [kitchen,setKitchen]=useState({pantry:[],equipment:[]}),[savedKitchen,setSavedKitchen]=useState(null);
  const [turns,setTurns]=useState([]),[proposals,setProposals]=useState([]),[message,setMessage]=useState('');
- const [consent,setConsent]=useState(false),[voiceConsent,setVoiceConsent]=useState(false),[listening,setListening]=useState(false);
+ const [listening,setListening]=useState(false),[readingId,setReadingId]=useState(null);
  const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const voice=useRef(null),request=useRef(null),loadedUser=useRef(null);
+ const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),loadedUser=useRef(null);
  const dirty=JSON.stringify(kitchen)!==JSON.stringify(savedKitchen);
  async function refresh(){
   const results=await Promise.all([
@@ -55,8 +55,8 @@ export default function PersonalCoach(){
  },[profile.id]);
  useEffect(()=>{
   const stop=()=>{voice.current?.abort();voice.current=null;setListening(false);};
-  const hidden=()=>{if(document.hidden)stop();};document.addEventListener('visibilitychange',hidden);
-  return()=>{document.removeEventListener('visibilitychange',hidden);voice.current?.abort();globalThis.speechSynthesis?.cancel();};
+  const hidden=()=>{if(document.hidden){stop();stopReading();}};document.addEventListener('visibilitychange',hidden);
+  return()=>{document.removeEventListener('visibilitychange',hidden);voice.current?.abort();speech.current=null;globalThis.speechSynthesis?.cancel();};
  },[]);
  async function run(key,fn){if(busy)return;setBusy(key);setError('');setNotice('');try{await fn();}catch(e){setError(e.message);}finally{setBusy('');}}
  async function saveKitchen(){await run('settings',async()=>{
@@ -64,12 +64,12 @@ export default function PersonalCoach(){
   if(error)throw Error('Could not save your ingredients and equipment.');
   setSavedKitchen(structuredClone(kitchen));setNotice('Ingredients and equipment saved.');
  });}
- async function send(event){event.preventDefault();if(!consent||dirty||!message.trim())return;
+ async function send(event){event.preventDefault();if(busy||dirty||!message.trim()||!access?.configured)return;
   await run('chat',async()=>{
-   voice.current?.abort();voice.current=null;setListening(false);
+   voice.current?.abort();voice.current=null;setListening(false);stopReading();
    request.current ||= crypto.randomUUID();
    try{await invoke({action:'chat',message:message.trim(),consent:true,request_id:request.current,offset:new Date().getTimezoneOffset()});}catch(e){request.current=null;throw e;}
-   setMessage('');request.current=null;await refresh();setNotice('Response ready. Review any proposals below before applying them.');
+   setMessage('');request.current=null;await refresh();
   });
  }
  async function apply(action,discard){await run(action.id,async()=>{
@@ -79,33 +79,53 @@ export default function PersonalCoach(){
  });}
  function dictate(){
   if(listening){voice.current?.stop();return;}
-  if(!voiceConsent)return;
+  stopReading();
   try{voice.current=startCoachDictation({onText:text=>{setMessage(previous=>((previous?previous+' ':'')+text).slice(0,2000));request.current=null;},onError:setError,onEnd:()=>{setListening(false);voice.current=null;}});setListening(true);}catch(e){setError(e.message);}
  }
- function readReply(text){if(!globalThis.speechSynthesis)return;globalThis.speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(text);speech.lang='en-ZA';globalThis.speechSynthesis.speak(speech);}
- return <TabShell title="Your personal coach"><div className="coach-page">
-  <p className="subtle">Meals from your kitchen. Training for your equipment. Powered by DeepSeek.</p>
-  {error&&<p className="inline-error" role="alert">{error}</p>}{notice&&<p className="coach-notice" role="status">{notice}</p>}
-  {!access?<p role="status">Preparing your coach…</p>:!access.enabled?<p className="mf-card">The personal coach is currently available to the owner’s account.</p>:<>
-   {!access.configured&&<p className="inline-error">DeepSeek is not configured yet. Add DEEPSEEK_API_KEY in Supabase secrets.</p>}
-   <details className="mf-card coach-setup"><summary>My ingredients & equipment · {kitchen.pantry.length} foods, {kitchen.equipment.length} equipment {dirty?'· unsaved':''}</summary>
-    <p className="subtle">Select what you have. Food names specify raw, cooked or dry weights. This is an availability list; stock quantities are not deducted.</p>
+ function stopReading(){speech.current=null;globalThis.speechSynthesis?.cancel();setReadingId(null);}
+ function readReply(id,text){
+  stopReading();if(!globalThis.speechSynthesis||!globalThis.SpeechSynthesisUtterance)return;
+  const utterance=new SpeechSynthesisUtterance(text);utterance.lang='en-ZA';speech.current=utterance;
+  const ended=()=>{if(speech.current===utterance){speech.current=null;setReadingId(null);}};
+  utterance.onend=ended;utterance.onerror=ended;setReadingId(id);
+  try{globalThis.speechSynthesis.speak(utterance);}catch{ended();setError('Read aloud is unavailable. Please try again.');}
+ }
+ useEffect(()=>{const panel=conversation.current;if(panel)panel.scrollTop=panel.scrollHeight;},[turns,busy]);
+ function fillPrompt(text){setMessage(text);request.current=null;document.getElementById('coach-message')?.focus();}
+
+ return <TabShell title="AI coach" showKicker={false}><div className="coach-page">
+  {!access?<p role="status">Opening your coach…</p>:!access.enabled?<p className="mf-card">Your personal coach isn’t available for this account.</p>:<>
+   <div className="coach-toolbar"><span className="coach-model"><span aria-hidden="true">✦</span> DeepSeek</span>{readingId&&<button type="button" className="btn btn-secondary coach-stop" onClick={stopReading}>■ Stop reading</button>}</div>
+   <details className="coach-setup"><summary>Ingredients & equipment · {kitchen.pantry.length} foods, {kitchen.equipment.length} equipment {dirty?'· unsaved':''}</summary>
+
     <fieldset disabled={!!busy}><legend>Available ingredients</legend><div className="coach-choice-grid">{foods.map(f=><label key={f.id}><input type="checkbox" checked={kitchen.pantry.includes(f.id)} onChange={()=>setKitchen(k=>({...k,pantry:toggle(k.pantry,f.id)}))}/>{f.name}</label>)}</div></fieldset>
     {gyms.length>0&&<label className="coach-gym">Use equipment from a saved gym<select defaultValue="" disabled={!!busy} onChange={e=>{if(e.target.value)setKitchen(k=>({...k,equipment:gymEquipment.filter(x=>x.profile_id===e.target.value).map(x=>x.equipment_id)}));}}><option value="">Choose a gym</option>{gyms.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}
-    <fieldset disabled={!!busy}><legend>Available equipment</legend><p className="subtle">Bodyweight exercises are always available. Select any additional equipment you have.</p><div className="coach-choice-grid">{equipment.filter(e=>e.id!=='bodyweight').map(e=><label key={e.id}><input type="checkbox" checked={kitchen.equipment.includes(e.id)} onChange={()=>setKitchen(k=>({...k,equipment:toggle(k.equipment,e.id)}))}/>{e.name}</label>)}</div></fieldset>
+    <fieldset disabled={!!busy}><legend>Available equipment</legend><div className="coach-choice-grid">{equipment.filter(e=>e.id!=='bodyweight').map(e=><label key={e.id}><input type="checkbox" checked={kitchen.equipment.includes(e.id)} onChange={()=>setKitchen(k=>({...k,equipment:toggle(k.equipment,e.id)}))}/>{e.name}</label>)}</div></fieldset>
     <button className="btn btn-primary" disabled={!!busy||!dirty} onClick={saveKitchen}>Save ingredients & equipment</button>
    </details>
-   <section className="mf-card coach-chat"><h2>Talk to your coach</h2>
-    <label className="coach-check"><input type="checkbox" checked={consent} disabled={!!busy} onChange={e=>setConsent(e.target.checked)}/><span>Share my messages, recent coach conversation, selected ingredients/equipment, saved calorie guide, diet/exclusions, current programme and recent performed sets with DeepSeek. My name, email and measurements are omitted. <Link to="/privacy">How data is used</Link></span></label>
-    <p className="subtle">Your proposals need your approval. Existing food logs, completed sets and PRs are protected. Personal allowance: 50 requests per UTC day.</p>
-    <form onSubmit={send}><label htmlFor="coach-message">What would you like to change?</label><textarea id="coach-message" maxLength={2000} rows={4} value={message} disabled={!!busy} placeholder="Build a lunch using what I have, or make a three-day programme for my equipment…" onChange={e=>{setMessage(e.target.value);request.current=null;}}/>
-     <div className="coach-actions"><button className="btn btn-primary" disabled={!!busy||!consent||dirty||!message.trim()||!access.configured}>{busy==='chat'?'Coach is preparing…':'Send to DeepSeek'}</button>{speechRecognitionClass()&&<button type="button" className="btn btn-secondary" disabled={!!busy||!voiceConsent} onClick={dictate}>{listening?'Stop listening':'🎙 Speak'}</button>}</div>
-     {dirty&&<p className="subtle">Save your ingredient and equipment changes before sending.</p>}
-     {speechRecognitionClass()?<label className="coach-check"><input type="checkbox" checked={voiceConsent} disabled={listening} onChange={e=>setVoiceConsent(e.target.checked)}/><span>Enable voice input. My browser may send microphone audio to its speech service. GymIQ receives the transcript, which I can edit before sending.</span></label>:<p className="subtle">Voice input is unavailable in this browser. You can type all the same requests.</p>}
-     {listening&&<p role="status">Listening… Your transcript will appear above. Review it before sending.</p>}
+
+   <div className="coach-workspace">
+    <section ref={conversation} className="coach-conversation" aria-label="Coach conversation" aria-busy={busy==='chat'}>
+     {!turns.length&&<div className="coach-welcome"><span className="coach-welcome-mark" aria-hidden="true">✦</span><h2>What are we working on?</h2><p>Meals, training, or your next step.</p><div className="coach-starters">{['Build a meal with my ingredients','Plan workouts for my equipment','Help me adjust my meal plan'].map(text=><button type="button" key={text} onClick={()=>fillPrompt(text)}>{text}<span aria-hidden="true">↗</span></button>)}</div></div>}
+     {turns.map(turn=><article className="coach-turn" key={turn.id}>
+      <div className="coach-user-message"><span className="coach-visually-hidden">You</span><p className="coach-text">{turn.prompt}</p></div>
+      <div className="coach-assistant-message"><div className="coach-assistant-label"><span aria-hidden="true">✦</span> Coach</div>
+       {turn.reply?<><p className="coach-text">{turn.reply}</p>{globalThis.speechSynthesis&&globalThis.SpeechSynthesisUtterance&&<button type="button" className="coach-read" aria-label={readingId===turn.id?'Stop reading reply':'Read reply aloud'} onClick={()=>readingId===turn.id?stopReading():readReply(turn.id,turn.reply)}>{readingId===turn.id?'■ Stop reading':'◖ Read aloud'}</button>}</>:<p className="subtle">{turn.status==='error'?'Couldn’t complete this request. Please try again.':'Preparing your reply…'}</p>}
+       {proposals.filter(p=>p.turn_id===turn.id).map(p=><Proposal key={p.id} action={p} busy={!!busy} onAction={apply}/>)}
+      </div>
+     </article>)}
+     {busy==='chat'&&message.trim()&&<div className="coach-user-message"><p className="coach-text">{message}</p></div>}
+     {busy==='chat'&&<div className="coach-thinking" role="status"><span aria-hidden="true">✦</span> Thinking…</div>}
+    </section>
+    {error&&<p className="inline-error coach-feedback" role="alert">{error}</p>}{notice&&<p className="coach-notice coach-feedback" role="status">{notice}</p>}
+    {!access.configured&&<p className="inline-error coach-feedback">Your coach is unavailable right now.</p>}
+    <form className="coach-composer" onSubmit={send}>
+     <label className="coach-visually-hidden" htmlFor="coach-message">Message your coach</label>
+     <textarea id="coach-message" maxLength={2000} rows={2} value={message} disabled={!!busy} placeholder="Message your coach…" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
+     <div className="coach-composer-actions"><span className="coach-composer-hint">{listening?'Listening…':dirty?'Save your ingredients & equipment first.':''}</span><div>{speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{listening?'■ Stop':'🎙 Speak'}</button>}<button type="submit" className="coach-send" aria-label="Send message" disabled={!!busy||dirty||!message.trim()||!access.configured}>{busy==='chat'?'…':'↑'}</button></div></div>
     </form>
-   </section>
-   <section className="coach-conversation" aria-label="Coach conversation" aria-busy={busy==='chat'}>{turns.map(turn=><article className="mf-card" key={turn.id}><p className="coach-role">You</p><p className="coach-text">{turn.prompt}</p>{turn.reply?<><p className="coach-role">DeepSeek</p><p className="coach-text">{turn.reply}</p>{globalThis.speechSynthesis&&<button className="btn btn-ghost" onClick={()=>readReply(turn.reply)}>Read aloud</button>}</>:<p className="subtle">{turn.status==='error'?'This request could not be completed. Send a new message to try again.':'This request is being prepared. Refresh shortly.'}</p>}{proposals.filter(p=>p.turn_id===turn.id).map(p=><Proposal key={p.id} action={p} busy={!!busy} onAction={apply}/>)}</article>)}</section>
+    <div className="coach-footer"><Link to="/privacy">Privacy</Link></div>
+   </div>
   </>}
  </div></TabShell>;
 }
