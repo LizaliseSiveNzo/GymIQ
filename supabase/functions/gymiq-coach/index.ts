@@ -1,7 +1,7 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.45.0';
 import {admin,authenticate,json} from '../_shared/launch.ts';
 import {callDeepSeek,deepseekPayload} from '../_shared/deepseek.js';
-import {loadCoachHistory,buildCoachHistory,COACH_HISTORY_RULES} from '../_shared/coachHistory.js';
+import {loadCoachHistory,loadCoachProgress,buildCoachHistory,COACH_HISTORY_RULES} from '../_shared/coachHistory.js';
 import {COACH_TOOLS,validateKitchen,validateTool} from '../_shared/coach.js';
 import foods from '../_shared/nutrition/foods.json' with {type:'json'};
 
@@ -35,9 +35,9 @@ Deno.serve(async(req:Request)=>{
    scoped.from('nutrition_goals').select('settings,result,updated_at').eq('user_id',user.id).maybeSingle(),
    scoped.from('nutrition_meal_plans').select('created_at,day,plan,target,source').eq('user_id',user.id).eq('day',day).maybeSingle(),
    scoped.from('equipment_items').select('id,name').order('sort_order'),
-   scoped.from('exercises').select('id,name,equipment_ids,movement_pattern,primary_muscle_id,cue_text').eq('is_custom',false).order('sort_order').limit(250),
+   scoped.from('exercises').select('id,name,equipment_ids,movement_pattern,primary_muscle_id,secondary_muscle_fraction,cue_text').eq('is_custom',false).order('sort_order').limit(250),
    scoped.from('workout_programmes').select('id,goal,days_per_week,session_minutes,programme_days(label,name,programme_exercises(exercise_id,name,target_sets,target_reps,target_rir))').eq('client_id',user.id).eq('is_active',true).order('created_at',{ascending:false}).limit(1),
-   scoped.rpc('exercise_progress_sets',{p_offset:0,p_limit:500}),
+   loadCoachProgress(scoped),
    scoped.from('coach_turns').select('prompt,reply').eq('user_id',user.id).eq('status','done').order('created_at',{ascending:false}).limit(6),
   ]),loadCoachHistory(scoped,{userId:user.id,day,offset:body.offset})]);
   if(queries.some(q=>q.error))throw Error('Could not load your coach context. Please reload and try again.');

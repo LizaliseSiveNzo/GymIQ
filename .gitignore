@@ -42,3 +42,4 @@ coverage/
 /exercises/
 /artifacts/nutrition-source/
 /artifacts/aged-account/
+/scripts/fixtures/prepare-consistent-reset.mjs

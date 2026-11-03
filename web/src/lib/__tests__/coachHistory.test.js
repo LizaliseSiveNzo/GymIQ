@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import foods from '../../../../supabase/functions/_shared/nutrition/foods.json';
-import {buildCoachHistory,loadCoachHistory} from '../../../../supabase/functions/_shared/coachHistory.js';
+import {buildCoachHistory,loadCoachHistory,loadCoachProgress} from '../../../../supabase/functions/_shared/coachHistory.js';
 const day='2026-11-03',session=(id,date='2026-11-02T10:00:00Z',patch={})=>({id,completed_at:date,duration_sec:1800,coach_readiness:'ready',excluded_exercises:[],...patch});
 const row=(id,log='new',patch={})=>({id,log_id:log,exercise_id:'squat',exercise_name:'Squat',completed_at:log==='old'?'2026-10-26T10:00:00Z':'2026-11-02T10:00:00Z',weight:40,reps:8,completed:true,set_type:'normal',...patch});
 const records=(patch={})=>({sessions:[session('new'),session('old','2026-10-26T10:00:00Z')],food:[],weights:[],targets:[],feedback:[],rest:[],savedMeals:[],muscles:[],foodPeriod0:[],foodPeriod7:[],foodPeriod14:[],foodPeriod21:[],...patch});
@@ -40,17 +40,32 @@ describe('Account-scoped personal coach history',()=>{
   expect(build({records:records({weights:[{metric_date:day,weight_kg:80}]})}).weight.observed_weekly_change_kg).toBeNull();
  });
  it('marks unavailable and truncated data instead of inventing complete coverage',()=>{
-  const h=build({records:records({sessions:null,food:Array(41).fill({log_day:day,kcal:-1,label:'Food'})}),progress:Array(500).fill(row('one'))});
+  const h=build({records:records({sessions:null,food:Array(41).fill({log_day:day,kcal:-1,label:'Food'})}),progress:Array(2000).fill(row('one'))});
   expect(h.coverage.unavailable_sections).toContain('sessions');expect(h.training.finished_sessions_loaded_28d).toBeNull();expect(h.coverage.training_sample_may_be_truncated).toBe(true);expect(h.nutrition.recent_logged_meals).toHaveLength(40);
  });
  it('does not forward identities, private notes, raw snapshots or unrelated measurements',()=>{
   const secret='private-fixture-only';const h=build({goal:{settings:{email:secret,age:secret,sex:secret,height_cm:secret}},records:records({sessions:[session('new',undefined,{note:secret,user_id:secret})],weights:[{metric_date:day,weight_kg:80,note:secret,body_fat_pct:secret}],food:[{log_day:day,kcal:-50,meal_snapshot:{note:secret}}]}),progress:[row('one','new',{client_id:secret,note:secret})]});
   expect(JSON.stringify(h)).not.toContain(secret);
  });
+ it('includes the three-month baseline while separating recent muscle volume',()=>{
+  const h=build({records:records({sessions:[session('new'),session('aug','2026-08-06T10:00:00Z')],muscles:[{id:'quads',name:'Quads'},{id:'glutes',name:'Glutes'}]}),progress:[row('new'),row('aug','aug',{completed_at:'2026-08-06T10:00:00Z',weight:30})],catalogue:[{id:'squat',primary_muscle_id:'quads',secondary_muscle_fraction:{glutes:.5}}]});
+  expect(h.training.finished_sessions_loaded_history).toBe(2);expect(h.training.finished_sessions_loaded_28d).toBe(1);
+  expect(h.training.weekly_sessions).toEqual([{week:'2026-08-03',finished_sessions:1,week_completed:true},{week:'2026-11-02',finished_sessions:1,week_completed:false}]);
+  expect(h.training.exercises[0].first_loaded_session.day).toBe('2026-08-06');expect(h.training.exercises[0].first_loaded_session.sets[0].kg).toBe(30);
+  expect(h.training.primary_muscle_working_sets.Quads).toBe(1);expect(h.training.weighted_supporting_sets_28d.Glutes).toBe(.5);
+ });
+ it('keeps meal names natural while retaining numeric records for analysis',()=>{
+  const h=build({records:records({food:[{log_day:day,label:'[Mock90d] Chicken & rice',kcal:-550}]})});expect(h.nutrition.recent_logged_meals[0].name).toBe('Chicken & rice');expect(h.nutrition.recent_logged_meals[0].logged_kcal).toBe(550);
+ });
+ it('pages through older working sets without duplicating a loaded page',async()=>{
+  const calls=[];const db={rpc:async(name,args)=>{calls.push(args.p_offset);return {data:args.p_offset===0?Array.from({length:500},(_,i)=>({id:i})):[{id:500}],error:null};}};
+  const result=await loadCoachProgress(db);expect(calls).toEqual([0,500]);expect(result.data).toHaveLength(501);
+ });
  it('applies explicit owner filters to every personal table and handles optional failures',async()=>{
   const calls=[];const db={from(table){const entry={table,filters:[]};calls.push(entry);const q={};for(const method of ['select','eq','not','is','gte','lte','order','limit'])q[method]=(...args)=>{entry.filters.push([method,...args]);return q;};q.then=resolve=>resolve(table==='body_metrics'?{error:Error('private diagnostic')}:{data:[]});return q;},rpc(name,args){calls.push({rpc:name,args});return Promise.resolve({data:[]});}};
   const loaded=await loadCoachHistory(db,{userId:'owner',day,offset:-120});expect(loaded.weights).toBeNull();
   for(const entry of calls.filter(c=>c.table&&c.table!=='muscles'))expect(entry.filters.some(f=>f[0]==='eq'&&['user_id','client_id'].includes(f[1])&&f[2]==='owner')).toBe(true);
   expect(calls.filter(c=>c.rpc).every(c=>c.args.p_offset===-120)).toBe(true);
+  expect(calls.filter(c=>c.rpc).map(c=>c.args.p_day)).toEqual(['2026-11-03','2026-10-31','2026-09-30','2026-08-31']);
  });
 });
