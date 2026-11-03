@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { validSetNumbers } from '../../lib/setNumbers.js';
+import {runSessionWrite} from '../../lib/sessionSets.js';
 export default function SetEditDialog({ row, onClose, onSaved }) {
   const dialog=useRef(null), title=useId();
   const [draft,setDraft]=useState({}),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -12,11 +13,12 @@ export default function SetEditDialog({ row, onClose, onSaved }) {
   const change=(field,value)=>setDraft(d=>({...d,[field]:value}));
   async function save(event){
     event.preventDefault(); if(busy)return;
+    if(!navigator.onLine){setError('Connect to correct a synced set. You can still log new sets offline.');return;}
     if(!validSetNumbers(draft.weight,draft.reps) || (hasLeft&&!validSetNumbers(draft.leftWeight,draft.leftReps)) || (draft.rir!==''&&(!Number.isInteger(Number(draft.rir))||Number(draft.rir)<0||Number(draft.rir)>10))){setError('Enter a weight from 0–9999.99 kg, 1–1000 whole reps, and an optional RIR from 0–10.');return;}
     setBusy(true);setError('');
     try{
       const expected=Object.fromEntries(['weight','reps','weight_left','reps_left','rir'].map(key=>[key,row[key]??null]));
-      const {data,error}=await supabase.rpc('edit_workout_set',{p_set:row.id,p_weight:Number(draft.weight),p_reps:Number(draft.reps),p_weight_left:hasLeft?Number(draft.leftWeight):null,p_reps_left:hasLeft?Number(draft.leftReps):null,p_rir:draft.rir===''?null:Number(draft.rir),p_expected:expected});
+      const {data,error}=await runSessionWrite(signal=>supabase.rpc('edit_workout_set',{p_set:row.id,p_weight:Number(draft.weight),p_reps:Number(draft.reps),p_weight_left:hasLeft?Number(draft.leftWeight):null,p_reps_left:hasLeft?Number(draft.leftReps):null,p_rir:draft.rir===''?null:Number(draft.rir),p_expected:expected}).abortSignal(signal));
       if(error)throw error;
       if(!data?.id)throw new Error('Your set could not be updated. Please reload and try again.');
       onSaved(data);onClose();

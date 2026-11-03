@@ -6,7 +6,7 @@ export default function SessionTiming({ clock, soundOn, restComplete, onPause, o
       <div><span className="session-timing__label">Active time</span><strong aria-label="Active workout time">{formatSessionTime(clock.elapsedMs / 1000)}</strong></div>
       <button className={`btn ${clock.paused ? 'btn-primary' : 'btn-secondary'}`} onClick={clock.paused ? onResume : onPause}>{clock.paused ? 'Resume session' : 'Pause session'}</button>
     </div>
-    {clock.paused && <p className="session-paused" role="status">Session paused. Your place is saved. Resume when you’re ready.</p>}
+    {clock.paused && <p className="session-paused" role="status">Timer paused. You can still enter and log sets. Resume when you’re ready to run the timers.</p>}
     <p className="session-timing__hint">Leaving this session or switching away pauses both timers.</p>
     {clock.restMs > 0 && <div className="session-timing__row session-rest">
       <div><span className="session-timing__label">{clock.paused ? 'Rest paused' : 'Rest'}</span><strong aria-label="Rest time remaining">{formatSessionTime(Math.ceil(clock.restMs / 1000))}</strong></div>

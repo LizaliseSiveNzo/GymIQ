@@ -5,6 +5,9 @@ export function classifySyncError(error){
  return {status:'queued',message:'Connection unavailable. Your entry is still on this device.'};
 }
 export function retryDelay(attempt){return Math.min(300000,2000*2**Math.min(attempt,8));}
+export function validSyncAck(result,id){
+ return result?.status==='removed'&&result.record==null||result?.status==='synced'&&result.record?.id===id;
+}
 export function makeQueuedLog(userId,kind,payload,id,now=Date.now()){
  if(!userId||!['food','set'].includes(kind)||!id||!payload||JSON.stringify(payload).length>16000)throw Error('Check the entry before saving.');
  return {id,userId,kind,payload,createdAt:now,status:'queued',attempts:0,nextAttemptAt:0};

@@ -16,7 +16,14 @@ export function LogSyncProvider({children}){
   const interval=setInterval(flush,15000);void refresh();void flush();
   return()=>{active=false;remove();synced();clearInterval(interval);window.removeEventListener('online',connection);window.removeEventListener('offline',connection);};
  },[userId]);
- async function enqueue(kind,payload,id){if(!userId)throw Error('Sign in before logging.');const entry=await queueLog(userId,kind,payload,id);setPending(await queueStore.list(userId));void syncPending(userId).catch(e=>setError(e.message));return entry;}
+ async function enqueue(kind,payload,id){
+  if(!userId)throw Error('Sign in before logging.');
+  const entry=await queueLog(userId,kind,payload,id);
+  // The durable save is the acknowledgement. A follow-up UI read must not turn
+  // an already saved entry into an apparent failure or leave its row locked.
+  setPending(rows=>[...rows.filter(row=>row.id!==entry.id),entry]);setError('');
+  void syncPending(userId).catch(e=>setError(e.message));return entry;
+ }
  async function retry(){if(!userId||syncing)return;setSyncing(true);setError('');try{await retryPending(userId);}catch(e){setError(e.message);}finally{setSyncing(false);}}
  return <Context.Provider value={{pending:pending.filter(e=>e.userId===userId),online,error,syncing,enqueue,retry,forget:id=>forgetPending(id,userId)}}>{children}</Context.Provider>;
 }

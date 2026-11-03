@@ -27,6 +27,7 @@ import { exerciseDefault, loadExerciseTargets, targetKey } from '../../lib/exerc
 
 import {loadWorkoutWeek,weekStart,dayKey,exerciseIdentity} from '../../lib/workoutWeek.js';
 import {loadResumedWorkout,rememberWorkout,forgetWorkout} from '../../lib/workoutRecovery.js';
+import {numberedSets,numberForWorkingRow,workingRows,parseSetDraft,upsertSessionSet,saveSetOnce,runSessionWrite,acceptSetTap} from '../../lib/sessionSets.js';
 
 const DEFAULT_SCHEME = { sets: 3, repMin: 8, repMax: 12, rir: 2, restSeconds: 90 };
 const fmtClock = formatSessionTime;
@@ -59,8 +60,10 @@ export default function SessionPlayer() {
   },[serverDone,sync.pending,logId]);
   useEffect(()=>subscribeSynced(entry=>{
     if(entry.userId!==profile?.id||entry.kind!=='set'||entry.payload.log_id!==logId)return;
-    const row=entry.result?.record;if(!row)return;const key=keyFor(row.programme_exercise_id,row.exercise_name);
-    setDone(old=>({...old,[key]:[...(old[key]||[]).filter(s=>s.id!==row.id),row].sort((a,b)=>a.set_number-b.set_number)}));
+    const row=entry.result?.record;
+    if(!row){setDone(old=>Object.fromEntries(Object.entries(old).map(([key,rows])=>[key,rows.filter(s=>s.id!==entry.id)])));return;}
+    const key=keyFor(row.programme_exercise_id,row.exercise_name);
+    setDone(old=>({...old,[key]:upsertSessionSet(old[key],row)}));
   }),[profile?.id,logId]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showFinish, setShowFinish] = useState(false);
@@ -71,6 +74,8 @@ export default function SessionPlayer() {
   const priorPrRef = useRef({});
   const logIdRef = useRef(null);
   const pendingSets = useRef(new Set());
+  const rowMutationIds=useRef({}),lastSetTap=useRef({});
+  const [rowBusy,setRowBusy]=useState({}),[rowErrors,setRowErrors]=useState({});
   const [progress,setProgress] = useState([]);
   const [targets,setTargets]=useState([]);
   const [coachFeedback,setCoachFeedback]=useState([]),[coachPreferences,setCoachPreferences]=useState([]),[coachUnavailable,setCoachUnavailable]=useState(false);
@@ -96,7 +101,7 @@ export default function SessionPlayer() {
   const [soundUnavailable, setSoundUnavailable] = useState(false);
   const [timingSyncError, setTimingSyncError] = useState(false);
   const timer = useSessionTimer({
-    getRecovery: () => ({ drafts: drafts.current, activeIdx, extraRows }),
+    getRecovery: () => ({ drafts: drafts.current, activeIdx, extraRows, rowMutationIds:rowMutationIds.current }),
     onRestEnd: () => {
       setRestComplete(true);
       void bellRef.current.play().then((played) => { if (soundOn && !played) setSoundUnavailable(true); });
@@ -233,6 +238,7 @@ export default function SessionPlayer() {
           serverSeconds: Number(log.duration_sec) || 0,
           startFresh: resumeId===null && log.duration_sec == null && !existing.data?.length && Date.now() - new Date(log.created_at).getTime() < 60000,
         });
+        rowMutationIds.current=recovery?.rowMutationIds&&typeof recovery.rowMutationIds==='object'?recovery.rowMutationIds:{};
         drafts.current = recovery?.drafts && typeof recovery.drafts === 'object' ? recovery.drafts : {};
         setActiveIdx(Number.isInteger(recovery?.activeIdx) ? Math.max(0, recovery.activeIdx) : 0);
         setExtraRows(recovery?.extraRows && typeof recovery.extraRows === 'object' ? recovery.extraRows : {});
@@ -257,11 +263,25 @@ export default function SessionPlayer() {
   const forceRender = () => setTick((t) => t + 1);
   const unilateral = (item) => String(item.laterality || '').startsWith('unilateral');
 
-  async function removeSet(item, setId) {
-    if (timer.isPaused() || discardBusy || discard) return;
-    const { error } = await supabase.from('logged_sets').delete().eq('id', setId);
-    if (error) { setErrText(error.message); return; }
-    setDone((prev) => ({ ...prev, [item.key]: (prev[item.key] || []).filter((s) => s.id !== setId) }));
+  async function removeSet(item, row, idx) {
+    if(discardBusy||discard||showFinish||finishing)return;
+    const key=`${item.key}_${idx}`;
+    const tapKey=`${logIdRef.current}:${key}`;
+    if(!acceptSetTap(lastSetTap.current,tapKey))return;
+    await saveSetOnce({locks:pendingSets.current,key,save:async()=>{
+      if(!sync.online){setRowErrors(e=>({...e,[key]:'Connect to undo a synced set. You can keep logging new sets offline.'}));return;}
+      setRowBusy(rows=>({...rows,[key]:true}));setRowErrors(e=>({...e,[key]:''}));
+      try{
+        const expected=Object.fromEntries(['weight','reps','weight_left','reps_left','rir'].map(field=>[field,row[field]??null]));
+        const result=await runSessionWrite(signal=>supabase.rpc('undo_session_set',{p_log:logIdRef.current,p_set:row.id,p_expected:expected}).abortSignal(signal));
+        if(result.error)throw result.error;
+        drafts.current[`rows_${item.key}`]||={};
+        drafts.current[`rows_${item.key}`][idx]={kg:String(row.weight??0),reps:String(row.reps??''),rir:row.rir,source:'manual'};
+        delete rowMutationIds.current[key];timer.saveRecovery();
+        setDone(prev=>({...prev,[item.key]:(prev[item.key]||[]).filter(s=>s.id!==row.id)}));
+      }catch(error){setRowErrors(e=>({...e,[key]:error.message||'Could not undo this set. It is still saved; reconnect and retry.'}));}
+      finally{setRowBusy(rows=>({...rows,[key]:false}));}
+    }});
   }
 
   // Per-set-row drafts for the clean table (namespaced under rows_<key>).
@@ -275,6 +295,7 @@ export default function SessionPlayer() {
     return store[idx];
   }
   function setRowDraft(item, idx, patch) {
+    setRowErrors(errors=>({...errors,[`${item.key}_${idx}`]:''}));
     const k = `rows_${item.key}`;
     const store = (drafts.current[k] ||= {});
     store[idx] = { ...rowDraft(item, idx), ...patch, source:'manual' };
@@ -283,30 +304,26 @@ export default function SessionPlayer() {
   }
   // Commit a set when its tick-box is checked.
   async function logSet(item, idx) {
-    if (timer.isPaused() || discardBusy || discard) return;
-    void bellRef.current.unlock();
-    const pendingKey = `${item.key}_${idx}`;
-    if (pendingSets.current.has(pendingKey)) return;
-    const rd = rowDraft(item, idx);
-    const reps = parseInt(rd.reps, 10) || 0;
-    const kg = parseFloat(rd.kg) || 0;
-    if (reps <= 0 || kg < 0) { setErrText('Enter positive reps and a weight of zero or more.'); return; }
-    pendingSets.current.add(pendingKey);
-    setErrText('');
-    const uni = unilateral(item);
-    const n = Math.max(0,...(done[item.key] || []).map(s=>s.set_number || 0)) + 1;
-    const row = {
-      client_id: profile.id, log_id: logIdRef.current,
-      exercise_name: item.name, exercise_id: item.exerciseId, programme_exercise_id: item.peId || null,
-      set_number: n, set_type: 'normal', rir: rd.rir ?? null,
-      weight: kg || null, reps: reps || null,
-      ...(uni ? { weight_left: kg || null, reps_left: reps || null } : {}),
-      target_rep_min: item.scheme.repMin, target_rep_max: item.scheme.repMax,
-      target_rir: item.scheme.rir, completed: true,
-    };
-    try{await sync.enqueue('set',row);beginRest(item.scheme.restSeconds || 90);}
-    catch(error){setErrText(error.message||'Could not save on this device. Keep this session open and retry.');}
-    finally{pendingSets.current.delete(pendingKey);}
+    if(discardBusy||discard||showFinish||finishing||numberedSets(done[item.key]).has(idx+1))return;
+    const key=`${item.key}_${idx}`;
+    const tapKey=`${logIdRef.current}:${key}`;
+    if(!acceptSetTap(lastSetTap.current,tapKey))return;
+    await saveSetOnce({locks:pendingSets.current,key,save:async()=>{
+      let values,setNumber;
+      try{values=parseSetDraft(rowDraft(item,idx));setNumber=numberForWorkingRow(idx+1,done[item.key]);}catch(error){delete lastSetTap.current[tapKey];setRowErrors(e=>({...e,[key]:error.message}));return;}
+      setRowBusy(rows=>({...rows,[key]:true}));setRowErrors(e=>({...e,[key]:''}));setErrText('');
+      const id=rowMutationIds.current[key]||crypto.randomUUID();rowMutationIds.current[key]=id;timer.saveRecovery();
+      const uni=unilateral(item);
+      const row={client_id:profile.id,log_id:logIdRef.current,exercise_name:item.name,exercise_id:item.exerciseId,programme_exercise_id:item.peId||null,
+        set_number:setNumber,set_type:'normal',rir:values.rir,weight:values.weight,reps:values.reps,
+        ...(uni?{weight_left:values.weight,reps_left:values.reps}:{}),target_rep_min:item.scheme.repMin,target_rep_max:item.scheme.repMax,target_rir:item.scheme.rir,completed:true};
+      try{
+        await sync.enqueue('set',row,id);
+        if(!timer.isPaused())void bellRef.current.unlock();
+        beginRest(item.scheme.restSeconds||90);
+      }catch(error){delete lastSetTap.current[tapKey];setRowErrors(e=>({...e,[key]:error.message||'Could not save on this device. Your inputs are kept; try again.'}));}
+      finally{setRowBusy(rows=>({...rows,[key]:false}));}
+    }});
   }
 
   async function addFreeExercise(ex) {
@@ -349,7 +366,7 @@ export default function SessionPlayer() {
     const item=plan.find(item=>targetKey(item)===key);
     if(item) {
       const store=drafts.current[`rows_${item.key}`];
-      if(store)Object.keys(store).forEach(index=>{if(!(done[item.key]||[])[Number(index)])delete store[index];});
+      if(store)Object.keys(store).forEach(index=>{if(!numberedSets(done[item.key]).has(Number(index)+1))delete store[index];});
     }
     timer.saveRecovery();forceRender();
   }
@@ -435,7 +452,7 @@ export default function SessionPlayer() {
   if (status === 'error') return <TabShell active="workout" title="Session"><div className="mf-card"><h4>⚠️ {errText}</h4><Link className="btn btn-secondary" to="/workout">Return to Training</Link></div></TabShell>;
 
   const initials = (name = '') => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join('').slice(0, 3).toUpperCase() || '?';
-  const workingDone = (item) => (done[item.key] || []).filter((s) => s.set_type !== 'warmup').length;
+  const workingDone = (item) => numberedSets(done[item.key]).size;
   const targetMet = (item) => workingDone(item) >= (item.scheme.sets || 0);
   const allMet = includedPlan.length > 0 && includedPlan.every(targetMet);
   const active = includedPlan[Math.min(activeIdx, Math.max(0, includedPlan.length - 1))] || null;
@@ -511,18 +528,19 @@ export default function SessionPlayer() {
       {/* the ACTIVE exercise only — clean set table with tick-boxes */}
       {active && (() => {
         const item = active;
-        const committed = done[item.key] || [];
+        const committed = workingRows(done[item.key]);
+        const byNumber=numberedSets(done[item.key]);
         const uni = unilateral(item);
-        const cols = '32px 1fr 60px 60px 30px';
+        const cols = '28px minmax(0,1fr) minmax(54px,72px) minmax(48px,64px) 44px';
         const kgLabel = uni ? 'kg/Side' : 'kg';
         const repsLabel = uni ? 'Reps/Side' : 'Reps';
         const rirColor = (r) => (r == null ? 'var(--text-subtle)' : r <= 1 ? 'var(--danger)' : r <= 3 ? 'var(--warning)' : 'var(--success)');
         const previous = previousFor(progress,item);
         const planned=targets.find(t=>t.exercise_key===targetKey(item));
-        const totalRows = Math.max((item.scheme.sets || 3) + (extraRows[item.key] || 0), committed.length);
+        const totalRows = Math.max((item.scheme.sets || 3) + (extraRows[item.key] || 0), Math.max(0,...byNumber.keys()));
         const idxs = [...Array(totalRows).keys()];
-        const cellInput = { width: '100%', textAlign: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 4px', color: 'var(--ink)', font: 'inherit', fontSize: 14, MozAppearance: 'textfield' };
-        const firstDraft = idxs.find((i) => !committed[i]);
+        const cellInput = { width: '100%', minHeight:44, boxSizing:'border-box', textAlign: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 4px', color: 'var(--ink)', font: 'inherit', fontSize: 16, MozAppearance: 'textfield' };
+        const firstDraft = idxs.find((i) => !byNumber.has(i+1));
         const draftKg = firstDraft != null ? parseFloat(rowDraft(item, firstDraft).kg) || 0 : 0;
         const plates = plateBreakdown(draftKg, 20, barDenoms);
         const showPlates = (item.equipmentIds || []).includes('barbell') && plates.length > 0;
@@ -532,7 +550,7 @@ export default function SessionPlayer() {
             <div style={{ minWidth: 0, marginBottom: 10 }}>
               <div className="session-exercise-heading"><b style={{ fontSize: 18 }}>{item.name}</b>{item.optional&&<span className="badge badge-neutral">Optional make-up · up to 2 sets</span>}<button type="button" className="btn btn-ghost" onClick={()=>{pauseSession();setTargetExercise({exerciseId:item.exerciseId,name:item.name,weight:previous?.weight,reps:previous?.reps});}}>Set target</button><button type="button" className="btn btn-ghost" disabled={discardBusy||swapBusy||committed.length>0} onClick={()=>{pauseSession();setSwapItem(item);}}>Swap exercise</button><button type="button" className="btn btn-ghost" disabled={discardBusy} onClick={()=>requestDiscard({type:'exercise',key:item.key,name:item.name})}>Remove exercise</button></div>
               <div className="subtle" style={{ fontSize: 13, marginTop: 2 }}>
-                Set {Math.min(workingDone(item) + 1, item.scheme.sets)} of {item.scheme.sets}
+                {workingDone(item)}/{totalRows} sets saved
               </div>
             </div>
 
@@ -544,6 +562,8 @@ export default function SessionPlayer() {
             <p className="subtle" style={{fontSize:12}}>Target: {item.scheme.repMin}–{item.scheme.repMax} reps @ {item.scheme.rir} RIR. Build reps within your range; review the load when your working sets reach the upper end with good form.</p>
             <ExerciseIllustration key={item.exerciseId || item.key} exerciseId={item.exerciseId} name={item.name} variant="guide" />
 
+            {timer.clock.paused&&<p className="session-entry-status" role="status">Timer paused · entering and logging sets still works.</p>}
+            {committed.length>0&&<p className="subtle" style={{fontSize:12}}>Checked rows are saved in this session. Tap a saved weight/reps value or Edit to correct it, or add another set below.</p>}
             {/* table header */}
             <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '2px 2px 8px', color: 'var(--text-subtle)', fontSize: 12, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>
               <span>Set</span><span>{previous ? 'Last session' : 'Target'}</span>
@@ -552,41 +572,35 @@ export default function SessionPlayer() {
             </div>
 
             {idxs.map((idx) => {
-              const c = committed[idx];
+              const c = byNumber.get(idx+1);
+              const rowKey=`${item.key}_${idx}`,saving=!!rowBusy[rowKey];
               const isDone = !!c;
               const rd = rowDraft(item, idx);
+              const canEditSaved=isDone&&!c._queued;
               const kg = isDone ? (c.weight ?? '') : rd.kg;
               const reps = isDone ? (c.reps ?? '') : rd.reps;
               const rir = isDone ? c.rir : rd.rir;
               const priorSet = previousFor(progress,item,idx);
               const reference = priorSet ? `${priorSet.weight} kg × ${priorSet.reps}` : `${item.scheme.repMin}–${item.scheme.repMax} reps`;
-              return (
-                <div key={idx} style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, alignItems: 'center', padding: '9px 2px', borderBottom: '1px solid var(--border)' }}>
-                  <span style={{ width: 30, height: 30, borderRadius: 50, background: 'var(--surface-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: isDone ? 'var(--text-subtle)' : 'var(--ink)' }}>{idx + 1}</span>
-                  <span className="subtle" style={{ fontSize: 12.5, lineHeight: 1.25 }}>
+              const openSaved=()=>{if(canEditSaved)editSessionSet(c);else if(c?._queued)setRowErrors(e=>({...e,[rowKey]:'Saved on this device. Sync this set to edit or undo it. Other sets remain available.'}));};
+              return <div key={idx}>
+                <div style={{display:'grid',gridTemplateColumns:cols,gap:8,alignItems:'center',padding:'9px 2px',borderBottom:'1px solid var(--border)'}} aria-busy={saving}>
+                  <span style={{width:28,height:30,borderRadius:50,background:'var(--surface-2)',display:'inline-flex',alignItems:'center',justifyContent:'center',fontWeight:800,fontSize:13,color:isDone?'var(--text-subtle)':'var(--ink)'}}>{idx+1}</span>
+                  <span className="subtle" style={{fontSize:12.5,lineHeight:1.3,overflowWrap:'anywhere'}}>
                     {reference}
-                    <span style={{ display: 'block', color: rirColor(item.scheme.rir), fontSize: 11.5 }}>{item.scheme.rir} RIR</span>
-                    {c?._queued&&<small style={{display:'block'}}>Waiting to sync</small>}{isDone&&!c._queued&&<button type="button" className="set-inline-edit" onClick={()=>editSessionSet(c)} aria-label={`Edit ${item.name} set ${idx+1}`}>Edit</button>}
+                    {isDone?<span style={{display:'block',color:rirColor(rir),fontSize:12}}>{rir??'–'} RIR</span>:<button type="button" disabled={saving||discardBusy||showFinish||finishing} aria-label={`Set ${idx+1} reps in reserve`} onClick={()=>setRowDraft(item,idx,{rir:((rd.rir??0)+1)%5})} style={{display:'block',minHeight:32,padding:'4px 0',border:0,background:'transparent',color:rirColor(rir),font:'inherit'}}>{rir??'–'} RIR</button>}
+                    {c?._queued&&<small style={{display:'block'}}>Saved on device · sync pending</small>}
+                    {canEditSaved&&<button type="button" className="set-inline-edit" disabled={saving||discardBusy} onClick={()=>editSessionSet(c)} aria-label={`Edit ${item.name} set ${idx+1}`}>Edit</button>}
                   </span>
-                  <input aria-label={`Set ${idx+1} weight in kg`} type="number" inputMode="decimal" value={kg} disabled={isDone || timer.clock.paused || discardBusy}
-                    onChange={(e) => setRowDraft(item, idx, { kg: e.target.value })} style={cellInput} />
-                  <div style={{ position: 'relative' }}>
-                    <input aria-label={`Set ${idx+1} reps`} type="number" inputMode="numeric" value={reps} disabled={isDone || timer.clock.paused || discardBusy}
-                      onChange={(e) => setRowDraft(item, idx, { reps: e.target.value })} style={cellInput} />
-                    <button type="button" disabled={isDone || timer.clock.paused || discardBusy}
-                      onClick={() => setRowDraft(item, idx, { rir: (((rd.rir ?? 0) + 1) % 5) })}
-                      aria-label="Cycle RIR"
-                      style={{ position: 'absolute', right: -6, bottom: -6, width: 20, height: 20, borderRadius: 999, background: rirColor(rir), color: '#fff', fontSize: 11, fontWeight: 800, border: '2px solid var(--surface)', cursor: isDone ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{rir ?? '–'}</button>
-                  </div>
-                  <button type="button" disabled={timer.clock.paused || discardBusy || c?._queued} onClick={() => (isDone ? removeSet(item, c.id) : logSet(item, idx))}
-                    aria-label={isDone ? 'Uncheck set' : 'Complete set'}
-                    style={{ width: 26, height: 26, borderRadius: 7, border: `2px solid ${isDone ? 'var(--green-600)' : 'var(--border-strong)'}`, background: isDone ? 'var(--green-600)' : 'transparent', color: 'var(--on-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, justifySelf: 'center' }}>{isDone ? '✓' : ''}</button>
+                  <input aria-label={`Set ${idx+1} weight in kg`} type="text" inputMode="decimal" maxLength={8} value={kg} readOnly={isDone} disabled={saving||discardBusy||showFinish||finishing} onClick={isDone?openSaved:undefined} onKeyDown={e=>{if(isDone&&e.key==='Enter'){e.preventDefault();openSaved();}}} onChange={e=>setRowDraft(item,idx,{kg:e.target.value})} style={{...cellInput,cursor:isDone?'pointer':'text'}}/>
+                  <input aria-label={`Set ${idx+1} reps`} type="text" inputMode="numeric" maxLength={4} value={reps} readOnly={isDone} disabled={saving||discardBusy||showFinish||finishing} onClick={isDone?openSaved:undefined} onKeyDown={e=>{if(isDone&&e.key==='Enter'){e.preventDefault();openSaved();}}} onChange={e=>setRowDraft(item,idx,{reps:e.target.value})} style={{...cellInput,cursor:isDone?'pointer':'text'}}/>
+                  <button type="button" disabled={saving||discardBusy||showFinish||finishing||c?._queued} onClick={()=>isDone?removeSet(item,c,idx):logSet(item,idx)} aria-label={saving?`Saving set ${idx+1}`:isDone?`Uncheck set ${idx+1}`:`Complete set ${idx+1}`} aria-pressed={isDone} style={{width:44,height:44,borderRadius:10,border:`2px solid ${isDone?'var(--green-600)':'var(--border-strong)'}`,background:isDone?'var(--green-600)':'transparent',color:'var(--on-accent)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:800}}>{saving?'…':isDone?'✓':''}</button>
                 </div>
-              );
+                {rowErrors[rowKey]&&<p className="inline-error" role="alert" style={{fontSize:13,margin:'6px 0'}}>{rowErrors[rowKey]}</p>}
+              </div>;
             })}
 
-            <button type="button" onClick={() => setExtraRows((e) => ({ ...e, [item.key]: (e[item.key] || 0) + 1 }))}
-              style={{ width: 30, height: 30, borderRadius: 50, background: 'var(--surface-2)', border: 0, color: 'var(--text-muted)', fontSize: 18, cursor: 'pointer', marginTop: 10 }}>+</button>
+            <button type="button" className="btn btn-secondary" disabled={discardBusy||showFinish||finishing||totalRows>=1000} onClick={()=>setExtraRows(e=>({...e,[item.key]:Math.max((e[item.key]||0)+1,totalRows-(item.scheme.sets||3)+1)}))} style={{minHeight:44,marginTop:12}} aria-label={`Add set for ${item.name}`}>+ Add set</button>
 
             {showPlates && (
               <div className="subtle" style={{ fontSize: 11.5, marginTop: 8 }}>Per side: {plates.join(' + ')} kg</div>

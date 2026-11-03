@@ -1,5 +1,5 @@
 import {supabase} from './supabaseClient.js';
-import {makeQueuedLog,syncQueueBatch} from './logQueueCore.js';
+import {makeQueuedLog,syncQueueBatch,validSyncAck} from './logQueueCore.js';
 let database;const listeners=new Set(),syncListeners=new Set(),running=new Map();
 const channel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('gymiq-log-sync'):null;
 const changed=()=>{listeners.forEach(fn=>fn());channel?.postMessage({type:'changed'});};
@@ -38,7 +38,8 @@ export function syncPending(userId){
  if(running.has(userId))return running.get(userId);
  const run=syncQueueBatch({userId,store:queueStore,online:()=>navigator.onLine,send:async entry=>{
   const {data:auth}=await supabase.auth.getSession();if(auth.session?.user.id!==userId)throw {code:'42501',message:'Sign in to sync'};
-  const {data,error}=await supabase.rpc('sync_log_entry',{p_id:entry.id,p_kind:entry.kind,p_payload:entry.payload});if(error)throw error;return data;
+  const {data,error}=await supabase.rpc('sync_log_entry',{p_id:entry.id,p_kind:entry.kind,p_payload:entry.payload});if(error)throw error;
+  if(!validSyncAck(data,entry.id))throw Error('Sync confirmation was incomplete. Your entry is still saved on this device.');return data;
  },onSynced:entry=>{syncListeners.forEach(fn=>fn(entry));channel?.postMessage({type:'synced',entry});}}).finally(()=>{running.delete(userId);changed();});
  running.set(userId,run);return run;
 }
