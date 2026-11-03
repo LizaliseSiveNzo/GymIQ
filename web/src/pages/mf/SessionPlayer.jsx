@@ -320,7 +320,7 @@ export default function SessionPlayer() {
       try{
         await sync.enqueue('set',row,id);
         if(!timer.isPaused())void bellRef.current.unlock();
-        beginRest(item.scheme.restSeconds||90);
+        beginRest(DEFAULT_SCHEME.restSeconds);
       }catch(error){delete lastSetTap.current[tapKey];setRowErrors(e=>({...e,[key]:error.message||'Could not save on this device. Your inputs are kept; try again.'}));}
       finally{setRowBusy(rows=>({...rows,[key]:false}));}
     }});
