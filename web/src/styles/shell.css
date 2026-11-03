@@ -306,6 +306,10 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 .session-timing__sound .btn { padding: 6px 10px; min-height: 44px; font-size: 12px; }
 .session-timing__sound span { font-size: 11px; color: var(--text-muted); }
 .exercise-illustration { flex: 0 0 auto; }
+.exercise-illustration--button { margin: 0 0 18px; }
+.exercise-illustration__toggle { width:100%; min-height:44px; padding:10px 16px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text-muted); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.exercise-illustration__toggle:hover { border-color:var(--border-strong); color:var(--ink); }
+.exercise-illustration__toggle:focus-visible { outline:2px solid var(--green-600); outline-offset:3px; }
 .exercise-illustration__open { display: block; padding: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #10140d; color: var(--ink); cursor: zoom-in; }
 .exercise-illustration__open:focus-visible { outline: 2px solid var(--accent, #c6ff3a); outline-offset: 3px; }
 .exercise-illustration__open img { display: block; object-fit: contain; }

@@ -18,8 +18,9 @@ export default function ProgressionCoach({item,progress,feedback,preferences,rea
   const {data,error}=await supabase.from('exercise_coach_preferences').upsert({user_id:userId,exercise_key:key,load_increment:value},{onConflict:'user_id,exercise_key'}).select().single();
   if(error)throw error;onPreference(data);
  }catch{setError('Could not save your equipment increment. Please try again.');}finally{setBusy(false);}}
- return <section className="progression-coach" aria-label="Progression coach">
-  <div className="row between"><strong>Progression coach</strong><span className="badge badge-neutral">Rules-based · review first</span></div>
+ return <details className="progression-coach" aria-label="Progression coach">
+  <summary className="progression-coach-toggle">Progression coach</summary>
+  <div className="progression-coach-content">
   {unavailable?<p className="subtle">Your full history or coach feedback could not load. Continue with your previous defaults or manual values; progression suggestions are unavailable.</p>:<>
    <h3>{suggestion.title}</h3><p className="subtle">{suggestion.reason}</p>
    {suggestion.canApply&&<div className="coach-prescription"><strong>{suggestion.weight>0?`${suggestion.weight} kg`:'Bodyweight'} × {new Set(suggestion.rowReps).size>1?suggestion.rowReps.join(' / '):suggestion.reps} reps</strong><span>per prescribed set · {item.laterality?.startsWith('unilateral')?'kg and reps per side':'kg as entered in your log'}</span></div>}
@@ -29,5 +30,6 @@ export default function ProgressionCoach({item,progress,feedback,preferences,rea
   <details><summary>Available weight increment</summary><p className="subtle coach-small">The smallest increase in the kg value you log: total barbell increase, or per dumbbell / per side where indicated. Use the increments available at your gym.</p><div className="coach-increment"><label>Increase · kg<input type="number" min="0.1" max="100" step="0.1" value={increment} onChange={e=>setIncrement(e.target.value)}/></label><button type="button" className="btn btn-secondary" disabled={busy||unavailable} onClick={saveIncrement}>Save increment</button></div></details>
   <div className="coach-feedback"><strong>How did this exercise feel today?</strong><div className="launch-actions">{[['easy','Too easy'],['right','About right'],['hard','Too hard']].map(([value,label])=><button type="button" key={value} className={`btn ${current?.effort===value?'btn-primary':'btn-ghost'}`} aria-pressed={current?.effort===value} disabled={busy||!hasLogged||unavailable} onClick={()=>saveEffort(value)}>{label}</button>)}</div><p className="subtle coach-small">{hasLogged?'Saved feedback informs a later session after this workout is finished.':'Log a working set first, then rate the effort. You can update the rating after your remaining sets.'}</p></div>
   {error&&<p className="inline-error" role="alert">{error}</p>}
- </section>;
+  </div>
+ </details>;
 }

@@ -16,6 +16,7 @@ import {subscribeSynced,queueStore} from '../../lib/logQueue.js';
 import { detectPRs, plateBreakdown } from '../../lib/engines/prs.js';
 import useSessionTimer from '../../hooks/useSessionTimer.js';
 import SessionTiming from '../../components/ui/SessionTiming.jsx';
+import SessionReadinessDialog from '../../components/ui/SessionReadinessDialog.jsx';
 import { formatSessionTime } from '../../lib/sessionClock.js';
 import { createRestBell } from '../../lib/restBell.js';
 import { loadExerciseProgress } from '../../lib/loadExerciseProgress.js';
@@ -79,6 +80,7 @@ export default function SessionPlayer() {
   const [progress,setProgress] = useState([]);
   const [targets,setTargets]=useState([]);
   const [coachFeedback,setCoachFeedback]=useState([]),[coachPreferences,setCoachPreferences]=useState([]),[coachUnavailable,setCoachUnavailable]=useState(false);
+  const [readinessChecked,setReadinessChecked]=useState(false);
   const [readiness,setReadiness]=useState('ready'),[readinessBusy,setReadinessBusy]=useState(false);
   const [knownBarIncrement,setKnownBarIncrement]=useState(null),[availableEquipment,setAvailableEquipment]=useState(null);
   const [swapItem,setSwapItem]=useState(null),[swapBusy,setSwapBusy]=useState(false);
@@ -101,7 +103,7 @@ export default function SessionPlayer() {
   const [soundUnavailable, setSoundUnavailable] = useState(false);
   const [timingSyncError, setTimingSyncError] = useState(false);
   const timer = useSessionTimer({
-    getRecovery: () => ({ drafts: drafts.current, activeIdx, extraRows, rowMutationIds:rowMutationIds.current }),
+    getRecovery: () => ({ drafts: drafts.current, activeIdx, extraRows, readinessChecked, rowMutationIds:rowMutationIds.current }),
     onRestEnd: () => {
       setRestComplete(true);
       void bellRef.current.play().then((played) => { if (soundOn && !played) setSoundUnavailable(true); });
@@ -120,7 +122,7 @@ export default function SessionPlayer() {
   }, [soundOn]);
   useEffect(() => { if (timer.clock.paused) bellRef.current.stop(); }, [timer.clock.paused]);
   useEffect(() => () => bellRef.current.dispose(), []);
-  useEffect(() => { timer.saveRecovery(); }, [activeIdx, extraRows, timer.saveRecovery]);
+  useEffect(() => { timer.saveRecovery(); }, [activeIdx, extraRows, readinessChecked, timer.saveRecovery]);
   const beginRest = (seconds) => { setRestComplete(false); timer.changeRest(seconds); };
   const pauseSession = () => { timer.pause(); bellRef.current.stop(); };
   const resumeSession = () => { void bellRef.current.unlock(); timer.resume(); };
@@ -241,6 +243,7 @@ export default function SessionPlayer() {
         rowMutationIds.current=recovery?.rowMutationIds&&typeof recovery.rowMutationIds==='object'?recovery.rowMutationIds:{};
         drafts.current = recovery?.drafts && typeof recovery.drafts === 'object' ? recovery.drafts : {};
         setActiveIdx(Number.isInteger(recovery?.activeIdx) ? Math.max(0, recovery.activeIdx) : 0);
+        setReadinessChecked(!!recovery?.readinessChecked || !!existing.data?.length || Date.now()-new Date(log.created_at).getTime()>60000);
         setExtraRows(recovery?.extraRows && typeof recovery.extraRows === 'object' ? recovery.extraRows : {});
         setPlan(items);
         setStatus('ready');
@@ -335,7 +338,7 @@ export default function SessionPlayer() {
 
   async function updateReadiness(value){
     if(readinessBusy)return;setReadinessBusy(true);setErrText('');
-    try{const {error}=await supabase.rpc('set_workout_readiness',{p_log:logIdRef.current,p_readiness:value});if(error)throw error;setReadiness(value);}
+    try{const {error}=await supabase.rpc('set_workout_readiness',{p_log:logIdRef.current,p_readiness:value});if(error)throw error;setReadiness(value);setReadinessChecked(true);}
     catch{setErrText('Could not save your readiness check-in. Please retry.');}finally{setReadinessBusy(false);}
   }
   function applyCoach(item,suggestion){
@@ -510,7 +513,8 @@ export default function SessionPlayer() {
         </div>
       )}
 
-      <section className="mf-card coach-readiness" aria-label="Workout readiness"><strong>How are you feeling today?</strong><div className="launch-actions">{[['ready','Ready'],['tired','Tired'],['sore','Sore']].map(([value,label])=><button type="button" key={value} className={`btn ${readiness===value?'btn-primary':'btn-ghost'}`} aria-pressed={readiness===value} disabled={readinessBusy||discardBusy} onClick={()=>updateReadiness(value)}>{label}</button>)}</div><p className="subtle">Tired or sore days do not receive progression increases. Review your recovery before training; stop movements that cause pain.</p></section>
+      {active&&<ExerciseIllustration key={`image:${active.key}`} exerciseId={active.exerciseId} name={active.name} variant="button" />}
+      <SessionReadinessDialog open={!readinessChecked} readiness={readiness} busy={readinessBusy} error={errText} onChoose={updateReadiness} onDismiss={()=>setReadinessChecked(true)} />
       {swapItem&&<section className="mf-card session-swap-panel" aria-label="Exercise replacement"><div className="row between"><h3>Replace {swapItem.name}</h3><button type="button" className="btn btn-ghost" disabled={swapBusy} onClick={()=>setSwapItem(null)}>Cancel replacement</button></div><p className="subtle">Choose an alternative with the same primary muscle and movement pattern. This session only; your base programme and previous records stay intact. Use the equipment filter for the kit available today.</p>{swapBusy?<p role="status">Saving replacement…</p>:<ExercisePicker mode="pick" pickLabel="Use instead" swapFor={swapItem} availableEquipment={availableEquipment} addedIds={plan.map(p=>p.exerciseId)} onPick={replaceExercise}/>}</section>}
       {pickerOpen && (
         <div style={{ marginBottom: 14 }}>
@@ -560,7 +564,6 @@ export default function SessionPlayer() {
             {previous && <div className="exercise-previous"><strong>Last session · {setDescription(previous.progress.lastBest)}</strong><p>{planned ? 'Your saved target is shown above. Review the inputs; an accepted coach suggestion applies to this session only.' : 'Previous working sets are your starting defaults. Review a coach suggestion or edit the inputs; tick a set only after performing it.'}</p><Link to="/workout/stats">View exercise records ↗</Link></div>}
             {!previous && !planned && <p className="subtle" style={{fontSize:12}}>Enter your starting weight and reps. Finished working sets become your defaults next time.</p>}
             <p className="subtle" style={{fontSize:12}}>Target: {item.scheme.repMin}–{item.scheme.repMax} reps @ {item.scheme.rir} RIR. Build reps within your range; review the load when your working sets reach the upper end with good form.</p>
-            <ExerciseIllustration key={item.exerciseId || item.key} exerciseId={item.exerciseId} name={item.name} variant="guide" />
 
             {timer.clock.paused&&<p className="session-entry-status" role="status">Timer paused · entering and logging sets still works.</p>}
             {committed.length>0&&<p className="subtle" style={{fontSize:12}}>Checked rows are saved in this session. Tap a saved weight/reps value or Edit to correct it, or add another set below.</p>}

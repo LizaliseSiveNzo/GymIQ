@@ -17,8 +17,8 @@ export default function ExerciseIllustration({ exerciseId, name, variant = 'thum
   const label = name || media.name;
   return (
     <div className={`exercise-illustration exercise-illustration--${variant}`}>
-      <button type="button" className="exercise-illustration__open" onClick={() => setOpen(true)} aria-label={`View ${label} illustration`} aria-haspopup="dialog">
-        <img src={variant === 'thumbnail' ? media.thumbnail : media.src} alt={`${label} movement illustration`} width={media.width} height={media.height} loading="lazy" decoding="async" onError={() => setFailedSrc(media.src)} />
+      <button type="button" className={variant === 'button' ? 'exercise-illustration__toggle' : 'exercise-illustration__open'} onClick={() => setOpen(true)} aria-label={`View ${label} illustration`} aria-haspopup="dialog">
+        {variant === 'button' ? <span>Image</span> : <img src={variant === 'thumbnail' ? media.thumbnail : media.src} alt={`${label} movement illustration`} width={media.width} height={media.height} loading="lazy" decoding="async" onError={() => setFailedSrc(media.src)} />}
         {variant === 'guide' && <span>View movement ↗</span>}
       </button>
       <dialog ref={dialog} className="exercise-guide-dialog" aria-labelledby={titleId} onClose={() => setOpen(false)} onClick={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
