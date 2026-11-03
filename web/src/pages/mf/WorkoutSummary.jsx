@@ -9,7 +9,8 @@ import TabShell from '../../shell/TabShell.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
-import {loadWorkoutWeek,weekStart,exerciseIdentity} from '../../lib/workoutWeek.js';
+import {loadWorkoutWeek,savedWorkoutWeek,weekStart,exerciseIdentity} from '../../lib/workoutWeek.js';
+import {offlineWeek} from '../../lib/deviceCache.js';
 import './workoutWeek.css';
 
 export const initials = (name = '') =>
@@ -32,6 +33,14 @@ export default function WorkoutSummary() {
 
   useEffect(() => {
     if (!profile?.id) return;
+    const snapshot=savedWorkoutWeek(profile.id,selectedWeek)?.data;
+    const showSaved=()=>{
+      const d=snapshot?.days?.find(d=>d.id===dayId);if(!d)return false;
+      setWeekData(offlineWeek(snapshot));setDay(d);
+      setRows([...(snapshot.exercises||[]),...(snapshot.extras||[])].filter(e=>e.day_id===dayId));return true;
+    };
+    const hasSaved=showSaved();
+    if(!navigator.onLine){if(!hasSaved){setDay(null);setError('Connect once to save this workout on your device.');}return;}
     let cancelled = false;
     (async () => {
       const [dayResult, exerciseResult, muscleResult] = await Promise.all([
@@ -42,7 +51,7 @@ export default function WorkoutSummary() {
         supabase.from('muscles').select('id,name'),
       ]);
       if (cancelled) return;
-      if (dayResult.error || exerciseResult.error || muscleResult.error) { setError('Could not load this workout. Please return to your programme and try again.'); setDay(null); return; }
+      if (dayResult.error || exerciseResult.error || muscleResult.error) { if(!hasSaved){setError('Could not load this workout. Please return to your programme and try again.');setDay(null);} return; }
       const d = dayResult.data, pes = exerciseResult.data, mus = muscleResult.data;
       let loaded;
       try{loaded=d?await loadWorkoutWeek({programmeId:d.programme_id,week:selectedWeek}):null;}catch(e){if(!cancelled){setError(e.message);setDay(null);}return;}
@@ -102,7 +111,7 @@ export default function WorkoutSummary() {
       <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px)', padding: '0 16px', zIndex: 40 }}>
         <button className="btn btn-primary btn-lg btn-block" disabled={rows.length === 0||past||!weekData?.can_write}
           onClick={() => navigate(`/workout/session/${dayId}`)}>
-          {past?'Past week · view only':'Start workout'}
+          {past?'Past week · view only':weekData?.fromDevice?'Connect to start workout':'Start workout'}
         </button>
       </div>
     </TabShell>

@@ -42,4 +42,22 @@ const crossStorage = {
 
 export const supabase = createClient(URL, ANON, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: crossStorage },
+  global:{fetch:async(input,options={})=>{
+    // Read-only requests fail promptly on a weak connection. Deliberate AI,
+    // payments and logging writes retain their normal request behaviour.
+    const path=typeof input==='string'?input:input.url;
+    const isRead=(options.method||'GET').toUpperCase()==='GET'&&path.includes('/rest/v1/')||/\/rest\/v1\/rpc\/(nutrition_period|nutrition_food_entries|nutrition_activity|exercise_progress_sets)(\?|$)/.test(path);
+    if(isRead&&!options.signal){
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+      try{return await fetch(input,{...options,signal:controller.signal});}finally{clearTimeout(timer);}
+    }
+    return fetch(input,options);
+  }},
 });
+
+// Existing Supabase storage only; no second copy of credentials is created.
+// This can render saved local screens while offline, never authorise requests.
+export function storedSession(){
+ try{const session=JSON.parse(crossStorage.getItem('sb-brnshmmsyfitmotauaud-auth-token')||'null');return session?.user?.id&&session?.access_token?session:null;}catch{return null;}
+}
+export const clearStoredSession=()=>crossStorage.removeItem('sb-brnshmmsyfitmotauaud-auth-token');

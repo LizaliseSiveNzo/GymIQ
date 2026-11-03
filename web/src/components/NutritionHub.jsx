@@ -1,5 +1,6 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
+import {readView,saveView} from '../lib/deviceCache.js';
 import foods from '../../../supabase/functions/_shared/nutrition/foods.json';
 import { RECIPES, SLOTS, calorieGuide, mealTotals, localDay, periodSummary, eligibleRecipes, planMatchesDiet } from '../../../supabase/functions/_shared/nutrition/planner.js';
 import './nutrition.css';
@@ -7,7 +8,7 @@ import {useLogSync} from '../context/LogSyncContext.jsx';
 import {subscribeSynced} from '../lib/logQueue.js';
 import QuickMeals,{foodAsMeal,mealPayload} from './ui/QuickMeals.jsx';
 import BarcodeFood from './ui/BarcodeFood.jsx';
-import AiReviewCard from './ui/AiReviewCard.jsx';
+const AiReviewCard=lazy(()=>import('./ui/AiReviewCard.jsx'));
 
 const initial={sex:'female',age:'',height_cm:'',weight_kg:'',goal_weight_kg:'',monthly_loss_kg:1,activity_level:'sedentary',gym_days:3,gym_minutes:45,gym_basis:'planned',diet:'regular',excludes:[],general_plan:false};
 const blankMeal=()=>({id:crypto.randomUUID(),name:'',slot:'breakfast',items:[{food_id:foods[0].id,grams:50}],manual:false,kcal:''});
@@ -29,7 +30,19 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const [weights,setWeights]=useState([]),[weighIn,setWeighIn]=useState('');
   const today=localDay();
   useEffect(()=>{let active=true;setLoading(true);setError('');
+    const saved=readView(userId,`nutrition:${day}`);
+    function show(values){
+      const [g,d,e,m,p,legacy,recent,favourites,w]=values;
+      setRecent(recent||[]);setFavourites(favourites||[]);
+      setGoal(g);setDays(d||[]);setEntries(e||[]);setSaved(m||[]);setPlan(p);
+      setWeights(w||[]);
+      if(g)setSettings({...initial,...g.settings});
+      else if(legacy)setSettings({...initial,sex:legacy.sex||initial.sex,age:legacy.age||'',height_cm:legacy.height_cm||'',weight_kg:legacy.weight_kg||'',goal_weight_kg:legacy.goal_weight_kg||''});
+      setLoading(false);
+    }
+    if(saved)show(saved.data);
     async function load(){
+      if(!navigator.onLine){if(!saved){setLoading(false);setError('No saved food records for this day. The meal builder still works; connect to load your diary.');}return;}
       const results=await Promise.all([
         supabase.from('nutrition_goals').select('*').eq('user_id',userId).maybeSingle(),
         supabase.rpc('nutrition_period',{p_day:day,p_offset:new Date().getTimezoneOffset()}),
@@ -42,18 +55,20 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
         supabase.from('body_metrics').select('metric_date,weight_kg').eq('client_id',userId).not('weight_kg','is',null).order('metric_date',{ascending:false}).limit(12),
       ]);
       if(!active)return;
-      if(results.some(r=>r.error)){setError('Your nutrition records could not load. Reload this page to try again.');setLoading(false);return;}
-      const [g,d,e,m,p,legacy,recent,favourites,w]=results.map(r=>r.data);
-      setRecent(recent||[]);setFavourites(favourites||[]);
-      setGoal(g);setDays(d||[]);setEntries(e||[]);setSaved(m||[]);setPlan(p);
-      setWeights(w||[]);
-      if(g)setSettings({...initial,...g.settings});
-      else if(legacy)setSettings({...initial,sex:legacy.sex||initial.sex,age:legacy.age||'',height_cm:legacy.height_cm||'',weight_kg:legacy.weight_kg||'',goal_weight_kg:legacy.goal_weight_kg||''});
-      setLoading(false);
+      if(results.some(r=>r.error)){if(!saved)setError('Your nutrition records could not load. Reconnect to retry.');setLoading(false);return;}
+      const values=results.map(r=>r.data);saveView(userId,`nutrition:${day}`,values);show(values);
     }
-    load().catch(()=>{if(active){setError('Your nutrition records could not load. Please reload.');setLoading(false);}});
-    return()=>{active=false;};
+    void load().catch(()=>{if(active){if(!saved)setError('Your nutrition records could not load. Please reconnect.');setLoading(false);}});
+    window.addEventListener('online',load);
+    return()=>{active=false;window.removeEventListener('online',load);};
   },[userId,day]);
+  // Keep corrections and newly generated plans in the next offline snapshot.
+  useEffect(()=>{
+    if(loading)return;
+    const previous=readView(userId,`nutrition:${day}`)?.data;
+    if(!previous)return;
+    saveView(userId,`nutrition:${day}`,[goal,days,entries,saved,plan,previous[5],recent,favourites,weights]);
+  },[loading,userId,day,goal,days,entries,saved,plan,recent,favourites,weights]);
   async function refresh(){
     const [d,e]=await Promise.all([supabase.rpc('nutrition_period',{p_day:day,p_offset:new Date().getTimezoneOffset()}),supabase.rpc('nutrition_food_entries',{p_day:day,p_offset:new Date().getTimezoneOffset()})]);
     if(d.error||e.error)throw Error('Saved, but totals could not refresh. Reload to see the latest records.');
@@ -185,6 +200,6 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
 
     {section==='weight'&&<section className="mf-card"><h2>Weight check-ins</h2><p className="subtle">Follow the trend over several weeks. A check-in does not automatically change your calorie guide.</p><form className="nutrition-form" onSubmit={e=>{e.preventDefault();action(async()=>{const weight=Number(weighIn);if(!Number.isFinite(weight)||weight<35||weight>300)throw Error('Enter a weight between 35 and 300 kg.');const {error}=await supabase.from('body_metrics').upsert({client_id:userId,metric_date:day,weight_kg:weight},{onConflict:'client_id,metric_date'});if(error)throw Error('Could not save your check-in.');setWeights(v=>[{metric_date:day,weight_kg:weight},...v.filter(w=>w.metric_date!==day)].sort((a,b)=>b.metric_date.localeCompare(a.metric_date)).slice(0,12));setWeighIn('');setNotice('Weight check-in saved. Update your current weight in Edit goals when you want to recalculate the guide.');});}}><label>Weight on {day} · kg<input type="number" inputMode="decimal" min="35" max="300" step="0.1" required value={weighIn} onChange={e=>setWeighIn(e.target.value)}/></label><button className="btn btn-secondary" disabled={busy}>Save weight check-in</button></form><details><summary>Recent check-ins · {weights.length}</summary>{weights.map(w=><div className="nutrition-log" key={w.metric_date}><span>{w.metric_date}</span><strong>{w.weight_kg} kg</strong></div>)}</details></section>}
     {section==='sources'&&<section className="mf-card nutrition-sources"><h2>How the estimates work & food sources</h2><p>GymIQ uses a general resting-energy equation, your non-gym activity and an estimated net gym contribution. Recorded sessions use the last 28 days and exclude cancelled or implausibly long sessions. These estimates are refreshed when you save goals; workout calories are not added again as food credits.</p><p>A 30-day weight-change model uses 7,700 kcal per kg. Real changes are not linear. The planner caps its estimated deficit at 500 kcal/day, 25% of maintenance, and a floor of the higher of estimated resting needs or 1,500 kcal/day. These are product guardrails, not a guarantee that a diet is appropriate for you.</p><p>Food values come from <a href="https://fdc.nal.usda.gov/download-datasets/" target="_blank" rel="noreferrer">USDA FoodData Central SR Legacy</a>. Actual brands, portions and cooking methods vary. Use packaging values for unlisted foods. Presets follow everyday balanced-meal patterns, not a clinically approved diet.</p><p><a href="https://pacompendium.com/conditioning-exercise/" target="_blank" rel="noreferrer">Activity estimate source</a> · <a href="https://www.canada.ca/en/health-canada/services/food-guide/eating-support/cooking/make-healthy-meals-plate.html" target="_blank" rel="noreferrer">Balanced meal guidance</a></p></section>}
-    {section==='insights'&&<AiReviewCard domain="nutrition"/>}
+    {section==='insights'&&<Suspense fallback={<p role="status">Opening insights…</p>}><AiReviewCard domain="nutrition"/></Suspense>}
   </div>;
 }

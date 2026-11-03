@@ -4,5 +4,9 @@
   "outputDirectory": "web/dist",
   "installCommand": "npm --prefix web install",
   "framework": null,
+  "headers": [
+    {"source":"/sw.js","headers":[{"key":"Cache-Control","value":"no-cache, no-store, must-revalidate"},{"key":"Service-Worker-Allowed","value":"/"}]},
+    {"source":"/index.html","headers":[{"key":"Cache-Control","value":"no-cache"}]}
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

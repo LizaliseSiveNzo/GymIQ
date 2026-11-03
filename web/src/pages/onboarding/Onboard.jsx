@@ -670,3 +670,4 @@ function GeneratedPreview({ program }) {
     </>
   );
 }
+import '../../styles/onboarding.css';

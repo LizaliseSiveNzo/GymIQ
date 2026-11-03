@@ -3,7 +3,8 @@ import {Link,useSearchParams} from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
 import TrainingMenu from '../../components/ui/TrainingMenu.jsx';
-import {loadWorkoutWeek,weekStart,dayKey,addDays} from '../../lib/workoutWeek.js';
+import {loadWorkoutWeek,savedWorkoutWeek,weekStart,dayKey,addDays} from '../../lib/workoutWeek.js';
+import {offlineWeek,readView} from '../../lib/deviceCache.js';
 import './workoutWeek.css';
 const dateLabel=day=>new Date(`${day}T12:00:00`).toLocaleDateString(undefined,{day:'numeric',month:'short'});
 export default function WorkoutTab(){
@@ -14,9 +15,11 @@ export default function WorkoutTab(){
  const setWeek=value=>setSearch(value===weekStart(dayKey())?{}:{week:value});
  const current=weekStart(today),past=week<current;
  useEffect(()=>{const id=setInterval(()=>setToday(dayKey()),30000);return()=>clearInterval(id);},[]);
- useEffect(()=>{if(!profile?.id||profile.demo)return;let active=true;setBusy(true);setError('');
- loadWorkoutWeek({week}).then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
- return()=>{active=false;};},[profile?.id,week,retry]);
+ useEffect(()=>{if(!profile?.id||profile.demo)return;let active=true;
+ const load=()=>{setBusy(true);setError('');const saved=savedWorkoutWeek(profile.id,week);setData(saved?offlineWeek(saved.data):null);
+ loadWorkoutWeek({week,userId:profile.id}).then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});};
+ load();window.addEventListener('online',load);
+ return()=>{active=false;window.removeEventListener('online',load);};},[profile?.id,week,retry]);
  async function rest(taken=true,rest_date){if(busy)return;setBusy(true);setError('');try{setData(await loadWorkoutWeek({programmeId:data.programme.id,week,action:'rest',taken,rest_date}));}catch(e){setError(e.message);}finally{setBusy(false);}}
  const programme=data?.programme,days=data?.days||[],extras=data?.extras||[],statuses=data?.statuses||{},sessions=data?.sessions||[];
  const completed=days.filter(d=>statuses[d.id]?.complete).length;
@@ -25,14 +28,15 @@ export default function WorkoutTab(){
  return <TabShell active="workout" title="Your training.">
   <div className="training-intro"><p>Your programme, your pace. Make every session count.</p><TrainingMenu/></div>
   <nav className="workout-week-nav" aria-label="Training week"><button className="btn btn-ghost" aria-label="Previous week" disabled={busy||!data?.first_week||week<=data.first_week} onClick={()=>setWeek(addDays(week,-7))}>←</button><div><strong>{past?'Previous week':'This week'}</strong><span>{dateLabel(week)} – {dateLabel(addDays(week,6))}</span></div><button className="btn btn-ghost" aria-label="Next week" disabled={busy||week>=current} onClick={()=>setWeek(addDays(week,7))}>→</button>{past&&<button className="btn btn-secondary" disabled={busy} onClick={()=>setWeek(current)}>This week</button>}</nav>
-  {error&&<p className="inline-error" role="alert">{error} <button className="btn btn-ghost" onClick={()=>setRetry(n=>n+1)}>Try again</button></p>}
+  {error&&<p className="inline-error" role="alert">{error} <button className="btn btn-ghost" onClick={()=>setRetry(n=>n+1)}>Try again</button>{!isLoaded&&readView(profile?.id,'last-training-week')?.data?.week_start&&<Link className="btn btn-secondary" to={`/workout?week=${readView(profile.id,'last-training-week').data.week_start}`}>Open last saved week</Link>}</p>}
   {busy&&!isLoaded&&<div className="mf-card" role="status">Loading your training week…</div>}
+  {data?.fromDevice&&<p className="mf-card" role="status">Showing your saved training week. Connect to refresh progress and start or resume a session.</p>}
   {isLoaded&&<>
    <div className="daystrip">{['M','T','W','T','F','S','S'].map((name,i)=>{const date=addDays(week,i),done=trainingDates.has(date),rested=data.rest_dates?.includes(date);return <div key={date} className={`day-pill ${date===today?'today':''} ${done?'week-calendar-done':rested?'week-calendar-rest':''}`} title={`${date}: ${done?'Workout completed':rested?'Rest taken':'Flexible schedule'}`}><span>{name}</span><span className="d">{Number(date.slice(-2))}</span><span className="day-dot">{done?'✓':rested?'R':''}</span></div>;})}</div>
    {programme?<>
     <div className="training-stats workout-week-stats"><div className="training-stat"><strong>{completed} / {days.length}</strong><span>Workouts completed</span></div><div className="training-stat"><strong>{data.rest_remaining}</strong><span>Rest days {past?'not recorded':'left'}</span></div><div className="training-stat"><strong>{data.rest_target}</strong><span>Rest days planned</span></div></div>
-    {!past&&data.next_day&&<Link className="btn btn-primary workout-next-button" to={`/workout/day/${data.next_day}`}>Start next workout</Link>}
-    {data.unfinished&&!past&&<section className="mf-card"><h3>Continue your workout</h3><p className="subtle">Your unfinished session is saved and paused.</p><Link className="btn btn-secondary" to={`/workout/session/${data.unfinished.day_id||'free'}`}>Return to session →</Link></section>}
+    {!past&&data.next_day&&!data.fromDevice&&<Link className="btn btn-primary workout-next-button" to={`/workout/day/${data.next_day}`}>Start next workout</Link>}
+    {data.unfinished&&!past&&<section className="mf-card"><h3>Continue your workout</h3><p className="subtle">Your unfinished session is saved and paused.</p>{!data.fromDevice&&<Link className="btn btn-secondary" to={`/workout/session/${data.unfinished.day_id||'free'}`}>Return to session →</Link>}</section>}
     <div className="sec-label">Workouts · {past?'week in review':'this week'}</div>
     {!data.full_week&&<p className="subtle">Your programme started partway through this week. Unfinished workouts in this first partial week are not marked missed or carried forward.</p>}
     <div className="workout-week-list">{days.map(d=>{const list=(data.exercises||[]).filter(e=>e.day_id===d.id),status=statuses[d.id]||{},extra=extras.filter(e=>e.day_id===d.id);return <Link key={d.id} to={`/workout/day/${d.id}?week=${week}`} className={`mf-card workout-week-day is-${status.status||'planned'}`} aria-label={`${d.label||''} ${d.name}, ${status.complete?'completed':status.status==='missed'?'missed':'planned'}`}><span className="workout-week-icon">{status.complete?'✓':status.status==='missed'?'!':d.label||d.name[0]}</span><span className="workout-week-copy"><b>{d.label?`${d.label} · `:''}{d.name}</b><span className="subtle">{status.complete?`Completed · ${status.performed?.length||0}/${list.length} exercises performed`:status.status==='missed'?`Missed · ${list.length} exercises`:`${list.length} exercises · ${list.slice(0,2).map(e=>e.name).join(', ')}${list.length>2?'…':''}`}</span></span>{extra.length>0&&<span className="badge badge-neutral">+{extra.length} optional</span>}<span aria-hidden="true">›</span></Link>;})}</div>

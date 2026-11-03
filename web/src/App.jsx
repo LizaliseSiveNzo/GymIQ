@@ -1,8 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
-import Landing from './pages/Landing.jsx';
-import Login from './pages/Login.jsx';
+import RouteLoadBoundary from './components/RouteLoadBoundary.jsx';
+const Landing = lazy(() => import('./pages/Landing.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
 const Privacy = lazy(() => import('./pages/Privacy.jsx'));
 const Workout = lazy(() => import('./pages/mf/WorkoutTab.jsx'));
 const Bank = lazy(() => import('./pages/mf/BankTab.jsx'));
@@ -20,7 +21,7 @@ const WeeklyCheckIn = lazy(() => import('./pages/mf/WeeklyCheckIn.jsx'));
 const PersonalCoach = lazy(() => import('./pages/mf/PersonalCoach.jsx'));
 const secure = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
 export default function App() {
-  return <Suspense fallback={<div className="app-loading" role="status">Loading GymIQ…</div>}>
+  return <RouteLoadBoundary><Suspense fallback={<div className="app-loading" role="status">Opening GymIQ…</div>}>
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
@@ -43,5 +44,5 @@ export default function App() {
       <Route path="/customer/calorie-bank" element={<Navigate to="/bank" replace />} />
       <Route path="*" element={<Navigate to="/workout" replace />} />
     </Routes>
-  </Suspense>;
+  </Suspense></RouteLoadBoundary>;
 }

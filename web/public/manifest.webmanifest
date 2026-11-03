@@ -1,12 +1,19 @@
 {
   "name": "GymIQ",
   "short_name": "GymIQ",
-  "description": "Sports academy management â€” track players, ratings, schedule and more.",
+  "description": "Workouts, food logging and Calorie Bank. Your saved training and meals, on your phone.",
   "start_url": "/workout",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#15161A",
-  "theme_color": "#15161A",
-  "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+  "background_color": "#0B0B0B",
+  "theme_color": "#0B0B0B",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }

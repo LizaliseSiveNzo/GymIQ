@@ -3,52 +3,63 @@
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient.js';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { supabase,storedSession,clearStoredSession } from '../lib/supabaseClient.js';
+import {readView,saveView,clearViews,profileSnapshot} from '../lib/deviceCache.js';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [boot] = useState(()=>{const session=storedSession();return {session,profile:readView(session?.user?.id,'profile')?.data||null};});
+  const [session, setSession] = useState(boot.session);
+  const [profile, setProfile] = useState(boot.profile);
   const [profileError, setProfileError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!boot.session);
+  const currentUser=useRef(boot.session?.user?.id);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    let active=true;
+    supabase.auth.getSession().then(({data})=>{
+      if(!active)return;
+      // A failed offline refresh must not hide an already saved local view.
+      if(data.session||navigator.onLine||!boot.session)setSession(data.session);
+      setLoading(false);
+    }).catch(()=>{if(active)setLoading(false);});
+    const {data:sub}=supabase.auth.onAuthStateChange((event,next)=>{
+      if(!active)return;
+      if(event==='SIGNED_OUT'){
+        clearViews(currentUser.current);currentUser.current=null;setSession(null);setProfile(null);
+      }else if(next||navigator.onLine||!boot.session){currentUser.current=next?.user?.id;setSession(next);}
       setLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    return()=>{active=false;sub.subscription.unsubscribe();};
+  }, [boot]);
 
-  // Surface failures instead of leaving the UI on a spinner forever. If this
-  // read fails (permission denied, missing profile row, network), ProtectedRoute
-  // needs to know it *finished and failed* — not that it's still loading.
-  useEffect(() => {
-    if (!session?.user || session.demo) return;
-    let cancelled = false;
+  const userId=session?.user?.id;
+  useEffect(()=>{
+    if(!userId){setProfile(null);return;}
+    let active=true;
+    const saved=readView(userId,'profile')?.data;
+    setProfile(previous=>previous?.id===userId?previous:saved||null);
     setProfileError(null);
-    supabase.from('users').select('*').eq('id', session.user.id).single()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error('[GymIQ] could not load profile:', error.message, error);
-          setProfileError(error.message || 'Could not load your profile.');
-          return;
-        }
-        if (data) setProfile(data);
-        else setProfileError('No profile found for this account.');
-      });
-    return () => { cancelled = true; };
-  }, [session]);
+    async function load(){
+      if(!navigator.onLine){if(!saved)setProfileError('Open GymIQ online once on this device to save your profile.');return;}
+      const {data,error}=await supabase.from('users').select('*').eq('id',userId).single();
+      if(!active)return;
+      if(error){if(!saved)setProfileError('Could not load your profile. Connect and retry.');return;}
+      if(data){saveView(userId,'profile',profileSnapshot(data));setProfile(data);}
+      else{clearViews(userId);setProfile(null);setProfileError('No profile found for this account.');}
+    }
+    void load().catch(()=>{if(active&&!saved)setProfileError('Could not load your profile. Connect and retry.');});
+    window.addEventListener('online',load);
+    return()=>{active=false;window.removeEventListener('online',load);};
+  },[userId]);
 
   async function refreshProfile() {
     if (!session?.user || session.demo) return;
     const { data } = await supabase.from('users').select('*').eq('id', session.user.id).single();
-    if (data) setProfile(data);
+    if (data) {saveView(data.id,'profile',profileSnapshot(data));setProfile(data);}
     return data;
   }
 
@@ -59,6 +70,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: errMsg(error, 'Could not sign in. Check your email and password.') };
     const { data: prof } = await supabase.from('users').select('*').eq('id', data.user.id).single();
+    if(prof)saveView(prof.id,'profile',profileSnapshot(prof));
     setProfile(prof);
     return { role: prof?.role };
   }
@@ -87,9 +99,9 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    await supabase.auth.signOut();
-    setSession(null);
-    setProfile(null);
+    clearViews(session?.user?.id);clearStoredSession();setSession(null);setProfile(null);
+    // Local state clears immediately, including when the server is unreachable.
+    void supabase.auth.signOut({scope:'local'}).catch(()=>{});
   }
 
   return (
