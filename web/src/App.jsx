@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import RouteLoadBoundary from './components/RouteLoadBoundary.jsx';
 import WorkoutRecoveryPrompt from './components/ui/WorkoutRecoveryPrompt.jsx';
+// Finishing must not depend on downloading another route after the save.
+import {HistoryDetail as Detail} from './pages/mf/HistoryDetail.jsx';
 const Landing = lazy(() => import('./pages/Landing.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Privacy = lazy(() => import('./pages/Privacy.jsx'));
@@ -14,7 +16,6 @@ const Exercises = lazy(() => import('./pages/mf/ExercisesBrowse.jsx'));
 const Session = lazy(() => import('./pages/mf/SessionPlayer.jsx'));
 const Summary = lazy(() => import('./pages/mf/WorkoutSummary.jsx'));
 const History = lazy(() => import('./pages/mf/HistoryList.jsx').then(m => ({ default: m.HistoryList })));
-const Detail = lazy(() => import('./pages/mf/HistoryDetail.jsx').then(m => ({ default: m.HistoryDetail })));
 const Stats = lazy(() => import('./pages/mf/ExerciseStats.jsx'));
 const Analytics = lazy(() => import('./pages/mf/TrainingAnalytics.jsx'));
 const ProgressStory = lazy(() => import('./pages/mf/ProgressStory.jsx'));
