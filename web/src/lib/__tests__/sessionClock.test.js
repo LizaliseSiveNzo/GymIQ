@@ -13,17 +13,35 @@ describe('active workout clock', () => {
     expect(clock.elapsedMs).toBe(25000);
     expect(clock.restMs).toBe(75000);
   });
-  it('restores a running snapshot paused without adding time spent away', () => {
+  it('restores abandoned sessions paused without counting days away', () => {
     const active = stepClock(resumeClock(restoreClock(null, 0, 0), 0), 8000);
     const restored = restoreClock(clockSnapshot({ ...active, restMs: 42000 }, { activeIdx: 3 }), 5, 90000000);
     expect(restored.paused).toBe(true);
     expect(restored.elapsedMs).toBe(8000);
     expect(restored.restMs).toBe(42000);
   });
-  it('auto-pauses on a suspended process without counting the gap or ringing late', () => {
+  it('counts suspended browser time and completes rest once without pausing', () => {
     const beforeSleep = { ...resumeClock(restoreClock(null, 65), 1000), restMs: 1000 };
     const restored = stepClock(beforeSleep, 3601000);
-    expect(restored).toMatchObject({ paused: true, interrupted: true, elapsedMs: 65000, restMs: 1000, restEnded: false });
+    expect(restored).toMatchObject({ paused: false, interrupted: false, elapsedMs: 3665000, restMs: 0, restEnded: true });
+    expect(stepClock(restored, 3601500).restEnded).toBe(false);
+  });
+  it('recovers a running session after mobile process eviction with its rest countdown', () => {
+    const active={...resumeClock(restoreClock(null, 60, 100000),100000),restMs:120000};
+    const snapshot=clockSnapshot(active,{activeIdx:2});
+    expect(restoreClock(snapshot,60,130000)).toMatchObject({paused:false,elapsedMs:90000,restMs:90000,lastAt:130000});
+    expect(snapshot.recovery).toEqual({activeIdx:2});
+    expect(restoreClock(snapshot,60,280000)).toMatchObject({paused:false,elapsedMs:240000,restMs:0});
+  });
+  it('keeps explicitly paused and legacy recovery snapshots paused', () => {
+    const paused=pauseClock(resumeClock(restoreClock(null,60,100000),100000),105000);
+    expect(restoreClock(clockSnapshot(paused),60,130000)).toMatchObject({paused:true,elapsedMs:65000});
+    expect(restoreClock({version:1,elapsedMs:65000,restMs:1000},60,130000)).toMatchObject({paused:true,elapsedMs:65000,restMs:1000});
+  });
+  it('does not double count when the system clock briefly moves backwards', () => {
+    const running=resumeClock(restoreClock(null),10000);
+    const back=stepClock(running,9000);
+    expect(stepClock(back,11000).elapsedMs).toBe(1000);
   });
   it('ends rest once, including delayed but valid ticks', () => {
     let clock = { ...resumeClock(restoreClock(null), 0), restMs: 1200 };

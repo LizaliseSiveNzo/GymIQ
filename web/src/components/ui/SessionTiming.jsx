@@ -7,7 +7,7 @@ export default function SessionTiming({ clock, soundOn, restComplete, onPause, o
       <button className={`btn ${clock.paused ? 'btn-primary' : 'btn-secondary'}`} onClick={clock.paused ? onResume : onPause}>{clock.paused ? 'Resume session' : 'Pause session'}</button>
     </div>
     {clock.paused && <p className="session-paused" role="status">Timer paused. You can still enter and log sets. Resume when you’re ready to run the timers.</p>}
-    <p className="session-timing__hint">Leaving this session or switching away pauses both timers.</p>
+    <p className="session-timing__hint">Timers keep running when your phone is locked or another app is open. Use Pause session to take a break.</p>
     {clock.restMs > 0 && <div className="session-timing__row session-rest">
       <div><span className="session-timing__label">{clock.paused ? 'Rest paused' : 'Rest'}</span><strong aria-label="Rest time remaining">{formatSessionTime(Math.ceil(clock.restMs / 1000))}</strong></div>
       <div className="row"><button className="btn btn-ghost" onClick={onAddRest}>+15s</button><button className="btn btn-ghost" onClick={onSkipRest}>Skip rest</button></div>

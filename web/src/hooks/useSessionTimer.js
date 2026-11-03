@@ -26,65 +26,72 @@ export default function useSessionTimer(callbacks) {
     if (next.restEnded) latest.current.onRestEnd?.();
   }, [persist]);
   const pause = useCallback(() => {
-    publish(pauseClock(current.current, performance.now()));
+    publish(pauseClock(current.current, Date.now()));
     sync();
   }, [publish, sync]);
   const resume = useCallback(() => {
     if (document.visibilityState === 'hidden') return;
-    publish(resumeClock(current.current, performance.now()));
+    publish(resumeClock(current.current, Date.now()));
   }, [publish]);
   const initialize = useCallback(({ key, serverSeconds, startFresh }) => {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(key)); } catch { /* cloud time remains available */ }
     storageKey.current = key;
-    const restored = restoreClock(saved, serverSeconds, performance.now());
-    current.current = startFresh && !saved && document.visibilityState !== 'hidden' ? resumeClock(restored, performance.now()) : restored;
+    const restored = restoreClock(saved, serverSeconds, Date.now());
+    current.current = startFresh && !saved && document.visibilityState !== 'hidden' ? resumeClock(restored, Date.now()) : restored;
     lastSync.current = current.current.elapsedMs;
     setClock(current.current);
     // Caller restores the drafts before the first persistence tick.
-    return saved?.version === 1 ? saved.recovery : null;
+    return [1, 2].includes(saved?.version) ? saved.recovery : null;
   }, []);
   const changeRest = useCallback((seconds) => {
-    const next = stepClock(current.current, performance.now());
+    const next = stepClock(current.current, Date.now());
     publish({ ...next, restMs: Math.max(0, seconds) * 1000, restEnded: false });
   }, [publish]);
   const addRest = useCallback((seconds) => {
-    const next = stepClock(current.current, performance.now());
+    const next = stepClock(current.current, Date.now());
     publish({ ...next, restMs: Math.max(0, next.restMs + seconds * 1000), restEnded: false });
   }, [publish]);
   const complete = useCallback(() => {
     const key = storageKey.current;
     storageKey.current = null;
-    current.current = pauseClock(current.current, performance.now());
+    current.current = pauseClock(current.current, Date.now());
     setClock(current.current);
     try { if (key) localStorage.removeItem(key); } catch { /* finished log is authoritative */ }
   }, []);
   useEffect(() => {
     const tick = setInterval(() => {
       if (!storageKey.current || current.current.paused) return;
-      const next = stepClock(current.current, performance.now());
+      const next = stepClock(current.current, Date.now());
       publish(next);
       if (next.paused || next.elapsedMs - lastSync.current >= 15000) {
         lastSync.current = next.elapsedMs;
         sync();
       }
     }, 500);
-    const hide = () => { if (document.visibilityState === 'hidden') pause(); };
-    document.addEventListener('visibilitychange', hide);
-    window.addEventListener('pagehide', pause);
+    // Save on backgrounding, but keep the clock running across browser suspension.
+    const checkpoint = () => {
+      if (!storageKey.current) return;
+      publish(stepClock(current.current, Date.now()));
+      sync();
+    };
+    document.addEventListener('visibilitychange', checkpoint);
+    window.addEventListener('pagehide', checkpoint);
+    window.addEventListener('pageshow', checkpoint);
     window.addEventListener('online', sync);
     return () => {
       clearInterval(tick);
-      document.removeEventListener('visibilitychange', hide);
-      window.removeEventListener('pagehide', pause);
+      document.removeEventListener('visibilitychange', checkpoint);
+      window.removeEventListener('pagehide', checkpoint);
+      window.removeEventListener('pageshow', checkpoint);
       window.removeEventListener('online', sync);
-      // Route changes also pause and save; no timer continues off this page.
-      current.current = pauseClock(current.current, performance.now());
+      // Navigating out of the workout still pauses; backgrounding the app does not.
+      current.current = pauseClock(current.current, Date.now());
       persist();
       sync();
     };
-  }, [pause, persist, publish, sync]);
+  }, [persist, publish, sync]);
   return { clock, storageError, initialize, pause, resume, changeRest, addRest, complete,
     saveRecovery: persist, isPaused: () => current.current.paused,
-    getSeconds: () => Math.floor(stepClock(current.current, performance.now()).elapsedMs / 1000) };
+    getSeconds: () => Math.floor(stepClock(current.current, Date.now()).elapsedMs / 1000) };
 }
