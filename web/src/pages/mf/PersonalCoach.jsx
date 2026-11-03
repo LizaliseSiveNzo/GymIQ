@@ -135,7 +135,7 @@ export default function PersonalCoach(){
 
    <div className="coach-workspace">
     <section ref={conversation} className="coach-conversation" aria-label="Coach conversation" aria-busy={busy==='chat'}>
-     {!turns.length&&<div className="coach-welcome"><span className="coach-welcome-mark" aria-hidden="true">✦</span><h2>What are we working on?</h2><p>Meals, training, or your next step.</p><div className="coach-starters">{['Build a meal with my ingredients','Plan workouts for my equipment','Help me adjust my meal plan'].map(text=><button type="button" key={text} onClick={()=>fillPrompt(text)}>{text}<span aria-hidden="true">↗</span></button>)}</div></div>}
+     {!turns.length&&<div className="coach-welcome"><span className="coach-welcome-mark" aria-hidden="true">✦</span><h2>What are we working on?</h2><p>Meals, training, or your next step.</p><div className="coach-starters">{['Build a meal with my ingredients','Plan workouts for my equipment','Review my training & food logs'].map(text=><button type="button" key={text} onClick={()=>fillPrompt(text)}>{text}<span aria-hidden="true">↗</span></button>)}</div></div>}
      {turns.map(turn=><article className="coach-turn" key={turn.id}>
       <div className="coach-user-message"><span className="coach-visually-hidden">You</span><p className="coach-text">{turn.prompt}</p></div>
       <div className="coach-assistant-message"><div className="coach-assistant-label"><span aria-hidden="true">✦</span> Coach</div>
