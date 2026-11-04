@@ -9,6 +9,7 @@ import TabShell from '../../shell/TabShell.jsx';
 import ExercisePicker from '../../components/ui/ExercisePicker.jsx';
 import ProgressionCoach from '../../components/ui/ProgressionCoach.jsx';
 import ExerciseIllustration from '../../components/ui/ExerciseIllustration.jsx';
+import {reportClientIssue} from '../../lib/clientIssues.js';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import {useLogSync} from '../../context/LogSyncContext.jsx';
@@ -443,6 +444,7 @@ export default function SessionPlayer() {
       try { localStorage.removeItem(`gymiq_session_${profile.id}_${logIdRef.current}`); } catch { /* ignore */ }
       navigate(`/workout/history/${logIdRef.current}`, { replace: true });
     } catch (e) {
+      reportClientIssue(profile.id,'workout_save_failed');
       setErrText(e.message || 'Could not finish saving. Your sets are retained; please try again.');
       setShowFinish(false);
     } finally {

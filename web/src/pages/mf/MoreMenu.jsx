@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import OwnerDashboardLink from '../../components/ui/OwnerDashboardLink.jsx';
 import CalorieBankCard from '../../components/ui/CalorieBankCard.jsx';
 import TabShell from '../../shell/TabShell.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -95,6 +96,7 @@ export default function MoreMenu() {
   return <TabShell title="Your account" showKicker={false}>
     {error && <div className="inline-error" role="alert">{error}</div>}
     {notice && <p className="mf-card" role="status">{notice}</p>}
+    <OwnerDashboardLink userId={profile.id}/>
     {params.get('payment') === 'processing' && <p className="mf-card" role="status">We are checking your payment with Yoco. Access updates after payment is confirmed. If it takes longer, use “Refresh status” or contact support.</p>}
     {['cancelled','failed'].includes(params.get('payment')) && <p className="mf-card">Checkout was {params.get('payment')}. Your membership has not changed.</p>}
     <section className="training-program account-panel">

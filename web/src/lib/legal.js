@@ -1,1 +1,1 @@
-export const CONSENT_VERSION = '2026-11-v8';
+export const CONSENT_VERSION = '2026-11-v9';

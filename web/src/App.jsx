@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import {captureReferral} from './lib/referrals.js';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import RouteLoadBoundary from './components/RouteLoadBoundary.jsx';
 import WorkoutRecoveryPrompt from './components/ui/WorkoutRecoveryPrompt.jsx';
@@ -21,8 +22,10 @@ const Analytics = lazy(() => import('./pages/mf/TrainingAnalytics.jsx'));
 const ProgressStory = lazy(() => import('./pages/mf/ProgressStory.jsx'));
 const WeeklyCheckIn = lazy(() => import('./pages/mf/WeeklyCheckIn.jsx'));
 const PersonalCoach = lazy(() => import('./pages/mf/PersonalCoach.jsx'));
+const OwnerDashboard = lazy(() => import('./pages/mf/OwnerDashboard.jsx'));
 const secure = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
 export default function App() {
+  useEffect(()=>{captureReferral();},[]);
   return <RouteLoadBoundary><Suspense fallback={<div className="app-loading" role="status">Opening GymIQ…</div>}>
     <Routes>
       <Route path="/" element={<Landing />} />
@@ -32,6 +35,7 @@ export default function App() {
       <Route path="/workout" element={secure(<Workout />)} />
       <Route path="/bank" element={secure(<Bank />)} />
       <Route path="/more" element={secure(<Account />)} />
+      <Route path="/owner" element={secure(<OwnerDashboard />)} />
       <Route path="/coach" element={secure(<PersonalCoach />)} />
       <Route path="/exercises" element={secure(<Exercises />)} />
       <Route path="/workout/day/:dayId" element={secure(<Summary />)} />

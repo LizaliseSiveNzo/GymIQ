@@ -3,6 +3,7 @@
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
+import {signupReferral} from '../lib/referrals.js';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase,storedSession,clearStoredSession } from '../lib/supabaseClient.js';
 import {readView,saveView,clearViews,profileSnapshot} from '../lib/deviceCache.js';
@@ -86,6 +87,7 @@ export function AuthProvider({ children }) {
         consent: !!consent,
         consent_version: consentVersion || null,
         invite_code: inviteCode || null,
+        referral_source: signupReferral(),
       } },
     });
     if (error) return { error: errMsg(error, 'Could not create your account.') };

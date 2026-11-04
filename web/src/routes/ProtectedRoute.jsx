@@ -11,6 +11,7 @@ import {loadMembership,savedMembership} from '../lib/membership.js';
 export default function ProtectedRoute({ roles, children }) {
   const { session, profile, profileError, role, loading, logout } = useAuth();
   const location = useLocation();
+  const accountPage=['/more','/owner'].includes(location.pathname);
   const [membership, setMembership] = useState(()=>{const saved=savedMembership(profile?.id);return saved?{...saved.data,checkedUser:profile.id}:null;});
   const [membershipError, setMembershipError] = useState('');
   useEffect(() => {
@@ -50,11 +51,11 @@ export default function ProtectedRoute({ roles, children }) {
 
   // MF-rebuild gate (Phase 2): every real account completes the onboarding
   // wizard exactly once before reaching any app surface.
-  if (location.pathname !== '/more' && membershipError) return <div className="container"><p role="alert">{membershipError}</p><button className="btn btn-primary" onClick={() => window.location.reload()}>Try again</button></div>;
-  if (location.pathname !== '/more' && (!membership || membership.checkedUser !== profile?.id)) return <div className="app-loading" role="status">Preparing your GymIQ membership…</div>;
+  if (!accountPage && membershipError) return <div className="container"><p role="alert">{membershipError}</p><button className="btn btn-primary" onClick={() => window.location.reload()}>Try again</button></div>;
+  if (!accountPage && (!membership || membership.checkedUser !== profile?.id)) return <div className="app-loading" role="status">Preparing your GymIQ membership…</div>;
   const readOnly = !navigator.onLine&&['/workout','/bank'].includes(location.pathname)||location.pathname.startsWith('/workout/history') || location.pathname === '/workout/stats' || location.pathname === '/workout/analytics' || location.pathname === '/workout/progress-story';
-  if (location.pathname !== '/more' && !readOnly && membership && new Date(membership.expires_at) <= new Date()) return <Navigate to="/more?membership=expired" replace />;
-  if (!session.demo && profile && !profile.onboarded_at && !['/onboarding', '/more'].includes(location.pathname)) {
+  if (!accountPage && !readOnly && membership && new Date(membership.expires_at) <= new Date()) return <Navigate to="/more?membership=expired" replace />;
+  if (!session.demo && profile && !profile.onboarded_at && !['/onboarding', '/more', '/owner'].includes(location.pathname)) {
     return <Navigate to="/onboarding" replace />;
   }
   return children;

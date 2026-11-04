@@ -1,10 +1,12 @@
-import {createContext,useContext,useEffect,useState} from 'react';
+import {reportClientIssue} from '../lib/clientIssues.js';
+import {createContext,useContext,useEffect,useState,useRef} from 'react';
 import {useAuth} from './AuthContext.jsx';
 import {queueStore,queueLog,syncPending,retryPending,forgetPending,subscribeQueue,subscribeSynced} from '../lib/logQueue.js';
 const Context=createContext(null);
 export const useLogSync=()=>useContext(Context);
 export function LogSyncProvider({children}){
  const {profile}=useAuth(),userId=profile?.id;
+ const lastReportedFailure=useRef('');
  const [pending,setPending]=useState([]),[online,setOnline]=useState(navigator.onLine),[error,setError]=useState(''),[syncing,setSyncing]=useState(false);
  useEffect(()=>{
   let active=true;setPending([]);setError('');
@@ -16,6 +18,13 @@ export function LogSyncProvider({children}){
   const interval=setInterval(flush,15000);void refresh();void flush();
   return()=>{active=false;remove();synced();clearInterval(interval);window.removeEventListener('online',connection);window.removeEventListener('offline',connection);};
  },[userId]);
+ useEffect(()=>{
+  if(!online||!userId)return;
+  const failures=pending.filter(entry=>entry.attempts>0).map(entry=>`${entry.id}:${entry.attempts}`).sort().join(',');
+  const signature=error||failures?`${userId}:${error}:${failures}`:'';
+  if(signature&&signature!==lastReportedFailure.current)reportClientIssue(userId,'sync_failed');
+  lastReportedFailure.current=signature;
+ },[error,online,userId,pending]);
  async function enqueue(kind,payload,id){
   if(!userId)throw Error('Sign in before logging.');
   const entry=await queueLog(userId,kind,payload,id);
