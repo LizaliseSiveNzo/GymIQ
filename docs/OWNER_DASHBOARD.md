@@ -6,6 +6,8 @@ Provision owner access and reporting exclusions using the server/database admini
 
 The reporting function remains `SECURITY INVOKER` and reads existing GymIQ profile records. It does not query private Auth records or add permissions to the Auth schema. New profile creation is part of the existing signup trigger; registration dates use that profile creation time.
 
+Enabled owners also have app access through `owner_has_app_access()`, a caller-scoped boolean backed by the same server registry. `ensure_membership()` returns an owner access snapshot for the UI without changing stored membership rows or creating payments. Normal trial/paid customers keep their existing access rules; disabling the registry entry immediately removes the owner bypass on the server. Expired cached memberships are rechecked online before redirecting to billing. The Account screen labels owner access explicitly and does not ask the owner to pay for their own app.
+
 ## Definitions
 
 - Customer registration dates come from account profile creation, not imported programme/workout dates. Profiles awaiting email confirmation still count as sign-ups; email verification is not presented as a dashboard metric.

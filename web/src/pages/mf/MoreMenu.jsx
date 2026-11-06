@@ -101,11 +101,13 @@ export default function MoreMenu() {
     {['cancelled','failed'].includes(params.get('payment')) && <p className="mf-card">Checkout was {params.get('payment')}. Your membership has not changed.</p>}
     <section className="training-program account-panel">
       <span className="launch-eyebrow">GYMIQ MEMBERSHIP</span>
-      <h2>{!member ? online?'Checking membership…':'Connect to check membership' : active ? member.kind === 'paid' ? 'You’re all set.' : 'Your free trial is active.' : 'Ready for your next chapter?'}</h2>
-      {member && <p>{active ? 'Access until' : 'Access ended'} {new Date(member.expires_at).toLocaleDateString('en-ZA', { day:'numeric', month:'long', year:'numeric' })}.</p>}
+      <h2>{member?.kind==='owner'?'Owner access is active.':!member ? online?'Checking membership…':'Connect to check membership' : active ? member.kind === 'paid' ? 'You’re all set.' : 'Your free trial is active.' : 'Ready for your next chapter?'}</h2>
+      {member?.kind==='owner'?<p>Full access to Workouts and Calorie Bank for your owner account.</p>:member && <p>{active ? 'Access until' : 'Access ended'} {new Date(member.expires_at).toLocaleDateString('en-ZA', { day:'numeric', month:'long', year:'numeric' })}.</p>}
+      {member?.kind!=='owner'&&<>
       <div className="membership-price">R100 <small>/ 30 days</small></div>
       <p>Workouts + Calorie Bank. Renew manually through Yoco. No automatic debit. Early renewals add 30 days to your remaining access.</p>
       <button className="btn btn-primary btn-block" disabled={!!busy||!online} onClick={() => run('checkout', checkout)}>{busy === 'checkout' ? 'Opening Yoco…' : active && member?.kind === 'paid' ? 'Add 30 days with Yoco ↗' : 'Get 30 days with Yoco ↗'}</button>
+      </>}
       <button className="btn btn-ghost" disabled={!!busy||!online} onClick={() => run('refresh', loadMember)}>Refresh status</button>
       {!active && member && <Link to="/workout/history" className="btn btn-ghost">View workout history</Link>}
     </section>

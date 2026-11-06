@@ -14,6 +14,7 @@ export default function ProtectedRoute({ roles, children }) {
   const accountPage=['/more','/owner'].includes(location.pathname);
   const [membership, setMembership] = useState(()=>{const saved=savedMembership(profile?.id);return saved?{...saved.data,checkedUser:profile.id}:null;});
   const [membershipError, setMembershipError] = useState('');
+  const [checkingMembership,setCheckingMembership]=useState(()=>navigator.onLine);
   useEffect(() => {
     if (!profile?.id) return;
     let cancelled=false;
@@ -21,9 +22,11 @@ export default function ProtectedRoute({ roles, children }) {
     setMembership(saved?{...saved.data,checkedUser:profile.id}:null);
     setMembershipError('');
     const load=()=>{
-      if(!navigator.onLine){if(!saved)setMembershipError('Connect once to save your account access on this device.');return;}
+      if(!navigator.onLine){setCheckingMembership(false);if(!saved)setMembershipError('Connect once to save your account access on this device.');return;}
+      setCheckingMembership(true);
       void loadMembership(profile.id).then(row=>{if(!cancelled){setMembershipError('');setMembership({...row,checkedUser:profile.id});}})
-       .catch(e=>{if(!cancelled&&!saved)setMembershipError(e.message);});
+       .catch(e=>{if(!cancelled&&(!saved||new Date(saved.data.expires_at)<=new Date()))setMembershipError(e.message);})
+       .finally(()=>{if(!cancelled)setCheckingMembership(false);});
     };
     load();window.addEventListener('online',load);
     return()=>{cancelled=true;window.removeEventListener('online',load);};
@@ -53,6 +56,7 @@ export default function ProtectedRoute({ roles, children }) {
   // wizard exactly once before reaching any app surface.
   if (!accountPage && membershipError) return <div className="container"><p role="alert">{membershipError}</p><button className="btn btn-primary" onClick={() => window.location.reload()}>Try again</button></div>;
   if (!accountPage && (!membership || membership.checkedUser !== profile?.id)) return <div className="app-loading" role="status">Preparing your GymIQ membership…</div>;
+  if (!accountPage && checkingMembership && new Date(membership?.expires_at)<=new Date()) return <div className="app-loading" role="status">Checking your GymIQ access…</div>;
   const readOnly = !navigator.onLine&&['/workout','/bank'].includes(location.pathname)||location.pathname.startsWith('/workout/history') || location.pathname === '/workout/stats' || location.pathname === '/workout/analytics' || location.pathname === '/workout/progress-story';
   if (!accountPage && !readOnly && membership && new Date(membership.expires_at) <= new Date()) return <Navigate to="/more?membership=expired" replace />;
   if (!session.demo && profile && !profile.onboarded_at && !['/onboarding', '/more', '/owner'].includes(location.pathname)) {
