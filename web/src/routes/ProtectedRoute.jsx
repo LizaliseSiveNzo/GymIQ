@@ -4,33 +4,15 @@
  */
 
 import { Navigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import useMembership from '../hooks/useMembership.js';
+import PremiumPaywall from '../components/ui/PremiumPaywall.jsx';
+import TabShell from '../shell/TabShell.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import {loadMembership,savedMembership} from '../lib/membership.js';
 
-export default function ProtectedRoute({ roles, children }) {
+export default function ProtectedRoute({ roles, premium=false, children }) {
   const { session, profile, profileError, role, loading, logout } = useAuth();
   const location = useLocation();
-  const accountPage=['/more','/owner'].includes(location.pathname);
-  const [membership, setMembership] = useState(()=>{const saved=savedMembership(profile?.id);return saved?{...saved.data,checkedUser:profile.id}:null;});
-  const [membershipError, setMembershipError] = useState('');
-  const [checkingMembership,setCheckingMembership]=useState(()=>navigator.onLine);
-  useEffect(() => {
-    if (!profile?.id) return;
-    let cancelled=false;
-    const saved=savedMembership(profile.id);
-    setMembership(saved?{...saved.data,checkedUser:profile.id}:null);
-    setMembershipError('');
-    const load=()=>{
-      if(!navigator.onLine){setCheckingMembership(false);if(!saved)setMembershipError('Connect once to save your account access on this device.');return;}
-      setCheckingMembership(true);
-      void loadMembership(profile.id).then(row=>{if(!cancelled){setMembershipError('');setMembership({...row,checkedUser:profile.id});}})
-       .catch(e=>{if(!cancelled&&(!saved||new Date(saved.data.expires_at)<=new Date()))setMembershipError(e.message);})
-       .finally(()=>{if(!cancelled)setCheckingMembership(false);});
-    };
-    load();window.addEventListener('online',load);
-    return()=>{cancelled=true;window.removeEventListener('online',load);};
-  }, [profile?.id]);
+  const access=useMembership(profile?.id);
 
   if (loading) return <div className="container">Loading…</div>;
   if (!session) return <Navigate to="/login" replace />;
@@ -52,15 +34,10 @@ export default function ProtectedRoute({ roles, children }) {
 
   if (roles && !roles.includes(role)) return <Navigate to="/login" replace />;
 
-  // MF-rebuild gate (Phase 2): every real account completes the onboarding
-  // wizard exactly once before reaching any app surface.
-  if (!accountPage && membershipError) return <div className="container"><p role="alert">{membershipError}</p><button className="btn btn-primary" onClick={() => window.location.reload()}>Try again</button></div>;
-  if (!accountPage && (!membership || membership.checkedUser !== profile?.id)) return <div className="app-loading" role="status">Preparing your GymIQ membership…</div>;
-  if (!accountPage && checkingMembership && new Date(membership?.expires_at)<=new Date()) return <div className="app-loading" role="status">Checking your GymIQ access…</div>;
-  const readOnly = !navigator.onLine&&['/workout','/bank'].includes(location.pathname)||location.pathname.startsWith('/workout/history') || location.pathname === '/workout/stats' || location.pathname === '/workout/analytics' || location.pathname === '/workout/progress-story';
-  if (!accountPage && !readOnly && membership && new Date(membership.expires_at) <= new Date()) return <Navigate to="/more?membership=expired" replace />;
-  if (!session.demo && profile && !profile.onboarded_at && !['/onboarding', '/more', '/owner'].includes(location.pathname)) {
-    return <Navigate to="/onboarding" replace />;
+  if(premium&&!access.premium){
+    if(access.checking)return <div className="app-loading" role="status">Checking your GymIQ access…</div>;
+    return <TabShell title="GymIQ Premium"><PremiumPaywall/>{access.error&&<p role="alert">{access.error}</p>}</TabShell>;
   }
+  if (!session.demo && profile && !profile.onboarded_at && access.premium && !['/onboarding','/more','/owner'].includes(location.pathname))return <Navigate to="/onboarding" replace/>;
   return children;
 }

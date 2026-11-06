@@ -1,3 +1,5 @@
+import {loadMembership} from '../../lib/membership.js';
+import {hasPremium} from '../../lib/premium.js';
 /*
  * Copyright © 2026 Lizalise Nzo. All rights reserved.
  * GymIQ — proprietary and confidential. See LICENSE.
@@ -138,12 +140,14 @@ export default function SessionPlayer() {
     (async () => {
       try {
         let log=await loadResumedWorkout(supabase,{userId:profile.id,dayId,resumeId});
+        let canUsePremium=false;
         let weekly=null,programmeId=null,workoutName=isFree?'Freestyle workout':'Your workout';
         if(!isFree){
           const dayLookup=await supabase.from('programme_days').select('programme_id,name').eq('id',dayId).single();
           if(dayLookup.error)throw dayLookup.error;
           programmeId=dayLookup.data.programme_id;workoutName=dayLookup.data.name||workoutName;
-          weekly=await loadWorkoutWeek({programmeId});
+          canUsePremium=hasPremium(await loadMembership(profile.id));
+          if(canUsePremium)weekly=await loadWorkoutWeek({programmeId});
         }
         // Recover an unfinished log for this day, including an earlier paused workout.
         if(!log){
@@ -159,7 +163,7 @@ export default function SessionPlayer() {
         setExcludedKeys(log.excluded_exercises || []);
         if(!isFree){
           const logWeek=weekStart(dayKey(new Date(log.created_at)));
-          if(weekly?.week_start!==logWeek)weekly=await loadWorkoutWeek({programmeId,week:logWeek});
+          if(canUsePremium&&weekly?.week_start!==logWeek)weekly=await loadWorkoutWeek({programmeId,week:logWeek});
         }
 
         // Plan

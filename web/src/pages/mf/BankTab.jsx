@@ -8,11 +8,15 @@ import {useSearchParams} from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import NutritionHub from '../../components/NutritionHub.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import useMembership from '../../hooks/useMembership.js';
+import PremiumPaywall from '../../components/ui/PremiumPaywall.jsx';
+import {PREMIUM_BANK_SECTIONS} from '../../lib/premium.js';
 import BankMenu,{bankSection} from '../../components/ui/BankMenu.jsx';
 
 // Food planning and actual intake share one dated calorie guide.
 export default function BankTab() {
   const { session, profile } = useAuth();
+  const access=useMembership(profile?.id);
   const [search,setSearch]=useSearchParams();
   const section=bankSection(search);
   useEffect(()=>{window.scrollTo({top:0});},[section]);
@@ -24,7 +28,7 @@ export default function BankTab() {
     <TabShell active="bank" title="Calorie Bank">
       <div className="bank-page-intro"><p className="bank-intro">Build meals, track the extras and keep your longer-term goal in view.</p><BankMenu section={section}/></div>
       {section!=='home'&&<button className="btn btn-ghost bank-section-back" onClick={()=>navigateSection('home')}>← Calorie overview</button>}
-      <NutritionHub userId={profile.id} section={section} onSectionChange={navigateSection}/>
+      {PREMIUM_BANK_SECTIONS.includes(section)&&!access.premium?(access.checking?<p role="status">Checking premium access…</p>:<PremiumPaywall feature="meal planning and food insights"/>):<NutritionHub userId={profile.id} section={section} onSectionChange={navigateSection}/>}
     </TabShell>
   );
 }

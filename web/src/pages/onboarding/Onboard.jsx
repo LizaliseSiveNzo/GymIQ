@@ -373,10 +373,10 @@ export default function Onboard() {
       persistedProgramRef.current = id;
     } });
 
-  add({ key: 'paywall', phase: 'preview', title: 'Two essentials. One membership.',
-    sub: 'Your first 7 days are free. Then R100 for 30 days, renewed manually through Yoco. No automatic debit.',
+  add({ key: 'paywall', phase: 'preview', title: 'Your premium trial is ready.',
+    sub: 'Try premium for 7 days. Continue for R100 per 30 days, or keep freestyle workouts and manual food logging free. No automatic debit.',
     valid: () => true,
-    node: () => <div className="prev-card"><h4>Workouts + Calorie Bank</h4><p>Your programme, live workout logging, session history and nutrition balance in one place.</p><p>Manage your membership in Account. Paid access starts only after Yoco confirms your payment.</p></div>,
+    node: () => <div className="prev-card"><h4>Workouts + Calorie Bank</h4><p>Personalised programmes, daily meal planning and advanced progress reports, alongside free logging.</p><p>Manage your membership in Account. Paid access starts only after Yoco confirms your payment.</p></div>,
   });
 
   add({ key: 'disclaimer', phase: 'legal', title: 'Health disclaimer',
@@ -436,6 +436,9 @@ export default function Onboard() {
       nextLabel={busy ? 'Saving…' : cur.nextLabel} nextDisabled={!valid || busy}
       onNext={next} skipLabel={cur.skipLabel} onSkip={cur.onSkip}
     >
+      {!rebuilding&&<button className="btn btn-ghost" disabled={busy} onClick={async()=>{
+        setBusy(true);setErr('');try{const {error}=await supabase.from('users').update({onboarded_at:new Date().toISOString()}).eq('id',profile.id);if(error)throw error;await refreshProfile();navigate('/workout',{replace:true});}catch{setErr('Could not skip setup. Please try again.');}finally{setBusy(false);}
+      }}>Skip programme setup</button>}
       {cur.node(form, set)}
       {err && <p style={{ color: 'var(--danger)', fontSize: 13, marginTop: 12 }}>{err}</p>}
     </Wizard>

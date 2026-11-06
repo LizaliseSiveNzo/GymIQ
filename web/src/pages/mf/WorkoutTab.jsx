@@ -6,8 +6,10 @@ import TrainingMenu from '../../components/ui/TrainingMenu.jsx';
 import {loadWorkoutWeek,savedWorkoutWeek,weekStart,dayKey,addDays} from '../../lib/workoutWeek.js';
 import {offlineWeek,readView} from '../../lib/deviceCache.js';
 import './workoutWeek.css';
+import useMembership from '../../hooks/useMembership.js';
+import PremiumPaywall from '../../components/ui/PremiumPaywall.jsx';
 const dateLabel=day=>new Date(`${day}T12:00:00`).toLocaleDateString(undefined,{day:'numeric',month:'short'});
-export default function WorkoutTab(){
+function ProgrammeWorkoutTab(){
  const {profile}=useAuth();
  const [today,setToday]=useState(dayKey()),[data,setData]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  const [search,setSearch]=useSearchParams();
@@ -44,4 +46,11 @@ export default function WorkoutTab(){
    </>:<div className="mf-card"><h3>No active programme yet</h3><p className="subtle">Build a programme around your goals, schedule and equipment.</p><Link className="btn btn-primary" to="/onboarding?new=1">Build my programme</Link></div>}
   </>}
  </TabShell>;
+}
+
+export default function WorkoutTab(){
+ const {profile}=useAuth();const access=useMembership(profile?.id);
+ if(access.premium)return <ProgrammeWorkoutTab/>;
+ if(access.checking&&!access.member)return <TabShell active="workout" title="Your training."><p role="status">Opening your training…</p></TabShell>;
+ return <TabShell active="workout" title="Your training."><div className="training-intro"><p>Your next session starts here.</p><TrainingMenu/></div><Link className="btn btn-primary workout-next-button" to="/workout/session/free">Start freestyle workout</Link><section className="mf-card"><h2>Keep building your progress</h2><p className="subtle">Log sets, weights and reps, use the rest timer and return to your saved records.</p><Link className="btn btn-secondary" to="/workout/stats">Exercise records →</Link><Link className="btn btn-ghost" to="/workout/history">Workout history →</Link></section><PremiumPaywall feature="personalised programmes"/></TabShell>;
 }

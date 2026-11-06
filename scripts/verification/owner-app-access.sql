@@ -17,10 +17,7 @@ begin
  set local role authenticated;
  access_record:=public.ensure_membership();
  if public.has_active_membership() or access_record.kind='owner' or access_record.expires_at>now() then raise exception 'Expired customer bypassed membership';end if;
- begin
-  insert into public.workout_logs(client_id,log_date) values(customer,current_date);
-  raise exception 'Expired customer could create a workout';
- exception when insufficient_privilege then null;end;
+ insert into public.workout_logs(client_id,log_date) values(customer,current_date); -- free freestyle logging
  reset role;
  insert into public.owner_dashboard_access(user_id) values(customer);
  set local role authenticated;

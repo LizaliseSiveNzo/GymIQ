@@ -7,6 +7,8 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import {queueStore} from '../../lib/logQueue.js';
 import { supabase } from '../../lib/supabaseClient.js';
 import {loadMembership,savedMembership} from '../../lib/membership.js';
+import {hasPremium} from '../../lib/premium.js';
+import {RedeemAccessCode} from '../../components/ui/PremiumPaywall.jsx';
 import {useLogSync} from '../../context/LogSyncContext.jsx';
 
 async function functionError(error, fallback) {
@@ -55,7 +57,7 @@ export default function MoreMenu() {
     setBusy(key); setError(''); setNotice('');
     try { await action(); } catch (e) { setError(e.message || 'Please try again.'); } finally { setBusy(''); }
   }
-  const active = member && new Date(member.expires_at) > new Date();
+  const active = hasPremium(member);
   async function checkout() {
     checkoutId.current ||= crypto.randomUUID();
     const { data, error } = await supabase.functions.invoke('yoco-checkout', { body: { requestId: checkoutId.current } });
@@ -99,18 +101,19 @@ export default function MoreMenu() {
     <OwnerDashboardLink userId={profile.id}/>
     {params.get('payment') === 'processing' && <p className="mf-card" role="status">We are checking your payment with Yoco. Access updates after payment is confirmed. If it takes longer, use “Refresh status” or contact support.</p>}
     {['cancelled','failed'].includes(params.get('payment')) && <p className="mf-card">Checkout was {params.get('payment')}. Your membership has not changed.</p>}
-    <section className="training-program account-panel">
+    <section id="membership" className="training-program account-panel">
       <span className="launch-eyebrow">GYMIQ MEMBERSHIP</span>
-      <h2>{member?.kind==='owner'?'Owner access is active.':!member ? online?'Checking membership…':'Connect to check membership' : active ? member.kind === 'paid' ? 'You’re all set.' : 'Your free trial is active.' : 'Ready for your next chapter?'}</h2>
+      <h2>{member?.kind==='owner'?'Owner access is active.':!member ? online?'Checking membership…':'Connect to check membership' : active ? member.kind === 'invite' ? 'Your invited premium access is active.' : member.kind === 'paid' ? 'Premium is active.' : 'Your premium trial is active.' : 'You’re on GymIQ Free.'}</h2>
       {member?.kind==='owner'?<p>Full access to Workouts and Calorie Bank for your owner account.</p>:member && <p>{active ? 'Access until' : 'Access ended'} {new Date(member.expires_at).toLocaleDateString('en-ZA', { day:'numeric', month:'long', year:'numeric' })}.</p>}
       {member?.kind!=='owner'&&<>
       <div className="membership-price">R100 <small>/ 30 days</small></div>
-      <p>Workouts + Calorie Bank. Renew manually through Yoco. No automatic debit. Early renewals add 30 days to your remaining access.</p>
+      <p>Personalised programmes, daily meal plans, advanced reports and AI insights. Freestyle workouts and manual food logging stay free. Renew manually through Yoco. No automatic debit. Early renewals add 30 days to your remaining access.</p>
       <button className="btn btn-primary btn-block" disabled={!!busy||!online} onClick={() => run('checkout', checkout)}>{busy === 'checkout' ? 'Opening Yoco…' : active && member?.kind === 'paid' ? 'Add 30 days with Yoco ↗' : 'Get 30 days with Yoco ↗'}</button>
       </>}
       <button className="btn btn-ghost" disabled={!!busy||!online} onClick={() => run('refresh', loadMember)}>Refresh status</button>
       {!active && member && <Link to="/workout/history" className="btn btn-ghost">View workout history</Link>}
     </section>
+    <RedeemAccessCode onSuccess={setMember}/>
     <section className="mf-card account-panel"><h2>Profile</h2><p>{profile?.email}</p><form onSubmit={e => { e.preventDefault(); run('profile', async () => {
       const { error } = await supabase.from('users').update({ name: name.trim() }).eq('id', profile.id);
       if (error) throw error; await refreshProfile(); setNotice('Profile updated.');

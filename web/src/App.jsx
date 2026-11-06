@@ -23,7 +23,7 @@ const ProgressStory = lazy(() => import('./pages/mf/ProgressStory.jsx'));
 const WeeklyCheckIn = lazy(() => import('./pages/mf/WeeklyCheckIn.jsx'));
 const PersonalCoach = lazy(() => import('./pages/mf/PersonalCoach.jsx'));
 const OwnerDashboard = lazy(() => import('./pages/mf/OwnerDashboard.jsx'));
-const secure = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
+const secure = (page, premium=false) => <ProtectedRoute premium={premium}>{page}</ProtectedRoute>;
 export default function App() {
   useEffect(()=>{captureReferral();},[]);
   return <RouteLoadBoundary><Suspense fallback={<div className="app-loading" role="status">Opening GymIQ…</div>}>
@@ -31,21 +31,21 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/privacy" element={<Privacy />} />
-      <Route path="/onboarding" element={secure(<Onboard />)} />
+      <Route path="/onboarding" element={secure(<Onboard />,true)} />
       <Route path="/workout" element={secure(<Workout />)} />
       <Route path="/bank" element={secure(<Bank />)} />
       <Route path="/more" element={secure(<Account />)} />
       <Route path="/owner" element={secure(<OwnerDashboard />)} />
-      <Route path="/coach" element={secure(<PersonalCoach />)} />
+      <Route path="/coach" element={secure(<PersonalCoach />,true)} />
       <Route path="/exercises" element={secure(<Exercises />)} />
-      <Route path="/workout/day/:dayId" element={secure(<Summary />)} />
+      <Route path="/workout/day/:dayId" element={secure(<Summary />,true)} />
       <Route path="/workout/session/free" element={secure(<Session />)} />
       <Route path="/workout/session/:dayId" element={secure(<Session />)} />
       <Route path="/workout/history" element={secure(<History />)} />
       <Route path="/workout/stats" element={secure(<Stats />)} />
-      <Route path="/workout/analytics" element={secure(<Analytics />)} />
-      <Route path="/workout/progress-story" element={secure(<ProgressStory />)} />
-      <Route path="/workout/check-in" element={secure(<WeeklyCheckIn />)} />
+      <Route path="/workout/analytics" element={secure(<Analytics />,true)} />
+      <Route path="/workout/progress-story" element={secure(<ProgressStory />,true)} />
+      <Route path="/workout/check-in" element={secure(<WeeklyCheckIn />,true)} />
       <Route path="/workout/history/:logId" element={secure(<Detail />)} />
       <Route path="/customer/calorie-bank" element={<Navigate to="/bank" replace />} />
       <Route path="*" element={<Navigate to="/workout" replace />} />
