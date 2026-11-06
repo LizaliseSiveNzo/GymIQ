@@ -3,10 +3,29 @@ import foods from '../../../../supabase/functions/_shared/nutrition/foods.json';
 import {calorieGuide,mealTotals,buildPlan,eligibleRecipes,periodSummary,planMatchesDiet,shufflePlan,RECIPES,SLOTS} from '../../../../supabase/functions/_shared/nutrition/planner.js';
 const base={sex:'male',age:30,height_cm:180,weight_kg:85,goal_weight_kg:78,monthly_loss_kg:1,activity_level:'sedentary',gym_days:3,gym_minutes:60,gym_basis:'planned',general_plan:true};
 describe('nutrition planning boundaries',()=>{
- it('offers eight default meals per slot with unique recipe IDs and valid source ingredients',()=>{
+ it('offers varied default meals per slot with unique recipe IDs and valid source ingredients',()=>{
   expect(new Set(RECIPES.map(r=>r.id)).size).toBe(RECIPES.length);
-  for(const slot of SLOTS)expect(eligibleRecipes(foods).filter(r=>r.slot===slot)).toHaveLength(8);
+  for(const slot of SLOTS){const count=eligibleRecipes(foods).filter(r=>r.slot===slot).length;expect(count).toBeGreaterThanOrEqual(8);expect(count).toBeLessThanOrEqual(15);}
   for(const recipe of RECIPES){expect(recipe.items.length).toBeLessThanOrEqual(6);expect(mealTotals(recipe.items,foods).kcal).toBeGreaterThan(0);}
+ });
+ it('calculates new meat portions from source records and distinguishes raw/cooked and mince fat levels',()=>{
+  expect(mealTotals([{food_id:'167634',grams:150}],foods)).toMatchObject({kcal:351,protein:50.1});
+  expect(mealTotals([{food_id:'174030',grams:100}],foods).kcal).toBe(176);
+  expect(mealTotals([{food_id:'171794',grams:100}],foods).kcal).toBe(230);
+  expect(mealTotals([{food_id:'174036',grams:100}],foods).fat).toBe(20);
+  for(const id of ['167634','171496','172851','174028','172544','168250','171117','175304','174618','174579','173871']){
+   const food=foods.find(f=>f.id===id);expect(food.vegetarian).toBe(false);expect(food.vegan).toBe(false);expect(food.source_url).toContain(`/food-details/${id}/`);
+  }
+ });
+ it('includes the added meats in presets while respecting vegetarian preferences and conservative sausage exclusions',()=>{
+  const regular=eligibleRecipes(foods);
+  for(const id of ['lean-beef-mince-bowl','turkey-rice-lunch','mutton-sweet-potato','goat-rice-greens'])expect(regular.some(r=>r.id===id)).toBe(true);
+  expect(eligibleRecipes(foods,'vegetarian').some(r=>r.id==='mutton-sweet-potato')).toBe(false);
+  for(const food of foods.filter(f=>f.name.includes('sausage')))expect(food.allergens).toContain('gluten');
+  for(const recipe of regular.filter(r=>r.id.includes('mutton')||r.id.includes('turkey')||r.id.includes('beef-mince'))){
+   const plan=buildPlan(2200,foods,'regular',[],{[recipe.slot]:recipe.id});expect(planMatchesDiet(plan,foods)).toBe(true);
+   expect(Math.abs(plan.reduce((n,m)=>n+m.kcal,0)-2200)).toBeLessThan(20);
+  }
  });
  it('changes all four choices while preserving the calorie guide and mixed-meal policy',()=>{
   const old=buildPlan(2300,foods,'regular',[]);

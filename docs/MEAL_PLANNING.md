@@ -49,7 +49,7 @@ prevents simultaneous device requests from silently overwriting each other.
 With restrictive preferences, a slot may have no alternative; the API returns a
 clear explanation and leaves the plan unchanged.
 
-`supabase/functions/_shared/nutrition/foods.json` contains 21 curated USDA SR
+`supabase/functions/_shared/nutrition/foods.json` contains 52 curated USDA SR
 Legacy generic foods, with FDC IDs, descriptions and source URLs. Nutrients are
 per 100 g edible portion. Raw/dry/cooked/drained states are explicit. The
 extractor is `scripts/extract_nutrition_foods.py`; source CSVs are ignored.
@@ -62,6 +62,22 @@ the extractor from the repository root. To expand the catalogue, update the
 curation list, verify preparation state and allergen tags, and seed a new
 migration. FoodData Central SR Legacy is a generic historical dataset; package
 labels are preferable for the actual product eaten.
+
+The November meat expansion adds 31 entries: roast mutton (the SR Legacy Navajo
+roasted preparation, labelled as an estimate), skinless turkey breast, turkey,
+beef, chicken, lamb and pork mince, lean beef sirloin, pork fillet, chicken thigh,
+roast lamb leg, goat, deer venison and generic beef/pork/turkey sausages. Raw and
+cooked entries have separate source IDs; beef mince includes 5%, 10% and 20% fat.
+Nutrients refer to edible portions, so bones are not included in the weighed
+grams. Existing 21 entries and saved meal logs were not changed.
+
+Generic sausages carry conservative wheat/gluten/milk/soy/egg exclusion tags for
+possible recipe binders, explained in their `allergen_note`; these do not assert
+that every sausage contains each ingredient. They are generic estimates, not
+brand or boerewors specifications. Use package/barcode nutrition for a specific
+product. Twelve additional cooked-meat lunch/dinner templates use these source
+foods; regular lunch/dinner now each have fourteen choices. No existing saved
+plan is replaced by expanding the catalogue.
 
 General meal pattern reference:
 https://www.canada.ca/en/health-canada/services/food-guide/eating-support/cooking/make-healthy-meals-plate.html

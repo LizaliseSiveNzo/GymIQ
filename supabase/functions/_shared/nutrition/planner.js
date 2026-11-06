@@ -38,6 +38,19 @@ export const RECIPES = [
   {id:'chicken-avo-rice',slot:'dinner',name:'Chicken, avocado & rice plate',items:[item('171477',150),item('169704',180),item('171705',70),item('168409',120),item('170457',100)]},
   {id:'tuna-kidney-bowl',slot:'dinner',name:'Tuna, kidney beans & vegetables',items:[item('173709',150),item('175194',200),item('169967',140),item('170393',100),item('171413',10)]},
   {id:'chicken-sweet-potato-carrot',slot:'dinner',name:'Chicken, sweet potato & carrots',items:[item('171477',150),item('168484',250),item('170393',150),item('170457',100),item('171413',10)]},
+  {id:'turkey-rice-lunch',slot:'lunch',name:'Turkey breast & brown rice',items:[item('171496',140),item('169704',180),item('169967',140),item('171413',8)]},
+  {id:'lean-beef-mince-bowl',slot:'lunch',name:'Lean beef mince & rice bowl',items:[item('174028',130),item('169704',170),item('170457',120),item('170393',100),item('171413',5)]},
+  {id:'turkey-mince-toast',slot:'lunch',name:'Turkey mince on wholewheat toast',items:[item('172851',120),item('172688',80),item('170457',120),item('168409',100)]},
+  {id:'pork-fillet-lunch',slot:'lunch',name:'Pork fillet & sweet potato',items:[item('168250',140),item('168484',220),item('169967',140),item('171413',8)]},
+  {id:'chicken-mince-rice',slot:'lunch',name:'Chicken mince, rice & carrots',items:[item('171117',130),item('169704',170),item('170393',120),item('170457',100),item('171413',5)]},
+  {id:'beef-sirloin-lunch',slot:'lunch',name:'Beef steak & rice lunchbox',items:[item('172170',130),item('169704',170),item('169967',140),item('171413',8)]},
+  {id:'mutton-sweet-potato',slot:'dinner',name:'Roast mutton, sweet potato & greens',items:[item('167634',140),item('168484',220),item('169967',170),item('171413',5)]},
+  {id:'lamb-mince-rice',slot:'dinner',name:'Lamb mince & vegetable rice',items:[item('172544',120),item('169704',180),item('170457',120),item('170393',120)]},
+  {id:'beef-mince-beans',slot:'dinner',name:'Lean beef mince & bean bowl',items:[item('174028',140),item('175194',150),item('169704',130),item('170457',120),item('171413',5)]},
+  {id:'turkey-sweet-potato',slot:'dinner',name:'Turkey breast, sweet potato & broccoli',items:[item('171496',170),item('168484',250),item('169967',180),item('171413',10)]},
+  {id:'goat-rice-greens',slot:'dinner',name:'Roast goat, rice & greens',items:[item('175304',160),item('169704',200),item('169967',180),item('171413',10)]},
+  {id:'pork-fillet-dinner',slot:'dinner',name:'Pork fillet, sweet potato & carrots',items:[item('168250',170),item('168484',250),item('170393',150),item('171413',10)]},
+
 ];
 export function mealTotals(items, foods) {
   if (!Array.isArray(items) || items.length < 1 || items.length > 30) throw new Error('Choose between 1 and 30 ingredients.');
