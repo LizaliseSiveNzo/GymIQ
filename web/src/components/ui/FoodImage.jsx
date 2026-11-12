@@ -3,25 +3,30 @@
  * GymIQ — proprietary and confidential. See LICENSE.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import images from '../../lib/foodImages.json';
 import './foodImage.css';
 
 const EXTENSIONS = ['webp', 'jpg', 'png'];
 
-// Food thumbnail served from /foods/<foodId>.<ext>. Tries webp, then jpg, then png,
-// and hides itself when no image exists so foods without an uploaded image stay
-// text-only (no broken-image icons).
+// Food thumbnail. Looks the food up in foodImages.json first; when there is no
+// mapping entry it falls back to /foods/<foodId>.<ext>. Hides itself when no image
+// loads, so foods without an uploaded image stay text-only (no broken-image icons).
 export default function FoodImage({ foodId }) {
-  const [ext, setExt] = useState(0);
-  if (!foodId || ext >= EXTENSIONS.length) return null;
+  const [idx, setIdx] = useState(0);
+  useEffect(() => { setIdx(0); }, [foodId]);
+  if (!foodId) return null;
+  const mapped = images[foodId];
+  const sources = mapped ? [mapped] : EXTENSIONS.map((ext) => `/foods/${foodId}.${ext}`);
+  if (idx >= sources.length) return null;
   return (
     <img
       className="food-image"
-      src={`/foods/${foodId}.${EXTENSIONS[ext]}`}
+      src={sources[idx]}
       alt=""
       loading="lazy"
       decoding="async"
-      onError={() => setExt((v) => v + 1)}
+      onError={() => setIdx((v) => v + 1)}
     />
   );
 }
