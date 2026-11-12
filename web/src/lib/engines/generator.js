@@ -19,6 +19,7 @@ export const SCHEMES = {
   hypertrophy: { main: { sets: 3, repMin: 6,  repMax: 10, rir: 2, rest: 150 }, acc: { sets: 3, repMin: 10, repMax: 15, rir: 1, rest: 75 } },
   strength:    { main: { sets: 4, repMin: 3,  repMax: 6,  rir: 3, rest: 210 }, acc: { sets: 3, repMin: 8,  repMax: 12, rir: 2, rest: 90 } },
   both:        { main: { sets: 4, repMin: 5,  repMax: 8,  rir: 2, rest: 180 }, acc: { sets: 3, repMin: 10, repMax: 15, rir: 1, rest: 75 } },
+  fat_loss: { main: { sets: 3, repMin: 8,  repMax: 12, rir: 2, rest: 120 }, acc: { sets: 3, repMin: 12, repMax: 20, rir: 1, rest: 60 } },
 };
 
 const DIFFICULTY_CEILING = { novice: 2, intermediate: 3, advanced: 3 };
@@ -42,7 +43,7 @@ function scoreCandidate(exercise, planned, targets) {
 
 /**
  * Build the program.
- * @param input {{goal:'hypertrophy'|'strength'|'both', daysPerWeek:number,
+ * @param input {{goal:'hypertrophy'|'strength'|'both'|'fat_loss', daysPerWeek:number,
  *   sessionMinutes:number, split:string('auto'|…), experience:string,
  *   focus:string[], deprioritized:string[], equipmentIds:string[]|Set<string>,
  *   name?:string}}

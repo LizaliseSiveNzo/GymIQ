@@ -249,6 +249,7 @@ export default function Onboard() {
         <OptionCard icon="📈" title="Muscle Hypertrophy" desc="Size: moderate weights, moderate-high reps" selected={f.goal === 'hypertrophy'} onClick={() => st('goal', 'hypertrophy')} />
         <OptionCard icon="🏋️" title="Muscle Strength" desc="Maximal strength: heavier weights, fewer reps" selected={f.goal === 'strength'} onClick={() => st('goal', 'strength')} />
         <OptionCard icon="⚖️" title="Both Strength & Hypertrophy" desc="Balanced mix of rep schemes" selected={f.goal === 'both'} onClick={() => st('goal', 'both')} />
+        <OptionCard icon="🔥" title="Fat Loss" desc="Fat loss: moderate reps, shorter rests to keep muscle" selected={f.goal === 'fat_loss'} onClick={() => st('goal', 'fat_loss')} />
       </div>
     ) });
 
@@ -537,7 +538,7 @@ function PreviewSummary({ f, muscles, count }) {
     <>
       <div className="prev-card">
         <h4>{f.icon} {f.programme_name || 'My Program'}</h4>
-        <div className="prev-row"><b>Goal</b><span>{{ hypertrophy: 'Hypertrophy', strength: 'Strength', both: 'Strength + Hypertrophy' }[f.goal] || '—'}</span></div>
+        <div className="prev-row"><b>Goal</b><span>{{ hypertrophy: 'Hypertrophy', strength: 'Strength', both: 'Strength + Hypertrophy', fat_loss: 'Fat Loss' }[f.goal] || '—'}</span></div>
         <div className="prev-row"><b>Schedule</b><span>{f.days_per_week} days · {f.session_minutes} min</span></div>
         <div className="prev-row"><b>Split</b><span>{splitLabel[f.split]}</span></div>
         <div className="prev-row"><b>Deload</b><span>{{ auto: 'Auto', never: 'None' }[f.deload] || (f.deload || '').replace('_', ' ')}</span></div>

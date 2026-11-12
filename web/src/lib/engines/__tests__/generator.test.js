@@ -115,6 +115,15 @@ describe('generateProgram', () => {
     expect(mainMax(str)).toBeLessThan(mainMax(hyp));
   });
 
+  it('fat_loss uses hypertrophy-style reps with shorter accessory rest', () => {
+    const wl = generateProgram({ ...BASE, goal: 'fat_loss' }, CATALOG);
+    const hyp = generateProgram(BASE, CATALOG);
+    const accRest = (p) => Math.min(...p.days.flatMap((d) =>
+      d.exercises.filter((e) => e.role === 'accessory').map((e) => e.restSeconds)));
+    expect(wl.goal).toBe('fat_loss');
+    expect(accRest(wl)).toBeLessThan(accRest(hyp));
+  });
+
   it('auto-resolves split by availability', () => {
     expect(generateProgram({ ...BASE, daysPerWeek: 2 }, CATALOG).split).toBe('full_body');
     expect(generateProgram({ ...BASE, daysPerWeek: 4 }, CATALOG).split).toBe('upper_lower');
