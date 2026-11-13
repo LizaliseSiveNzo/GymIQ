@@ -22,12 +22,15 @@ async function runwareSpeech({ text, key, signal }) {
     body: JSON.stringify([{ taskType: 'audioInference', taskUUID: crypto.randomUUID(), model: 'heygen:voice@1.0-turbo', speech: { text: speechText, voice: RUNWARE_VOICE }, outputType: 'URL', outputFormat: 'MP3' }]),
     signal,
   });
-  if (!res.ok) throw Error('Runware speech is temporarily unavailable');
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw Error(`Runware request failed (HTTP ${res.status}): ${detail.slice(0, 300)}`);
+  }
   const body = await res.json();
   const audioURL = body?.data?.[0]?.audioURL;
-  if (!audioURL) throw Error('Invalid speech response');
+  if (!audioURL) throw Error('Invalid speech response: ' + JSON.stringify(body).slice(0, 300));
   const audioRes = await fetch(audioURL, { signal });
-  if (!audioRes.ok) throw Error('Runware speech is temporarily unavailable');
+  if (!audioRes.ok) throw Error(`Audio download failed (HTTP ${audioRes.status})`);
   const bytes = new Uint8Array(await audioRes.arrayBuffer());
   if (!bytes.byteLength || bytes.byteLength > 5000000) throw Error('Invalid speech size');
   return bytes;
