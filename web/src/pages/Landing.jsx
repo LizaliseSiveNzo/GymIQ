@@ -32,6 +32,6 @@ export default function Landing() {
       </section>
       <section className="launch-price"><div><div className="launch-eyebrow">KEEP IT SIMPLE</div><h2>Start free.<br />Grow with premium.</h2><p>Freestyle workouts, exercise records and manual food logging are free. Try premium free for your first 7 days.</p></div><div className="membership-card"><span>GYMIQ PREMIUM</span><div className="membership-price">R100 <small>/ 30 days</small></div><p>Renew manually through Yoco. No automatic debit.</p><ul><li>Personal workout programmes</li><li>Daily meal plans and AI insights</li><li>Advanced training and progress reports</li></ul><Link to="/login?mode=register" className="btn btn-primary btn-lg btn-block">Create your account ↗</Link></div></section>
     </main>
-    <footer className="launch-footer"><span>© {new Date().getFullYear()} GymIQ · Lizalise Nzo</span><Link to="/privacy">Privacy & terms</Link></footer>
+    <footer className="launch-footer"><span>© {new Date().getFullYear()} GymIQ · Lizalise Nzo</span><Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link></footer>
   </div>;
 }
