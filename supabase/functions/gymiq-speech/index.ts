@@ -19,7 +19,7 @@ async function runwareSpeech({ text, key, signal }) {
   const res = await fetch('https://api.runware.ai/v1', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'User-Agent': 'GymIQ' },
-    body: JSON.stringify([{ taskType: 'audioInference', taskUUID: crypto.randomUUID(), model: 'heygen:voice@1.0-turbo', speech: { text: speechText, voice: RUNWARE_VOICE }, outputType: 'URL', outputFormat: 'MP3' }]),
+    body: JSON.stringify([{ taskType: 'audioInference', taskUUID: crypto.randomUUID(), model: 'heygen:voice@1.0', speech: { text: speechText, voice: RUNWARE_VOICE } }]),
     signal,
   });
   if (!res.ok) {
