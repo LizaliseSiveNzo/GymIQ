@@ -1,6 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 import {createCoachAudio} from '../coachAudio.js';
-describe('Microsoft audio playback',()=>{
+describe('Cloud audio playback',()=>{
  const fixture=load=>{
   const instances=[];class Audio{constructor(url){this.url=url;instances.push(this);}play=vi.fn(async()=>{});pause=vi.fn();removeAttribute=vi.fn();load=vi.fn();}
   return {reader:createCoachAudio({load,AudioClass:Audio}),instances};
