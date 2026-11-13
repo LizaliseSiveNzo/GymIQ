@@ -121,7 +121,7 @@ export default function PersonalCoach(){
  useEffect(()=>{const panel=conversation.current;if(panel)panel.scrollTop=panel.scrollHeight;},[turns,busy]);
  function fillPrompt(text){setMessage(text);request.current=null;document.getElementById('coach-message')?.focus();}
 
- return <TabShell title="AI coach" showKicker={false}><div className="coach-page">
+ return <TabShell title="AI coach" showKicker={false} showCoachFab={false}><div className="coach-page">
   {!access?<p role="status">Opening your coach…</p>:!access.enabled?<p className="mf-card">Your personal coach isn’t available for this account.</p>:<>
    <div className="coach-toolbar"><span className="coach-model"><span aria-hidden="true">✦</span> DeepSeek</span>{readingId&&<button type="button" className="btn btn-secondary coach-stop" onClick={stopReading}>■ Stop reading</button>}</div>
    <details className="coach-setup"><summary>Ingredients & equipment · {kitchen.pantry.length} foods, {kitchen.equipment.length} equipment {dirty?'· unsaved':''}</summary>

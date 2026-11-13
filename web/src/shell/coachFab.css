@@ -1,0 +1,11 @@
+.coach-fab{
+  position:fixed;right:18px;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 18px);
+  width:58px;height:58px;border-radius:50%;
+  background:var(--green-600,#c6ff3a);color:var(--on-accent,#0a0a0a);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;line-height:1;text-decoration:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:40;
+  transition:transform .12s ease;
+}
+.coach-fab:active{transform:scale(.92)}
+@media(min-width:800px){.coach-fab{right:calc(50vw - 360px)}}

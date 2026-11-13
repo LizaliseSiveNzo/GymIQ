@@ -1,11 +1,12 @@
 import { Link, NavLink } from 'react-router-dom';
 import LogSyncBanner from '../components/ui/LogSyncBanner.jsx';
+import './coachFab.css';
 const TABS = [
   { label: 'Workouts', icon: '◈', path: '/workout' },
   { label: 'Calorie Bank', icon: '◎', path: '/bank' },
   { label: 'Account', icon: '☰', path: '/more' },
 ];
-export default function TabShell({ title, showKicker = true, children }) {
+export default function TabShell({ title, showKicker = true, showCoachFab = true, children }) {
   return <div className="mf-app">
     <header className="mf-header">
       <Link className="app-wordmark" to="/workout">GYM<span>IQ</span><span className="wordmark-note">YOUR DAILY EDGE</span></Link>
@@ -18,5 +19,6 @@ export default function TabShell({ title, showKicker = true, children }) {
         <span className="ic" aria-hidden="true">{t.icon}</span>{t.label}
       </NavLink>)}
     </nav>
+    {showCoachFab && <Link className="coach-fab" to="/coach" aria-label="Open your AI coach" title="AI coach">✦</Link>}
   </div>;
 }
