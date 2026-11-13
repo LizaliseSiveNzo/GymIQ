@@ -22,6 +22,7 @@ const Analytics = lazy(() => import('./pages/mf/TrainingAnalytics.jsx'));
 const ProgressStory = lazy(() => import('./pages/mf/ProgressStory.jsx'));
 const WeeklyCheckIn = lazy(() => import('./pages/mf/WeeklyCheckIn.jsx'));
 const PersonalCoach = lazy(() => import('./pages/mf/PersonalCoach.jsx'));
+const Tour = lazy(() => import('./pages/mf/Tour.jsx'));
 const OwnerDashboard = lazy(() => import('./pages/mf/OwnerDashboard.jsx'));
 const secure = (page, premium=false) => <ProtectedRoute premium={premium}>{page}</ProtectedRoute>;
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
       <Route path="/more" element={secure(<Account />)} />
       <Route path="/owner" element={secure(<OwnerDashboard />)} />
       <Route path="/coach" element={secure(<PersonalCoach />,true)} />
+      <Route path="/tour" element={secure(<Tour />)} />
       <Route path="/exercises" element={secure(<Exercises />)} />
       <Route path="/workout/day/:dayId" element={secure(<Summary />,true)} />
       <Route path="/workout/session/free" element={secure(<Session />)} />

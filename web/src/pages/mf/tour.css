@@ -1,0 +1,8 @@
+.tour-intro{color:var(--text-subtle);font-size:14px;line-height:1.6;margin:0 0 14px}
+.tour-footer{color:var(--text-subtle);font-size:12.5px;line-height:1.6;margin:16px 2px 0}
+.tour-row{align-items:flex-start}
+.tour-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--surface-2);border-radius:9px;flex:none}
+.tour-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tour-body strong{font-size:14.5px;color:var(--ink);font-weight:700}
+.tour-body small{font-size:12.5px;color:var(--text-subtle);line-height:1.45}
+.tour-row .chev{align-self:center}

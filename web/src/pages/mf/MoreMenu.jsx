@@ -114,6 +114,7 @@ export default function MoreMenu() {
       {!active && member && <Link to="/workout/history" className="btn btn-ghost">View workout history</Link>}
     </section>
     <RedeemAccessCode onSuccess={setMember}/>
+    <section className="mf-card account-panel"><h2>New to GymIQ?</h2><p>Take a quick tour of how workouts and the Calorie Bank fit together.</p><Link className="btn btn-secondary btn-block" to="/tour">How GymIQ works ↗</Link></section>
     <section className="mf-card account-panel"><h2>Profile</h2><p>{profile?.email}</p><form onSubmit={e => { e.preventDefault(); run('profile', async () => {
       const { error } = await supabase.from('users').update({ name: name.trim() }).eq('id', profile.id);
       if (error) throw error; await refreshProfile(); setNotice('Profile updated.');
