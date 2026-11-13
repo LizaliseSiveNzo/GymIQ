@@ -3,12 +3,15 @@
 ## Activation
 
 1. Create a Google Cloud project and **enable the Cloud Text-to-Speech API**.
-2. Create an **API key** restricted to the Text-to-Speech API.
-3. Add `GOOGLE_TTS_API_KEY` in Supabase Edge Function secrets.
+2. Create a **service account**: IAM & Admin → Service Accounts → **Create service account** (give it a name, no extra roles needed).
+3. Open the service account → **Keys → Add key → Create new key → JSON** → download the JSON file.
+4. In Supabase Edge Function secrets, add **two** secrets from that JSON:
+   - `GOOGLE_TTS_CLIENT_EMAIL` = the `client_email` value
+   - `GOOGLE_TTS_PRIVATE_KEY` = the `private_key` value (the whole string, including the `\n` line breaks)
 
-Never put the key in Vite/browser environment variables or paste it into chat.
+Never put these in Vite/browser environment variables or paste them into chat.
 
-The integration uses the official Google Cloud Text-to-Speech REST API with the `en-ZA-Standard-A` voice and MP3 output. No Google SDK loads at app startup. Read aloud calls `gymiq-speech` only when pressed. Google cloud speech is the default; selected device voices remain available under Ingredients & equipment → Reading voice. Selection is stored per account on the device.
+The integration uses the official Google Cloud Text-to-Speech REST API with the `en-ZA-Standard-A` voice and MP3 output. Read aloud calls `gymiq-speech` only when pressed. Google cloud speech is the default; selected device voices remain available under Ingredients & equipment → Reading voice.
 
 ## Access, caching and cost controls
 

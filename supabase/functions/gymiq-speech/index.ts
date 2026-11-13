@@ -17,8 +17,9 @@ Deno.serve(async(req:Request)=>{
   ]);
   if(access.error||!access.data?.enabled||membership.error||membership.data!==true)return json({error:'Active coach access is required.'},403);
   if(turn.error||!turn.data?.reply||turn.data.status!=='done')return json({error:'Reply unavailable.'},404);
-  const key=Deno.env.get('GOOGLE_TTS_API_KEY')?.trim();
-  if(!key)return json({error:'Google voice is not configured yet.',code:'not_configured'},503);
+  const clientEmail=Deno.env.get('GOOGLE_TTS_CLIENT_EMAIL')?.trim();
+  const privateKey=Deno.env.get('GOOGLE_TTS_PRIVATE_KEY')?.trim();
+  if(!clientEmail||!privateKey)return json({error:'Google voice is not configured yet.',code:'not_configured'},503);
   const cap=Number(Deno.env.get('GOOGLE_TTS_DAILY_CHARS')||1000000);
   const reservation=await db.rpc('reserve_coach_speech',{p_user:user.id,p_turn:turnId,p_voice:GOOGLE_VOICE,p_daily_cap:Number.isInteger(cap)&&cap>0?cap:1000000});
   if(reservation.error)throw Error('Could not prepare speech');
@@ -27,7 +28,7 @@ Deno.serve(async(req:Request)=>{
   const bucket=db.storage.from('coach-speech'),path=`${user.id}/${turnId}-${GOOGLE_VOICE}.mp3`;
   if(status==='generate'){
    reserved=true;
-   const audio=await googleSpeech({text:turn.data.reply,key,signal:AbortSignal.timeout(25000)});
+   const audio=await googleSpeech({text:turn.data.reply,clientEmail,privateKey,signal:AbortSignal.timeout(25000)});
    const upload=await bucket.upload(path,audio,{contentType:'audio/mpeg',upsert:true,cacheControl:'3600'});if(upload.error)throw Error('Could not cache speech');
    const saved=await db.from('coach_speech_jobs').update({state:'ready',updated_at:new Date().toISOString()}).eq('turn_id',turnId).eq('voice',GOOGLE_VOICE).eq('user_id',user.id);if(saved.error)throw Error('Could not confirm speech');
    reserved=false;
