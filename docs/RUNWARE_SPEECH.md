@@ -9,7 +9,7 @@ The integration uses Runware's REST endpoint (`POST https://api.runware.ai/v1`) 
 
 ## Voice
 
-Default voice: `fca00394b42949c2a939acd456e3291f` (Bram — calm and gentle). To change it, edit `RUNWARE_VOICE` in `supabase/functions/_shared/runwareSpeech.js`. Runware's HeyGen voice list includes warm female options such as Cecily and Jocelyn if you prefer a different tone.
+Default voice: `fca00394b42949c2a939acd456e3291f` (Bram — calm and gentle). To change it, edit `RUNWARE_VOICE` in `supabase/functions/gymiq-speech/index.ts`. Runware's HeyGen voice list includes warm female options such as Cecily and Jocelyn if you prefer a different tone.
 
 ## Caching & limits
 
