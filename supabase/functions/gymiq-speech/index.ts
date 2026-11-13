@@ -1,6 +1,6 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.45.0';
 import {admin,authenticate,json} from '../_shared/launch.ts';
-import {GOOGLE_VOICE,googleSpeech} from '../_shared/googleSpeech.js';
+import {RUNWARE_VOICE,runwareSpeech} from '../_shared/runwareSpeech.js';
 Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return json({});
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
@@ -17,27 +17,26 @@ Deno.serve(async(req:Request)=>{
   ]);
   if(access.error||!access.data?.enabled||membership.error||membership.data!==true)return json({error:'Active coach access is required.'},403);
   if(turn.error||!turn.data?.reply||turn.data.status!=='done')return json({error:'Reply unavailable.'},404);
-  const clientEmail=Deno.env.get('GOOGLE_TTS_CLIENT_EMAIL')?.trim();
-  const privateKey=Deno.env.get('GOOGLE_TTS_PRIVATE_KEY')?.trim();
-  if(!clientEmail||!privateKey)return json({error:'Google voice is not configured yet.',code:'not_configured'},503);
-  const cap=Number(Deno.env.get('GOOGLE_TTS_DAILY_CHARS')||1000000);
-  const reservation=await db.rpc('reserve_coach_speech',{p_user:user.id,p_turn:turnId,p_voice:GOOGLE_VOICE,p_daily_cap:Number.isInteger(cap)&&cap>0?cap:1000000});
+  const key=Deno.env.get('RUNWARE_API_KEY')?.trim();
+  if(!key)return json({error:'Runware voice is not configured yet.',code:'not_configured'},503);
+  const cap=Number(Deno.env.get('RUNWARE_TTS_DAILY_CHARS')||1000000);
+  const reservation=await db.rpc('reserve_coach_speech',{p_user:user.id,p_turn:turnId,p_voice:RUNWARE_VOICE,p_daily_cap:Number.isInteger(cap)&&cap>0?cap:1000000});
   if(reservation.error)throw Error('Could not prepare speech: '+(reservation.error.message||''));
   const status=reservation.data?.status;
-  if(status==='busy'||status==='limited')return json({error:status==='busy'?'This reply is already being prepared. Try again shortly.':'Google reading allowance reached. Try the device voice.',code:status},429);
-  const bucket=db.storage.from('coach-speech'),path=`${user.id}/${turnId}-${GOOGLE_VOICE}.mp3`;
+  if(status==='busy'||status==='limited')return json({error:status==='busy'?'This reply is already being prepared. Try again shortly.':'Runware reading allowance reached. Try the device voice.',code:status},429);
+  const bucket=db.storage.from('coach-speech'),path=`${user.id}/${turnId}-${RUNWARE_VOICE}.mp3`;
   if(status==='generate'){
    reserved=true;
-   const audio=await googleSpeech({text:turn.data.reply,clientEmail,privateKey,signal:AbortSignal.timeout(25000)});
+   const audio=await runwareSpeech({text:turn.data.reply,key,signal:AbortSignal.timeout(30000)});
    const upload=await bucket.upload(path,audio,{contentType:'audio/mpeg',upsert:true,cacheControl:'3600'});if(upload.error)throw Error('Could not cache speech');
-   const saved=await db.from('coach_speech_jobs').update({state:'ready',updated_at:new Date().toISOString()}).eq('turn_id',turnId).eq('voice',GOOGLE_VOICE).eq('user_id',user.id);if(saved.error)throw Error('Could not confirm speech');
+   const saved=await db.from('coach_speech_jobs').update({state:'ready',updated_at:new Date().toISOString()}).eq('turn_id',turnId).eq('voice',RUNWARE_VOICE).eq('user_id',user.id);if(saved.error)throw Error('Could not confirm speech');
    reserved=false;
   }else if(status!=='cached')throw Error('Could not prepare speech');
   const signed=await bucket.createSignedUrl(path,900);if(signed.error)throw Error('Could not open speech');
-  const response=json({url:signed.data.signedUrl,voice:GOOGLE_VOICE,expires_in:900,cached:status==='cached'});response.headers.set('Cache-Control','private, no-store');return response;
+  const response=json({url:signed.data.signedUrl,voice:RUNWARE_VOICE,expires_in:900,cached:status==='cached'});response.headers.set('Cache-Control','private, no-store');return response;
  }catch(error){
   console.error('gymiq-speech:',error instanceof Error?error.message:String(error));
-  if(reserved)await db.from('coach_speech_jobs').update({state:'failed',updated_at:new Date().toISOString()}).eq('turn_id',turnId).eq('voice',GOOGLE_VOICE).eq('user_id',user.id);
-  return json({error:'Google reading is unavailable. Try the device voice.'},503);
+  if(reserved)await db.from('coach_speech_jobs').update({state:'failed',updated_at:new Date().toISOString()}).eq('turn_id',turnId).eq('voice',RUNWARE_VOICE).eq('user_id',user.id);
+  return json({error:'Runware reading is unavailable. Try the device voice.'},503);
  }
 });
