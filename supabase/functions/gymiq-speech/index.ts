@@ -22,7 +22,7 @@ Deno.serve(async(req:Request)=>{
   if(!clientEmail||!privateKey)return json({error:'Google voice is not configured yet.',code:'not_configured'},503);
   const cap=Number(Deno.env.get('GOOGLE_TTS_DAILY_CHARS')||1000000);
   const reservation=await db.rpc('reserve_coach_speech',{p_user:user.id,p_turn:turnId,p_voice:GOOGLE_VOICE,p_daily_cap:Number.isInteger(cap)&&cap>0?cap:1000000});
-  if(reservation.error)throw Error('Could not prepare speech');
+  if(reservation.error)throw Error('Could not prepare speech: '+(reservation.error.message||''));
   const status=reservation.data?.status;
   if(status==='busy'||status==='limited')return json({error:status==='busy'?'This reply is already being prepared. Try again shortly.':'Google reading allowance reached. Try the device voice.',code:status},429);
   const bucket=db.storage.from('coach-speech'),path=`${user.id}/${turnId}-${GOOGLE_VOICE}.mp3`;
@@ -35,7 +35,8 @@ Deno.serve(async(req:Request)=>{
   }else if(status!=='cached')throw Error('Could not prepare speech');
   const signed=await bucket.createSignedUrl(path,900);if(signed.error)throw Error('Could not open speech');
   const response=json({url:signed.data.signedUrl,voice:GOOGLE_VOICE,expires_in:900,cached:status==='cached'});response.headers.set('Cache-Control','private, no-store');return response;
- }catch{
+ }catch(error){
+  console.error('gymiq-speech:',error instanceof Error?error.message:String(error));
   if(reserved)await db.from('coach_speech_jobs').update({state:'failed',updated_at:new Date().toISOString()}).eq('turn_id',turnId).eq('voice',GOOGLE_VOICE).eq('user_id',user.id);
   return json({error:'Google reading is unavailable. Try the device voice.'},503);
  }
