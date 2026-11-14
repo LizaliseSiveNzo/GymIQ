@@ -18,7 +18,7 @@ async function openRouterSpeech({ text, key, signal }) {
   const res = await fetch('https://openrouter.ai/api/v1/audio/speech', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'User-Agent': 'GymIQ' },
-    body: JSON.stringify({ model: 'fish-audio/s2.1-pro-free:free', input: text, voice: TTS_VOICE, response_format: 'mp3' }),
+    body: JSON.stringify({ model: 'fish-audio/s2.1-pro-free:free', input: text, voice: TTS_VOICE, response_format: 'mp3', speed: 1.25 }),
     signal,
   });
   if (!res.ok) {
