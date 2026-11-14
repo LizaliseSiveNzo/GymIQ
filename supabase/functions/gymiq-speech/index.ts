@@ -12,22 +12,54 @@ async function authenticate(req) {
 
 const TTS_VOICE = 'nadine';
 
+function writeString(view, offset, str) {
+  for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+}
+
+// Wrap raw 16-bit PCM in a WAV container so the browser <audio> element can play it.
+function pcmToWav(pcm, sampleRate, channels) {
+  const bytesPerSample = 2;
+  const blockAlign = channels * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = pcm.byteLength;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true); // bits per sample
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+  new Uint8Array(buffer, 44).set(pcm);
+  return new Uint8Array(buffer);
+}
+
 async function openRouterSpeech({ text, key, signal }) {
   if (!key) throw Error('OpenRouter speech is not configured');
   if (typeof text !== 'string' || !text.trim()) throw Error('Reply unavailable for speech');
   const res = await fetch('https://openrouter.ai/api/v1/audio/speech', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'User-Agent': 'GymIQ' },
-    body: JSON.stringify({ model: 'heygen/heygen-voice-1-turbo:free', input: text, voice: TTS_VOICE, response_format: 'mp3' }),
+    body: JSON.stringify({ model: 'heygen/heygen-voice-1-turbo:free', input: text, voice: TTS_VOICE, response_format: 'pcm' }),
     signal,
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
     throw Error(`OpenRouter speech failed (HTTP ${res.status}): ${detail.slice(0, 300)}`);
   }
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  if (!bytes.byteLength || bytes.byteLength > 5000000) throw Error('Invalid speech size');
-  return bytes;
+  const pcm = new Uint8Array(await res.arrayBuffer());
+  if (!pcm.byteLength || pcm.byteLength > 5000000) throw Error('Invalid speech size');
+  const contentType = res.headers.get('content-type') || '';
+  const rate = Number((contentType.match(/rate=(\d+)/) || [])[1] || 24000);
+  const channels = Number((contentType.match(/channels=(\d+)/) || [])[1] || 1);
+  return pcmToWav(pcm, rate, channels);
 }
 
 Deno.serve(async (req) => {
@@ -55,11 +87,11 @@ Deno.serve(async (req) => {
     if (reservation.error) throw Error('Could not prepare speech: ' + (reservation.error.message || ''));
     const status = reservation.data?.status;
     if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'OpenRouter reading allowance reached. Try the device voice.', code: status }, 429);
-    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.mp3`;
+    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.wav`;
     if (status === 'generate') {
       reserved = true;
       const audio = await openRouterSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(30000) });
-      const upload = await bucket.upload(path, audio, { contentType: 'audio/mpeg', upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
+      const upload = await bucket.upload(path, audio, { contentType: 'audio/wav', upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
       const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
       reserved = false;
     } else if (status !== 'cached') throw Error('Could not prepare speech');
