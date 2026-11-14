@@ -7,7 +7,7 @@ export function createCoachAudio({load,AudioClass=globalThis.Audio,now=Date.now}
   try{
    let saved=cache.get(id);
    if(!saved||saved.expires<=now()){
-    const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{activeController.abort();reject(Error('Speech took too long. Try again.'));},35000);});
+    const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{activeController.abort();reject(Error('Speech took too long. Try again.'));},130000);});
     const result=await Promise.race([load(id,activeController.signal),deadline]);
     if(version!==revision)return false;
     if(!result?.url||!/^https:\/\//.test(result.url))throw Error('Invalid speech response');

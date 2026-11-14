@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.wav`;
     if (status === 'generate') {
       reserved = true;
-      const audio = await openRouterSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(30000) });
+      const audio = await openRouterSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(120000) });
       const upload = await bucket.upload(path, audio, { contentType: 'audio/wav', upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
       const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
       reserved = false;
