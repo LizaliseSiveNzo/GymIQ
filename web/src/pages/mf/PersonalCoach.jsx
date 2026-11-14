@@ -31,7 +31,7 @@ export default function PersonalCoach(){
  const [kitchen,setKitchen]=useState({pantry:[],equipment:[]}),[savedKitchen,setSavedKitchen]=useState(null);
  const [turns,setTurns]=useState([]),[proposals,setProposals]=useState([]),[message,setMessage]=useState('');
  const [listening,setListening]=useState(false),[readingId,setReadingId]=useState(null);
- const [voices,setVoices]=useState([]),[voiceUri,setVoiceUri]=useState('runware-cloud');
+ const [voices,setVoices]=useState([]),[voiceUri,setVoiceUri]=useState('openrouter-cloud');
  const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),loadedUser=useRef(null);
  const cloudAudio=useRef(null),readingVersion=useRef(0);
@@ -39,7 +39,7 @@ export default function PersonalCoach(){
  const selectedVoice=chooseCoachVoice(voices);
  useEffect(()=>{
   readingVersion.current++;cloudAudio.current?.stop();cloudAudio.current=null;setReadingId(null);
-  try{setVoiceUri(localStorage.getItem(`gymiq_coach_voice_${profile.id}`)??'runware-cloud');}catch{/* Device preference is optional. */}
+  try{setVoiceUri(localStorage.getItem(`gymiq_coach_voice_${profile.id}`)??'openrouter-cloud');}catch{/* Device preference is optional. */}
   const synthesis=globalThis.speechSynthesis,update=()=>setVoices(coachVoices(synthesis));
   update();synthesis?.addEventListener?.('voiceschanged',update);
   return()=>synthesis?.removeEventListener?.('voiceschanged',update);
@@ -96,17 +96,17 @@ export default function PersonalCoach(){
  function stopReading(){readingVersion.current++;cloudAudio.current?.stop();speech.current=null;globalThis.speechSynthesis?.cancel();setReadingId(null);}
  async function readReply(id,text){
   stopReading();const version=readingVersion.current;
-  if(voiceUri==='runware-cloud'&&navigator.onLine){
+  if(voiceUri==='openrouter-cloud'&&navigator.onLine){
    setReadingId(id);
    cloudAudio.current ||= createCoachAudio({load:async(turnId,signal)=>{
     const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId},signal});
-    if(error)throw Error('Google speech is unavailable.');return data;
+    if(error)throw Error('OpenRouter speech is unavailable.');return data;
    }});
    try{await cloudAudio.current.read(id,error=>{if(readingVersion.current===version){stopReading();if(error)setError(error.message);}});return;}
    catch(error){
     if(readingVersion.current!==version)return;
     if(error.name==='NotAllowedError'){setReadingId(null);setNotice('Audio ready. Tap Read aloud again to play.');return;}
-    setNotice('Google voice is unavailable. Using your device voice.');
+    setNotice('OpenRouter voice is unavailable. Using your device voice.');
    }
   }
   if(readingVersion.current!==version)return;
@@ -130,7 +130,7 @@ export default function PersonalCoach(){
     {gyms.length>0&&<label className="coach-gym">Use equipment from a saved gym<select defaultValue="" disabled={!!busy} onChange={e=>{if(e.target.value)setKitchen(k=>({...k,equipment:gymEquipment.filter(x=>x.profile_id===e.target.value).map(x=>x.equipment_id)}));}}><option value="">Choose a gym</option>{gyms.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}
     <fieldset disabled={!!busy}><legend>Available equipment</legend><div className="coach-choice-grid">{equipment.filter(e=>e.id!=='bodyweight').map(e=><label key={e.id}><input type="checkbox" checked={kitchen.equipment.includes(e.id)} onChange={()=>setKitchen(k=>({...k,equipment:toggle(k.equipment,e.id)}))}/>{e.name}</label>)}</div></fieldset>
     <button className="btn btn-primary" disabled={!!busy||!dirty} onClick={saveKitchen}>Save ingredients & equipment</button>
-    {<div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={voiceUri==='runware-cloud'||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:''} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="runware-cloud">Runware · HeyGen voice (online)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>}
+    {<div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={voiceUri==='openrouter-cloud'||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:''} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="openrouter-cloud">OpenRouter · HeyGen voice (online)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>}
    </details>
 
    <div className="coach-workspace">

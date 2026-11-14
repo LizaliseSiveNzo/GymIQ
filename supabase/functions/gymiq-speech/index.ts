@@ -10,28 +10,22 @@ async function authenticate(req) {
   return error ? null : data.user;
 }
 
-const RUNWARE_VOICE = 'fca00394b42949c2a939acd456e3291f'; // Bram — calm and gentle
+const TTS_VOICE = 'nadine';
 
-async function runwareSpeech({ text, key, signal }) {
-  if (!key) throw Error('Runware speech is not configured');
+async function openRouterSpeech({ text, key, signal }) {
+  if (!key) throw Error('OpenRouter speech is not configured');
   if (typeof text !== 'string' || !text.trim()) throw Error('Reply unavailable for speech');
-  const speechText = text.trim().slice(0, 5000); // HeyGen accepts up to 5000 characters
-  const res = await fetch('https://api.runware.ai/v1', {
+  const res = await fetch('https://openrouter.ai/api/v1/audio/speech', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'User-Agent': 'GymIQ' },
-    body: JSON.stringify([{ taskType: 'audioInference', taskUUID: crypto.randomUUID(), model: 'heygen:voice@1.0', speech: { text: speechText, voice: RUNWARE_VOICE } }]),
+    body: JSON.stringify({ model: 'heygen/heygen-voice-1-turbo:free', input: text, voice: TTS_VOICE, response_format: 'mp3' }),
     signal,
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
-    throw Error(`Runware request failed (HTTP ${res.status}): ${detail.slice(0, 300)}`);
+    throw Error(`OpenRouter speech failed (HTTP ${res.status}): ${detail.slice(0, 300)}`);
   }
-  const body = await res.json();
-  const audioURL = body?.data?.[0]?.audioURL;
-  if (!audioURL) throw Error('Invalid speech response: ' + JSON.stringify(body).slice(0, 300));
-  const audioRes = await fetch(audioURL, { signal });
-  if (!audioRes.ok) throw Error(`Audio download failed (HTTP ${audioRes.status})`);
-  const bytes = new Uint8Array(await audioRes.arrayBuffer());
+  const bytes = new Uint8Array(await res.arrayBuffer());
   if (!bytes.byteLength || bytes.byteLength > 5000000) throw Error('Invalid speech size');
   return bytes;
 }
@@ -54,26 +48,26 @@ Deno.serve(async (req) => {
     ]);
     if (access.error || !access.data?.enabled || membership.error || membership.data !== true) return json({ error: 'Active coach access is required.' }, 403);
     if (turn.error || !turn.data?.reply || turn.data.status !== 'done') return json({ error: 'Reply unavailable.' }, 404);
-    const key = Deno.env.get('RUNWARE_API_KEY')?.trim();
-    if (!key) return json({ error: 'Runware voice is not configured yet.', code: 'not_configured' }, 503);
-    const cap = Number(Deno.env.get('RUNWARE_TTS_DAILY_CHARS') || 1000000);
-    const reservation = await db.rpc('reserve_coach_speech', { p_user: user.id, p_turn: turnId, p_voice: RUNWARE_VOICE, p_daily_cap: Number.isInteger(cap) && cap > 0 ? cap : 1000000 });
+    const key = Deno.env.get('OPENROUTER_API_KEY')?.trim();
+    if (!key) return json({ error: 'OpenRouter voice is not configured yet.', code: 'not_configured' }, 503);
+    const cap = Number(Deno.env.get('OPENROUTER_TTS_DAILY_CHARS') || 1000000);
+    const reservation = await db.rpc('reserve_coach_speech', { p_user: user.id, p_turn: turnId, p_voice: TTS_VOICE, p_daily_cap: Number.isInteger(cap) && cap > 0 ? cap : 1000000 });
     if (reservation.error) throw Error('Could not prepare speech: ' + (reservation.error.message || ''));
     const status = reservation.data?.status;
-    if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'Runware reading allowance reached. Try the device voice.', code: status }, 429);
-    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${RUNWARE_VOICE}.mp3`;
+    if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'OpenRouter reading allowance reached. Try the device voice.', code: status }, 429);
+    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.mp3`;
     if (status === 'generate') {
       reserved = true;
-      const audio = await runwareSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(30000) });
+      const audio = await openRouterSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(30000) });
       const upload = await bucket.upload(path, audio, { contentType: 'audio/mpeg', upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
-      const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', RUNWARE_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
+      const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
       reserved = false;
     } else if (status !== 'cached') throw Error('Could not prepare speech');
     const signed = await bucket.createSignedUrl(path, 900); if (signed.error) throw Error('Could not open speech');
-    const response = json({ url: signed.data.signedUrl, voice: RUNWARE_VOICE, expires_in: 900, cached: status === 'cached' }); response.headers.set('Cache-Control', 'private, no-store'); return response;
+    const response = json({ url: signed.data.signedUrl, voice: TTS_VOICE, expires_in: 900, cached: status === 'cached' }); response.headers.set('Cache-Control', 'private, no-store'); return response;
   } catch (error) {
     console.error('gymiq-speech:', error instanceof Error ? error.message : String(error));
-    if (reserved) await db.from('coach_speech_jobs').update({ state: 'failed', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', RUNWARE_VOICE).eq('user_id', user.id);
-    return json({ error: 'Runware reading is unavailable. Try the device voice.' }, 503);
+    if (reserved) await db.from('coach_speech_jobs').update({ state: 'failed', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id);
+    return json({ error: 'OpenRouter reading is unavailable. Try the device voice.' }, 503);
   }
 });
