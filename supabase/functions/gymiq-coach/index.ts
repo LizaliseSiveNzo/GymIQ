@@ -3,6 +3,7 @@ import {admin,authenticate,json} from '../_shared/launch.ts';
 import {callDeepSeek,deepseekPayload} from '../_shared/deepseek.js';
 import {loadCoachHistory,loadCoachProgress,buildCoachHistory,COACH_HISTORY_RULES} from '../_shared/coachHistory.js';
 import {COACH_TOOLS,validateKitchen,validateTool} from '../_shared/coach.js';
+import {isPublicFaqEligible,lookupFaq} from '../_shared/faqCache.js';
 import foods from '../_shared/nutrition/foods.json' with {type:'json'};
 
 // Strip markdown symbols and emoji the read-aloud voice would otherwise read out.
@@ -32,6 +33,17 @@ Deno.serve(async(req:Request)=>{
   if(reserved.error)return json({error:reserved.error.message},429);
   if(reserved.data.status==='duplicate')return json({duplicate:true});
   turnId=body.request_id;
+  // Public FAQ cache: conservative exact-match only. Disable with GYMIQ_FAQ_CACHE=off.
+  if((Deno.env.get('GYMIQ_FAQ_CACHE')||'on')!=='off' && isPublicFaqEligible(body.message)){
+    const cached=await lookupFaq(db, body.message);
+    if(cached){
+      const saved=await db.rpc('finish_coach_turn',{p_user:user.id,p_id:turnId,p_reply:cached.answer,p_tokens:0,p_actions:[]});
+      console.error('faq-cache:', saved.error?'save-failed':'hit:'+cached.topic);
+      if(!saved.error)return json({reply:cached.answer,proposals:[],model:Deno.env.get('DEEPSEEK_MODEL')?.trim()||'deepseek-flash'});
+    } else {
+      console.error('faq-cache: miss');
+    }
+  }
   const day=new Date(Date.now()-body.offset*60000).toISOString().slice(0,10);
   const [queries,records]=await Promise.all([Promise.all([
    scoped.from('coach_settings').select('pantry,equipment').eq('user_id',user.id).maybeSingle(),
