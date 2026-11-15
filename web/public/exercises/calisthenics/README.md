@@ -4,8 +4,8 @@ Drop the 30 generated calisthenics illustrations in this folder.
 
 ## Naming convention
 
-- Full image: `<exercise-id>-<hash>.webp` — **768 × 1376**
-- Thumbnail: `<exercise-id>-<hash>-thumb.webp` — small (~192 × 344)
+- Full image: `<exercise-id>-<hash>.webp` — **landscape 16:9**
+- Thumbnail: `<exercise-id>-<hash>-thumb.webp` — small (16:9, e.g. ~384 × 216)
 
 Where:
 - `<exercise-id>` is the UUID of the exercise in the `exercises` table (see the SQL in `docs/CALISTHENICS_IMAGE_PROMPTS.md`).
