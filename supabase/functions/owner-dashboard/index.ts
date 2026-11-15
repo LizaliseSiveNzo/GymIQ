@@ -27,6 +27,12 @@ Deno.serve(async(req:Request)=>{
    const {data,error}=await db.rpc('manage_premium_code',args);if(error)throw error;
    return new Response(JSON.stringify({...data,...(code?{code}:{})}),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'}});
   }
+  if(body.action==='set_coach'){
+   if(typeof body.user_id!=='string'||!/^[a-f0-9-]{36}$/i.test(body.user_id)||typeof body.enabled!=='boolean')return json({error:'Invalid coach setting.'},400);
+   const {error}=await db.from('personal_coach_access').upsert({user_id:body.user_id,enabled:body.enabled},{onConflict:'user_id'});
+   if(error)throw error;
+   return new Response(JSON.stringify({ok:true}),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'}});
+  }
   if(body.action!=='report'||typeof(body.search??'')!=='string'||(body.search||'').length>100||!Number.isInteger(body.page??0)||(body.page??0)<0||(body.page??0)>100000||!['all','paid','trial','invite','expired','none'].includes(body.status||'all')||body.include_test!==undefined&&typeof body.include_test!=='boolean')return json({error:'Invalid report filters.'},400);
   const {data,error}=await db.rpc('owner_dashboard_report',{p_actor:user.id,p_search:body.search||'',p_page:body.page||0,p_status:body.status||'all',p_include_test:body.include_test===true});
   if(error)throw error;
