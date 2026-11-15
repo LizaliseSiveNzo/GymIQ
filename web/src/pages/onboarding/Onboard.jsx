@@ -49,7 +49,23 @@ export default function Onboard() {
     if (resumed.current) return;
     resumed.current = true;
     if (profile.onboarded_at && !rebuilding) { navigate('/workout', { replace: true }); return; }
-    if (rebuilding) return;
+    if (rebuilding) {
+      requestIdRef.current = crypto.randomUUID();
+      setStep(11); // skip basics + gym; start at the goal step
+      (async () => {
+        try {
+          const { data: gym } = await supabase.from('gym_profiles').select('id').eq('user_id', profile.id).eq('is_default', true).limit(1).maybeSingle();
+          const equipment = {};
+          if (gym) {
+            gymProfileIdRef.current = gym.id;
+            const { data: rows } = await supabase.from('gym_profile_equipment').select('equipment_id,selected,denominations_kg').eq('profile_id', gym.id);
+            (rows || []).forEach((row) => { equipment[row.equipment_id] = { selected: row.selected, denoms: row.denominations_kg || [] }; });
+          }
+          setForm((f) => ({ ...f, training_experience: profile.training_experience || '', cardio_experience: profile.cardio_experience || '', equipment }));
+        } catch { /* keep defaults */ }
+      })();
+      return;
+    }
     const st = profile.onboarding_state || {};
     const draft = st.draft || {};
     requestIdRef.current = draft.program_request_id || crypto.randomUUID();
