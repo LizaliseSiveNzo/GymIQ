@@ -4,7 +4,7 @@ Free accounts can log freestyle workouts, use set/rest timers, view exercise rec
 
 Premium unlocks prescribed programmes and new programme sessions, calorie goal planning, daily meal plans, barcode lookup, advanced reports, weekly check-ins and existing AI reviews. New accounts receive one seven-day premium trial. After expiry, free logging and saved records remain available. Existing unfinished sessions can still be resumed and finished.
 
-Premium costs R100 for 30 days, manually renewed through the existing Yoco checkout. No automatic debit. Paid renewals extend the later of current membership/invited access. The separate personal AI chat pilot still requires its existing coach allowlist; a premium code never grants owner, administrator or personal coach permissions.
+Premium costs R100 for 30 days, manually renewed through the existing Yoco checkout. No automatic debit. Paid renewals extend the later of current membership/invited access. Redeeming a code grants premium and also enables the personal AI coach for that account. A premium code never grants owner or administrator permissions.
 
 ## Issue access codes
 
