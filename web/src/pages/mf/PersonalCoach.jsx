@@ -35,6 +35,8 @@ export default function PersonalCoach(){
  const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),loadedUser=useRef(null);
  const cloudAudio=useRef(null),readingVersion=useRef(0);
+  const setupDetails=useRef(null),setupDialog=useRef(null);
+  const [setupPrompt,setSetupPrompt]=useState(false);
  const dirty=JSON.stringify(kitchen)!==JSON.stringify(savedKitchen);
  const selectedVoice=chooseCoachVoice(voices);
  useEffect(()=>{
@@ -44,7 +46,11 @@ export default function PersonalCoach(){
   update();synthesis?.addEventListener?.('voiceschanged',update);
   return()=>synthesis?.removeEventListener?.('voiceschanged',update);
  },[profile.id]);
- async function refresh(){
+ useEffect(()=>{
+    if(setupPrompt&&setupDialog.current&&!setupDialog.current.open)setupDialog.current.showModal();
+    else if(!setupPrompt&&setupDialog.current?.open)setupDialog.current.close();
+  },[setupPrompt]);
+  async function refresh(){
   const results=await Promise.all([
    supabase.from('coach_settings').select('pantry,equipment').eq('user_id',profile.id).maybeSingle(),
    supabase.from('equipment_items').select('id,name').order('sort_order'),
@@ -55,7 +61,14 @@ export default function PersonalCoach(){
   ]);
   if(results.some(r=>r.error))throw Error('Could not load your coach. Please refresh.');
   const [settings,items,profiles,selections,history,actions]=results.map(r=>r.data);
-  if(loadedUser.current!==profile.id){const value=settings||{pantry:[],equipment:[]};setKitchen(value);setSavedKitchen(value);loadedUser.current=profile.id;}
+  if(loadedUser.current!==profile.id){
+    const saved=settings||{pantry:[],equipment:[]};
+    const value={pantry:saved.pantry||[],equipment:(saved.equipment&&saved.equipment.length)?saved.equipment:[...new Set(selections.map(x=>x.equipment_id).filter(id=>id!=='bodyweight'))]};
+    setKitchen(value);
+    setSavedKitchen({pantry:saved.pantry||[],equipment:saved.equipment||[]});
+    loadedUser.current=profile.id;
+    if(!(saved.pantry||[]).length&&!(saved.equipment||[]).length)setSetupPrompt(true);
+  }
   setEquipment(items);setGyms(profiles);setGymEquipment(selections);setTurns(history.slice().reverse());setProposals(actions);
  }
  useEffect(()=>{let mounted=true;loadedUser.current=null;
@@ -124,7 +137,7 @@ export default function PersonalCoach(){
  return <TabShell title="AI coach" showKicker={false} showCoachFab={false}><div className="coach-page">
   {!access?<p role="status">Opening your coach…</p>:!access.enabled?<p className="mf-card">Your personal coach isn’t available for this account.</p>:<>
    <div className="coach-toolbar"><span className="coach-model"><span aria-hidden="true">✦</span> DeepSeek</span>{readingId&&<button type="button" className="btn btn-secondary coach-stop" onClick={stopReading}>■ Stop reading</button>}</div>
-   <details className="coach-setup"><summary>Ingredients & equipment · {kitchen.pantry.length} foods, {kitchen.equipment.length} equipment {dirty?'· unsaved':''}</summary>
+   <details ref={setupDetails} className="coach-setup"><summary>Ingredients & equipment · {kitchen.pantry.length} foods, {kitchen.equipment.length} equipment {dirty?'· unsaved':''}</summary>
 
     <fieldset disabled={!!busy}><legend>Available ingredients</legend><div className="coach-choice-grid">{foods.map(f=><label key={f.id}><input type="checkbox" checked={kitchen.pantry.includes(f.id)} onChange={()=>setKitchen(k=>({...k,pantry:toggle(k.pantry,f.id)}))}/>{f.name}</label>)}</div></fieldset>
     {gyms.length>0&&<label className="coach-gym">Use equipment from a saved gym<select defaultValue="" disabled={!!busy} onChange={e=>{if(e.target.value)setKitchen(k=>({...k,equipment:gymEquipment.filter(x=>x.profile_id===e.target.value).map(x=>x.equipment_id)}));}}><option value="">Choose a gym</option>{gyms.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}
@@ -154,6 +167,14 @@ export default function PersonalCoach(){
      <div className="coach-composer-actions"><span className="coach-composer-hint">{listening?'Listening…':dirty?'Save your ingredients & equipment first.':''}</span><div>{speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{listening?'■ Stop':'🎙 Speak'}</button>}<button type="submit" className="coach-send" aria-label="Send message" disabled={!!busy||dirty||!message.trim()||!access.configured}>{busy==='chat'?'…':'↑'}</button></div></div>
     </form>
     <div className="coach-footer"><Link to="/privacy">Privacy</Link></div>
+    <dialog ref={setupDialog} className="session-discard-dialog" aria-labelledby="coach-setup-title" onCancel={()=>setSetupPrompt(false)}>
+      <h2 id="coach-setup-title">Set up your ingredients & equipment</h2>
+      <p>To build meals and workouts, tell the coach what ingredients and equipment you have. Your saved gym equipment has been filled in automatically.</p>
+      <div className="launch-actions">
+        <button type="button" className="btn btn-primary" onClick={()=>{setupDialog.current?.close();setSetupPrompt(false);if(setupDetails.current)setupDetails.current.open=true;}}>Set up now</button>
+        <button type="button" className="btn btn-ghost" onClick={()=>{setupDialog.current?.close();setSetupPrompt(false);}}>Not now</button>
+      </div>
+    </dialog>
    </div>
   </>}
  </div></TabShell>;

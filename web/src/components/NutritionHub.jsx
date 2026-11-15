@@ -35,12 +35,13 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   useEffect(()=>{let active=true;setLoading(true);setError('');
     const saved=readView(userId,`nutrition:${day}`);
     function show(values){
-      const [g,d,e,m,p,legacy,recent,favourites,w]=values;
+      const [g,d,e,m,p,legacy,recent,favourites,w,profile]=values;
       setRecent(recent||[]);setFavourites(favourites||[]);
       setGoal(g);setDays(d||[]);setEntries(e||[]);setSaved(m||[]);setPlan(p);
       setWeights(w||[]);
       if(g)setSettings({...initial,...g.settings});
       else if(legacy)setSettings({...initial,sex:legacy.sex||initial.sex,age:legacy.age||'',height_cm:legacy.height_cm||'',weight_kg:legacy.weight_kg||'',goal_weight_kg:legacy.goal_weight_kg||''});
+      else if(profile)setSettings({...initial,sex:profile.sex||initial.sex,age:profile.dob?String(Math.max(18,Math.floor((Date.now()-new Date(profile.dob+'T12:00:00').getTime())/(365.2425*86400000)))):'',height_cm:profile.height_cm||initial.height_cm});
       setLoading(false);
     }
     if(saved)show(saved.data);
@@ -56,6 +57,7 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
         supabase.from('calorie_transactions').select('id,label,kcal,meal_slot,meal_snapshot,log_day').eq('user_id',userId).eq('kind','food').order('occurred_at',{ascending:false}).limit(30),
         supabase.from('food_favourites').select('*').eq('user_id',userId).order('created_at',{ascending:false}),
         supabase.from('body_metrics').select('metric_date,weight_kg').eq('client_id',userId).not('weight_kg','is',null).order('metric_date',{ascending:false}).limit(12),
+        supabase.from('users').select('sex,dob,height_cm').eq('id',userId).maybeSingle(),
       ]);
       if(!active)return;
       if(results.some(r=>r.error)){if(!saved)setError('Your nutrition records could not load. Reconnect to retry.');setLoading(false);return;}
