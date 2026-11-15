@@ -10,10 +10,12 @@ import {loadMembership,savedMembership} from '../../lib/membership.js';
 import {hasPremium} from '../../lib/premium.js';
 import {RedeemAccessCode} from '../../components/ui/PremiumPaywall.jsx';
 import {useLogSync} from '../../context/LogSyncContext.jsx';
+import {rebuildProgramWithGoal} from '../../lib/rebuildProgram.js';
 
 async function functionError(error, fallback) {
   try { return (await error.context.json()).error || fallback; } catch { return error?.message || fallback; }
 }
+const GOALS = [['hypertrophy','Hypertrophy'],['strength','Strength'],['both','Strength + Hypertrophy'],['fat_loss','Fat Loss'],['calisthenics','Calisthenics']];
 export default function MoreMenu() {
   const { profile, logout, refreshProfile } = useAuth();
   const [params] = useSearchParams();
@@ -28,6 +30,8 @@ export default function MoreMenu() {
   const [message, setMessage] = useState('');
   const checkoutId = useRef(null);
   const ticketId = useRef(null);
+  const [activeGoal, setActiveGoal] = useState(null);
+  const [goalBusy, setGoalBusy] = useState(false);
 
   async function loadMember() {
     if(!online)throw Error('Connect to refresh your membership.');
@@ -56,6 +60,26 @@ export default function MoreMenu() {
     if(!online&&key!=='logout'){setError('Connect to use this account action. Your saved screens remain available.');return;}
     setBusy(key); setError(''); setNotice('');
     try { await action(); } catch (e) { setError(e.message || 'Please try again.'); } finally { setBusy(''); }
+  }
+  useEffect(() => {
+    let active = true;
+    supabase.from('workout_programmes').select('goal').eq('client_id', profile?.id).eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => { if (active) setActiveGoal(data?.goal || null); });
+    return () => { active = false; };
+  }, [profile?.id]);
+
+  async function changeGoal(goal) {
+    if (goalBusy || goal === activeGoal) return;
+    setGoalBusy(true); setError(''); setNotice('');
+    try {
+      await rebuildProgramWithGoal(profile.id, goal);
+      setActiveGoal(goal);
+      setNotice('Your programme has been rebuilt with the new workout style.');
+    } catch (e) {
+      setError(e.message || 'Could not change your workout style.');
+    } finally {
+      setGoalBusy(false);
+    }
   }
   const active = hasPremium(member);
   async function checkout() {
@@ -119,6 +143,7 @@ export default function MoreMenu() {
       const { error } = await supabase.from('users').update({ name: name.trim() }).eq('id', profile.id);
       if (error) throw error; await refreshProfile(); setNotice('Profile updated.');
     }); }}><label className="label" htmlFor="account-name">Your name</label><input id="account-name" className="input" value={name} required maxLength={100} onChange={e => setName(e.target.value)} /><button className="btn btn-secondary" disabled={!!busy}>Save profile</button></form></section>
+    <section className="mf-card account-panel"><h2>Workout style</h2><p>Change how your programme is structured. This rebuilds your active programme with the new style — your schedule, focus and equipment stay the same, and your workout history is untouched.</p>{goalBusy?<p role="status">Rebuilding your programme…</p>:<div className="row" style={{flexWrap:'wrap',gap:6}}>{GOALS.map(([id,label])=><button key={id} type="button" className={`btn ${activeGoal===id?'btn-primary':'btn-ghost'}`} disabled={!online||!!busy} onClick={()=>changeGoal(id)}>{label}</button>)}</div>}</section>
     <section className="mf-card account-panel"><h2>Your training</h2><div className="list-card"><Link className="list-row" to="/coach">Personal AI coach <span className="grow" />↗</Link><Link className="list-row" to="/workout/stats">Exercise stats & PRs <span className="grow" />↗</Link><Link className="list-row" to="/workout/history">Workout history <span className="grow" />↗</Link><Link className="list-row" to="/exercises">Exercise library <span className="grow" />↗</Link><Link className="list-row" to="/onboarding?new=1">Build a new programme <span className="grow" />↗</Link></div></section>
     <section className="account-panel" aria-label="Calorie Bank overview">{online?<CalorieBankCard userId={profile?.id}/>:<Link className="btn btn-secondary" to="/bank">Open saved Calorie Bank →</Link>}</section>
     <details className="mf-card account-panel"><summary>Optional make-up exercises</summary><p>Missed exercises from the previous full week are spread across unstarted sessions. Up to 4 extras per session, 8 across the week, and at most 2 sets each.</p><p>Extras expire with the week and never build into a backlog. Remove any extra from its session if it does not suit your recovery.</p></details>
