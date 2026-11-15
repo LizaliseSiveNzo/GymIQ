@@ -684,5 +684,215 @@
     "thumbnail": "/exercises/1a3cad0d-6400-4770-ae37-fa9919ff383e-616c3b48-thumb.webp",
     "width": 768,
     "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000001": {
+    "name": "Bodyweight Squat",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000001.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000001.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000002": {
+    "name": "Jump Squat",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000002.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000002.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000003": {
+    "name": "Pistol Squat",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000003.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000003.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000004": {
+    "name": "Bodyweight Lunge",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000004.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000004.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000005": {
+    "name": "Bodyweight Split Squat",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000005.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000005.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000006": {
+    "name": "Glute Bridge",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000006.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000006.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000007": {
+    "name": "Single-Leg Glute Bridge",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000007.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000007.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000008": {
+    "name": "Pike Push-Up",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000008.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000008.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000009": {
+    "name": "Inverted Row",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000009.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000009.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000000a": {
+    "name": "Chest-to-Bar Pull-Up",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000a.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000a.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000000b": {
+    "name": "Explosive High Pull-Up",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000b.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000b.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000000c": {
+    "name": "False-Grip Pull-Up",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000c.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000c.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000000d": {
+    "name": "Negative Muscle-Up",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000d.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000d.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000000e": {
+    "name": "Muscle-Up",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000e.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000e.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000000f": {
+    "name": "Tuck Front Lever",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000f.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000000f.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000010": {
+    "name": "Advanced Tuck Front Lever",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000010.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000010.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000011": {
+    "name": "One-Leg Front Lever",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000011.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000011.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000012": {
+    "name": "Front Lever",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000012.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000012.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000013": {
+    "name": "Dragon Flag",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000013.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000013.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000014": {
+    "name": "Skin the Cat",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000014.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000014.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000015": {
+    "name": "Planche Lean",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000015.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000015.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000016": {
+    "name": "Pseudo Planche Push-Up",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000016.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000016.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000017": {
+    "name": "Tuck Planche",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000017.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000017.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000018": {
+    "name": "Advanced Tuck Planche",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000018.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000018.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-000000000019": {
+    "name": "Straddle Planche",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000019.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-000000000019.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000001a": {
+    "name": "Full Planche",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001a.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001a.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000001b": {
+    "name": "Tuck L-Sit",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001b.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001b.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000001c": {
+    "name": "L-Sit",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001c.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001c.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000001d": {
+    "name": "V-Sit",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001d.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001d.jpg",
+    "width": 768,
+    "height": 1376
+  },
+  "ca11e001-0000-4000-8000-00000000001e": {
+    "name": "Pike Compression Hold",
+    "src": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001e.jpg",
+    "thumbnail": "/exercises/calisthenics/ca11e001-0000-4000-8000-00000000001e.jpg",
+    "width": 768,
+    "height": 1376
   }
 }
