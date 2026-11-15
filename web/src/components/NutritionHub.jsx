@@ -1,4 +1,4 @@
-import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import {readView,saveView} from '../lib/deviceCache.js';
 import foods from '../../../supabase/functions/_shared/nutrition/foods.json';
@@ -30,6 +30,8 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [weights,setWeights]=useState([]),[weighIn,setWeighIn]=useState('');
   const today=localDay();
+  const goalDialog=useRef(null);
+  const [goalDismissed,setGoalDismissed]=useState(false);
   useEffect(()=>{let active=true;setLoading(true);setError('');
     const saved=readView(userId,`nutrition:${day}`);
     function show(values){
@@ -146,6 +148,11 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const periodName=period==='day'?'Daily':period==='week'?'Week':'Month';
   const difference=summary.logged-summary.guide;
   const show=key=>section==='home'||section===key;
+  useEffect(()=>{
+    if(!loading && !goal && !goalDismissed && goalDialog.current){
+      goalDialog.current.showModal();
+    }
+  },[loading,goal,goalDismissed]);
   const datePicker=<label className="nutrition-date">Viewing day<input type="date" disabled={busy} value={day} max={today} min={localDay(new Date(Date.now()-365*86400000))} onChange={e=>{if(e.target.value){setDay(e.target.value);setMeal(blankMeal());setEditing(false);}}}/></label>;
   if(loading)return <div className="mf-card" role="status">Loading your food & goals…</div>;
   return <div className="nutrition-hub">
@@ -202,5 +209,13 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
     {section==='weight'&&<section className="mf-card"><h2>Weight check-ins</h2><p className="subtle">Follow the trend over several weeks. A check-in does not automatically change your calorie guide.</p><form className="nutrition-form" onSubmit={e=>{e.preventDefault();action(async()=>{const weight=Number(weighIn);if(!Number.isFinite(weight)||weight<35||weight>300)throw Error('Enter a weight between 35 and 300 kg.');const {error}=await supabase.from('body_metrics').upsert({client_id:userId,metric_date:day,weight_kg:weight},{onConflict:'client_id,metric_date'});if(error)throw Error('Could not save your check-in.');setWeights(v=>[{metric_date:day,weight_kg:weight},...v.filter(w=>w.metric_date!==day)].sort((a,b)=>b.metric_date.localeCompare(a.metric_date)).slice(0,12));setWeighIn('');setNotice('Weight check-in saved. Update your current weight in Edit goals when you want to recalculate the guide.');});}}><label>Weight on {day} · kg<input type="number" inputMode="decimal" min="35" max="300" step="0.1" required value={weighIn} onChange={e=>setWeighIn(e.target.value)}/></label><button className="btn btn-secondary" disabled={busy}>Save weight check-in</button></form><details><summary>Recent check-ins · {weights.length}</summary>{weights.map(w=><div className="nutrition-log" key={w.metric_date}><span>{w.metric_date}</span><strong>{w.weight_kg} kg</strong></div>)}</details></section>}
     {section==='sources'&&<section className="mf-card nutrition-sources"><h2>How the estimates work & food sources</h2><p>GymIQ uses a general resting-energy equation, your non-gym activity and an estimated net gym contribution. Recorded sessions use the last 28 days and exclude cancelled or implausibly long sessions. These estimates are refreshed when you save goals; workout calories are not added again as food credits.</p><p>A 30-day weight-change model uses 7,700 kcal per kg. Real changes are not linear. The planner caps its estimated deficit at 500 kcal/day, 25% of maintenance, and a floor of the higher of estimated resting needs or 1,500 kcal/day. These are product guardrails, not a guarantee that a diet is appropriate for you.</p><p>Food values come from <a href="https://fdc.nal.usda.gov/download-datasets/" target="_blank" rel="noreferrer">USDA FoodData Central SR Legacy</a>. Actual brands, portions and cooking methods vary. Use packaging values for unlisted foods. Presets follow everyday balanced-meal patterns, not a clinically approved diet.</p><p><a href="https://pacompendium.com/conditioning-exercise/" target="_blank" rel="noreferrer">Activity estimate source</a> · <a href="https://www.canada.ca/en/health-canada/services/food-guide/eating-support/cooking/make-healthy-meals-plate.html" target="_blank" rel="noreferrer">Balanced meal guidance</a></p></section>}
     {section==='insights'&&<Suspense fallback={<p role="status">Opening insights…</p>}><AiReviewCard domain="nutrition"/></Suspense>}
+    <dialog ref={goalDialog} className="session-discard-dialog" aria-labelledby="goal-prompt-title" onCancel={()=>setGoalDismissed(true)}>
+      <h2 id="goal-prompt-title">Set your monthly goal</h2>
+      <p>Please set your monthly goal before you use the Calorie Bank. Your goal gives the planner a calorie target for your meal plan.</p>
+      <div className="launch-actions">
+        <button type="button" className="btn btn-primary" onClick={()=>{goalDialog.current?.close();onSectionChange('goals');}}>Set monthly goal</button>
+        <button type="button" className="btn btn-ghost" onClick={()=>{goalDialog.current?.close();setGoalDismissed(true);}}>Not now</button>
+      </div>
+    </dialog>
   </div>;
 }
