@@ -20,9 +20,13 @@ export const SCHEMES = {
   strength:    { main: { sets: 4, repMin: 3,  repMax: 6,  rir: 3, rest: 210 }, acc: { sets: 3, repMin: 8,  repMax: 12, rir: 2, rest: 90 } },
   both:        { main: { sets: 4, repMin: 5,  repMax: 8,  rir: 2, rest: 180 }, acc: { sets: 3, repMin: 10, repMax: 15, rir: 1, rest: 75 } },
   fat_loss: { main: { sets: 3, repMin: 8,  repMax: 12, rir: 2, rest: 120 }, acc: { sets: 3, repMin: 12, repMax: 20, rir: 1, rest: 60 } },
+  calisthenics: { main: { sets: 3, repMin: 8,  repMax: 15, rir: 2, rest: 90 }, acc: { sets: 3, repMin: 15, repMax: 25, rir: 1, rest: 60 } },
 };
 
 const DIFFICULTY_CEILING = { novice: 2, intermediate: 3, advanced: 3 };
+
+// Calisthenics always trains with bodyweight equipment regardless of the gym's weights.
+const CALISTHENICS_EQUIPMENT = new Set(['bodyweight','mat','wall','pull_up_bar','dip_bars']);
 
 function equipmentOk(exercise, available) {
   const req = exercise.equipment_ids || [];
@@ -43,7 +47,7 @@ function scoreCandidate(exercise, planned, targets) {
 
 /**
  * Build the program.
- * @param input {{goal:'hypertrophy'|'strength'|'both'|'fat_loss', daysPerWeek:number,
+ * @param input {{goal:'hypertrophy'|'strength'|'both'|'fat_loss'|'calisthenics', daysPerWeek:number,
  *   sessionMinutes:number, split:string('auto'|…), experience:string,
  *   focus:string[], deprioritized:string[], equipmentIds:string[]|Set<string>,
  *   name?:string}}
@@ -54,7 +58,7 @@ export function generateProgram(input, catalog) {
   const exercises = catalog.exercises || [];
   if (!exercises.length) throw new Error('Exercise catalog is empty');
 
-  const available = input.equipmentIds instanceof Set ? input.equipmentIds : new Set(input.equipmentIds || []);
+  const available = input.goal === 'calisthenics' ? CALISTHENICS_EQUIPMENT : (input.equipmentIds instanceof Set ? input.equipmentIds : new Set(input.equipmentIds || []));
   const split = !input.split || input.split === 'auto' ? autoSplit(input.daysPerWeek) : input.split;
   const daysTpl = buildDays(split, input.daysPerWeek);
   const cap = slotBudget(input.sessionMinutes);

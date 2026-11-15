@@ -37,7 +37,7 @@ export function validateMealPlan(input,context) {
   return {day:context.day,target,meals};
 }
 export function validateWorkout(input,context) {
-  if(!['hypertrophy','strength','both','fat_loss'].includes(input?.goal)||!int(input.session_minutes,20,90))throw Error('Choose a supported goal and a 20–90 minute session.');
+  if(!['hypertrophy','strength','both','fat_loss','calisthenics'].includes(input?.goal)||!int(input.session_minutes,20,90))throw Error('Choose a supported goal and a 20–90 minute session.');
   if(!Array.isArray(input.days)||input.days.length<1||input.days.length>6)throw Error('Plan one to six training days.');
   const days=input.days.map((d,index)=>{
     if(!Array.isArray(d.exercises)||d.exercises.length<2||d.exercises.length>8)throw Error('Use two to eight exercises per workout.');
@@ -61,7 +61,7 @@ const meal=object({name:string,slot:{type:'string',enum:SLOTS},preparation:{type
 export const COACH_TOOLS=[
   {type:'function',function:{name:'draft_meal',description:'Prepare one custom meal from the saved available ingredients, for review and saving to Meal builder. Never logs intake.',parameters:meal}},
   {type:'function',function:{name:'draft_meal_plan',description:'Prepare four custom meals for today. GymIQ balances portions to the saved calorie guide. Needs a saved goal.',parameters:object({meals:{type:'array',items:meal}})}},
-  {type:'function',function:{name:'draft_workout',description:'Prepare a replacement training programme using only library exercises and available equipment. User reviews and applies; keeps completed history.',parameters:object({name:string,goal:{type:'string',enum:['hypertrophy','strength','both','fat_loss']},session_minutes:integer,days:{type:'array',items:object({name:string,exercises:{type:'array',items:object({exercise_id:string,sets:integer,rep_min:integer,rep_max:integer,rest_seconds:integer})}})}})}},
+  {type:'function',function:{name:'draft_workout',description:'Prepare a replacement training programme using only library exercises and available equipment. User reviews and applies; keeps completed history.',parameters:object({name:string,goal:{type:'string',enum:['hypertrophy','strength','both','fat_loss','calisthenics']},session_minutes:integer,days:{type:'array',items:object({name:string,exercises:{type:'array',items:object({exercise_id:string,sets:integer,rep_min:integer,rep_max:integer,rest_seconds:integer})}})}})}},
 ];
 export function validateTool(name,args,context) {
   if(name==='draft_meal')return {kind:'meal',payload:validateMeal(args,context)};
