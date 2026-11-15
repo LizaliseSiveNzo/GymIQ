@@ -17,7 +17,7 @@ export function createCoachAudio({load,AudioClass=globalThis.Audio,now=Date.now}
    if(version!==revision)return false;
    player=new AudioClass(saved.url);const active=player;
    player.onended=()=>{if(version===revision)onEnd();};
-   player.onerror=()=>{cache.delete(id);if(version===revision)onEnd(Error('Could not play Google audio. Please retry.'));};
+   player.onerror=()=>{cache.delete(id);if(version===revision)onEnd(Error('Could not play audio. Please retry.'));};
    await active.play();return version===revision;
   }catch(error){if(version!==revision)return false;throw error;}
   finally{clearTimeout(timer);if(version===revision)controller=null;}
