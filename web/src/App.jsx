@@ -11,6 +11,7 @@ const Login = lazy(() => import('./pages/Login.jsx'));
 const Privacy = lazy(() => import('./pages/Privacy.jsx'));
 const Terms = lazy(() => import('./pages/TermsOfService.jsx'));
 const Glossary = lazy(() => import('./pages/Glossary.jsx'));
+const SkillProgress = lazy(() => import('./pages/mf/SkillProgress.jsx'));
 const Workout = lazy(() => import('./pages/mf/WorkoutTab.jsx'));
 const Bank = lazy(() => import('./pages/mf/BankTab.jsx'));
 const Account = lazy(() => import('./pages/mf/MoreMenu.jsx'));
@@ -36,6 +37,7 @@ export default function App() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/glossary" element={<Glossary />} />
+      <Route path="/skills" element={secure(<SkillProgress />)} />
       <Route path="/onboarding" element={secure(<Onboard />,true)} />
       <Route path="/workout" element={secure(<Workout />)} />
       <Route path="/bank" element={secure(<Bank />)} />
