@@ -26,7 +26,9 @@ alter table public.calisthenics_skill_selections enable row level security;
 alter table public.calisthenics_skill_logs enable row level security;
 revoke all on public.calisthenics_skill_selections, public.calisthenics_skill_logs from public, anon;
 grant all on public.calisthenics_skill_selections, public.calisthenics_skill_logs to authenticated;
+drop policy if exists skill_sel_owner on public.calisthenics_skill_selections;
 create policy skill_sel_owner on public.calisthenics_skill_selections for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists skill_log_owner on public.calisthenics_skill_logs;
 create policy skill_log_owner on public.calisthenics_skill_logs for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
