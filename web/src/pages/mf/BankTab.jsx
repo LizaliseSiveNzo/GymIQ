@@ -18,8 +18,9 @@ export default function BankTab() {
   const { session, profile } = useAuth();
   const access=useMembership(profile?.id);
   const [search,setSearch]=useSearchParams();
-  const section=bankSection(search);
-  useEffect(()=>{window.scrollTo({top:0});},[section]);
+  const explicit=search.has('section')||search.get('goals')==='1';
+  const section=explicit?bankSection(search):(()=>{try{return localStorage.getItem('gymiq_bank_section')||'home';}catch{return 'home';}})();
+  useEffect(()=>{window.scrollTo({top:0});if(section!=='home'){try{localStorage.setItem('gymiq_bank_section',section);}catch{/* optional */}}},[section]);
   const navigateSection=next=>{if(next!==section)setSearch(next==='home'?{}:{section:next});};
   if (session?.demo || !profile) {
     return <TabShell active="bank" title="Calorie Bank"><div className="mf-card">Loading…</div></TabShell>;

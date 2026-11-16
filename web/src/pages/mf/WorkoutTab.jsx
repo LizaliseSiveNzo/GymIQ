@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {Link,useSearchParams} from 'react-router-dom';
+import {Link,useSearchParams,useNavigate} from 'react-router-dom';
 import TabShell from '../../shell/TabShell.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
 import TrainingMenu from '../../components/ui/TrainingMenu.jsx';
@@ -13,6 +13,7 @@ function ProgrammeWorkoutTab(){
  const {profile}=useAuth();
  const [today,setToday]=useState(dayKey()),[data,setData]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0);
  const [search,setSearch]=useSearchParams();
+  const navigate=useNavigate();
  const week=search.get('week')||weekStart(today);
  const setWeek=value=>setSearch(value===weekStart(dayKey())?{}:{week:value});
  const current=weekStart(today),past=week<current;
@@ -22,6 +23,7 @@ function ProgrammeWorkoutTab(){
  loadWorkoutWeek({week,userId:profile.id}).then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});};
  load();window.addEventListener('online',load);
  return()=>{active=false;window.removeEventListener('online',load);};},[profile?.id,week,retry]);
+  useEffect(()=>{if(data?.unfinished&&!past&&!data.fromDevice){navigate(`/workout/session/${data.unfinished.day_id||'free'}?resume=${data.unfinished.id}`,{replace:true});}},[data?.unfinished,past]);
  async function rest(taken=true,rest_date){if(busy)return;setBusy(true);setError('');try{setData(await loadWorkoutWeek({programmeId:data.programme.id,week,action:'rest',taken,rest_date}));}catch(e){setError(e.message);}finally{setBusy(false);}}
  const programme=data?.programme,days=data?.days||[],extras=data?.extras||[],statuses=data?.statuses||{},sessions=data?.sessions||[];
  const completed=days.filter(d=>statuses[d.id]?.complete).length;
