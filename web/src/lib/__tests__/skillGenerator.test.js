@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SKILLS, SKILL_CONTENT_VERSION } from '../../../../supabase/functions/_shared/calisthenicsSkills.js';
-import { generateSkillProgram, resolveSkillPractice } from '../../../../supabase/functions/_shared/skillGenerator.js';
+import { generateSkillProgram, resolveSkillPractice, buildSkillGeneratedProgram } from '../../../../supabase/functions/_shared/skillGenerator.js';
 
 const exercises = [
   { id: 'a', name: 'Bodyweight Pull-Up', equipment_ids: ['pull_up_bar'] },
@@ -68,5 +68,36 @@ describe('skill program generation', () => {
     const plan = generateSkillProgram({ skills, equipmentIds: ['pull_up_bar', 'dip_bars', 'bodyweight'], exercises });
     expect(plan.skillCount).toBe(1);
     expect(plan.missingSkills).toContain('muscle_up_ring');
+  });
+});
+
+describe('skill program save shape', () => {
+  it('produces a save_generated_program-compatible object', () => {
+    const generated = buildSkillGeneratedProgram({
+      skills: [{ id: 'muscle_up_bar', level: 'not_yet', priority: 1 }],
+      equipmentIds: ['pull_up_bar', 'dip_bars', 'bodyweight'],
+      daysPerWeek: 3,
+      sessionMinutes: 60,
+      exercises,
+    });
+    expect(generated.goal).toBe('calisthenics');
+    expect(generated.split).toBe('skill');
+    expect(generated.deloadPolicy).toBe('auto');
+    expect(generated.weeks).toHaveLength(8);
+    expect(generated.days.length).toBeGreaterThanOrEqual(2);
+    for (const d of generated.days) {
+      expect(d.dayIndex).toBeGreaterThanOrEqual(0);
+      expect(d.label).toMatch(/^[A-Z]$/);
+      expect(d.exercises.length).toBeGreaterThan(0);
+      for (const x of d.exercises) {
+        expect(typeof x.exerciseId).toBe('string');
+        expect(x.name).toBeTruthy();
+        expect(x.sets).toBeGreaterThanOrEqual(1);
+        expect(x.repMin).toBeGreaterThanOrEqual(1);
+        expect(x.repMax).toBeGreaterThanOrEqual(x.repMin);
+        expect(x.restSeconds).toBeGreaterThan(0);
+        expect(x.sort).toBeGreaterThanOrEqual(0);
+      }
+    }
   });
 });

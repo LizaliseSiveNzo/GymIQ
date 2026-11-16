@@ -44,3 +44,54 @@ export function generateSkillProgram({ skills = [], equipmentIds = [], daysPerWe
   }
   return { days, skillCount: practice.length, missingSkills: skills.filter((s) => !practice.some((p) => p.skill === s.id)).map((s) => s.id), timeBudget: sessionMinutes };
 }
+
+function parseReps(reps) {
+  const m = String(reps).match(/(\d+)\s*[-–]\s*(\d+)/);
+  if (m) return { repMin: Number(m[1]), repMax: Number(m[2]) };
+  const single = String(reps).match(/(\d+)/);
+  return { repMin: single ? Number(single[1]) : 8, repMax: single ? Number(single[1]) : 12 };
+}
+function parseSets(sets) {
+  const m = String(sets).match(/(\d+)/);
+  return m ? Number(m[1]) : 3;
+}
+
+// Build a `generated` object in the exact shape save_generated_program expects,
+// so the existing persist path can save a skill program unchanged.
+export function buildSkillGeneratedProgram({ skills = [], equipmentIds = [], daysPerWeek = 3, sessionMinutes = 60, exercises = [], name = 'Calisthenics Skills' }) {
+  const plan = generateSkillProgram({ skills, equipmentIds, daysPerWeek, sessionMinutes, exercises });
+  const byName = new Map(exercises.map((e) => [e.name, e]));
+  const days = plan.days.map((d, i) => {
+    const exs = [];
+    let sort = 0;
+    for (const block of d.blocks) {
+      for (const ex of block.exercises) {
+        const entry = byName.get(ex.name);
+        if (!entry) continue;
+        const { repMin, repMax } = parseReps(ex.reps);
+        exs.push({
+          exerciseId: entry.id,
+          name: entry.name,
+          sets: parseSets(ex.sets),
+          repMin,
+          repMax,
+          rir: ex.type === 'skill' ? 3 : ex.type === 'strength' ? 2 : 1,
+          restSeconds: ex.type === 'skill' ? 120 : ex.type === 'strength' ? 90 : 60,
+          pattern: entry.movement_pattern || null,
+          sort: sort++,
+        });
+      }
+    }
+    return { dayIndex: i, label: String.fromCharCode(65 + i), name: d.blocks.map((b) => b.skill || 'General training').join(' · ') || name, exercises: exs };
+  });
+  return {
+    goal: 'calisthenics',
+    split: 'skill',
+    daysPerWeek: plan.days.length,
+    sessionMinutes: sessionMinutes || 60,
+    deloadPolicy: 'auto',
+    weeks: Array.from({ length: 8 }, (_, i) => ({ weekNumber: i + 1, kind: (i + 1) % 4 === 0 ? 'deload' : 'accumulate', volumeMultiplier: (i + 1) % 4 === 0 ? 0.5 : 1 })),
+    days,
+    weeklySets: {},
+  };
+}
