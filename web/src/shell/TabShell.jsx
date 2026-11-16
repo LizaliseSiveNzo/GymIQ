@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom';
 import LogSyncBanner from '../components/ui/LogSyncBanner.jsx';
+import InstallPrompt from '../components/ui/InstallPrompt.jsx';
 import './coachFab.css';
 const TABS = [
   { label: 'Workouts', icon: '◈', path: '/workout' },
@@ -8,10 +9,11 @@ const TABS = [
 ];
 export default function TabShell({ title, showKicker = true, showCoachFab = true, children }) {
   return <div className="mf-app">
-    <header className="mf-header">
+    <header className="mf-header" style={{ position: 'relative' }}>
       <Link className="app-wordmark" to="/workout">GYM<span>IQ</span><span className="wordmark-note">YOUR DAILY EDGE</span></Link>
       {showKicker && <div className="mf-kicker">{new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
       <h1 className="mf-title">{title}</h1>
+      <div style={{ position: 'absolute', top: 10, right: 12 }}><InstallPrompt/></div>
     </header>
     <main id="main-content" className="mf-content"><LogSyncBanner/>{children}</main>
     <nav className="mf-tabbar" aria-label="Main navigation">

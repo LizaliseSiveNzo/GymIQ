@@ -9,7 +9,6 @@ import { supabase } from '../../lib/supabaseClient.js';
 import {loadMembership,savedMembership} from '../../lib/membership.js';
 import {hasPremium} from '../../lib/premium.js';
 import {RedeemAccessCode} from '../../components/ui/PremiumPaywall.jsx';
-import InstallPrompt from '../../components/ui/InstallPrompt.jsx';
 import {useLogSync} from '../../context/LogSyncContext.jsx';
 import {rebuildProgramWithGoal} from '../../lib/rebuildProgram.js';
 
@@ -151,7 +150,6 @@ export default function MoreMenu() {
     <section className="mf-card account-panel"><h2>Support & billing help</h2><p>Ask about your account, a payment, a refund or your data. Please leave out passwords, card details and medical information. Email <a href="mailto:Lizalisenzo@gmail.com">Lizalisenzo@gmail.com</a>, or send your request below.</p><form onSubmit={support}><label className="label" htmlFor="support-subject">Subject</label><input id="support-subject" className="input" required minLength={3} maxLength={160} value={subject} onChange={e => setSubject(e.target.value)} /><label className="label" htmlFor="support-message">How can we help?</label><textarea id="support-message" className="input" required minLength={10} maxLength={5000} rows={4} value={message} onChange={e => setMessage(e.target.value)} /><button className="btn btn-secondary" disabled={!!busy}>{busy === 'support' ? 'Saving…' : 'Submit support request'}</button></form></section>
     <section className="mf-card account-panel"><h2>Your data, in your hands</h2><p>Download your account, workout and Calorie Bank records as a JSON file.</p><button className="btn btn-secondary" disabled={!!busy} onClick={() => run('export', exportData)}>{busy === 'export' ? 'Preparing export…' : 'Export my data'}</button><p><Link to="/privacy">Privacy policy ↗</Link> · <Link to="/terms">Terms and conditions ↗</Link></p></section>
     <details className="mf-card account-panel"><summary>Delete account</summary><p>This permanently deletes your GymIQ account, workout logs, Calorie Bank and uploaded files. Download your data first. Any remaining membership access will end.</p><label className="label" htmlFor="delete-confirmation">Type DELETE to confirm</label><input id="delete-confirmation" className="input" value={confirmation} onChange={e => setConfirmation(e.target.value)} autoComplete="off" /><button className="btn btn-secondary" style={{ color: 'var(--danger)' }} disabled={!!busy || confirmation !== 'DELETE'} onClick={() => run('delete', deleteAccount)}>{busy === 'delete' ? 'Deleting…' : 'Permanently delete account'}</button></details>
-    <InstallPrompt/>
-    <button className="btn btn-ghost btn-block" disabled={!!busy} onClick={() => run('logout', logout)}>Sign out</button>
+        <button className="btn btn-ghost btn-block" disabled={!!busy} onClick={() => run('logout', logout)}>Sign out</button>
   </TabShell>;
 }
