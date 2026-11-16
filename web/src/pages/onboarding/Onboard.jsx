@@ -268,7 +268,7 @@ export default function Onboard() {
 
   // ---- PHASE: PROGRAM ----
   add({ key: 'goal', phase: 'program', title: 'Primary goal?',
-    valid: (f) => f.goal && (f.goal !== 'calisthenics' || (f.skills || []).length >= 1),
+    valid: (f) => !!f.goal,
     node: (f, st) => (
       <>
         <div className="ob-options">
@@ -298,7 +298,7 @@ export default function Onboard() {
               </div>
             );
           })}
-          {(f.skills || []).length === 0 && <p className="subtle" style={{ margin: 0 }}>Pick one or two to start. Your skill is practised fresh, then supporting strength, then general training.</p>}
+          {(f.skills || []).length === 0 && <p className="subtle" style={{ margin: 0 }}>Pick skills to train toward — or leave empty for general bodyweight training without a specific skill.</p>}
         </div>
       )}
       </>
