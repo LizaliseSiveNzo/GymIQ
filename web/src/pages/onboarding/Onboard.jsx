@@ -10,6 +10,8 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { Wizard, OptionCard, StepperControl } from '../../onboarding/wizard.jsx';
 import { generateProgram } from '../../lib/engines/generator.js';
 import { persistProgram } from '../../lib/engines/persistProgram.js';
+import { SKILLS, SKILL_ORDER } from '../../../../supabase/functions/_shared/calisthenicsSkills.js';
+import { buildSkillGeneratedProgram } from '../../../../supabase/functions/_shared/skillGenerator.js';
 
 const DISCLAIMER_VERSION = '2026-10-v2';
 const COLORS = ['#C6FF3A', '#FF6A3D', '#60A5FA', '#C084FC', '#F472B6', '#2DD4BF'];
@@ -22,7 +24,7 @@ const EMPTY = {
   // gym
   gym_location: '', gym_name: '', equipment: {}, // {itemId: {selected, denoms:[num]}}
   // program (consumed by the Phase 3 generator)
-  goal: '', focus: [], deprioritized: [], days_per_week: 4, session_minutes: 60,
+  goal: '', skills: [], focus: [], deprioritized: [], days_per_week: 4, session_minutes: 60,
   split: 'auto', deload: 'auto', programme_name: '', color: COLORS[0], icon: ICONS[0],
 };
 
@@ -90,6 +92,13 @@ export default function Onboard() {
   }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const toggleSkill = (id, checked) => setForm((f) => {
+    let skills = f.skills || [];
+    if (checked) { if (skills.length >= 4) return f; skills = [...skills, { id, level: 'not_yet', priority: skills.length + 1 }]; }
+    else skills = skills.filter((s) => s.id !== id).map((s, i) => ({ ...s, priority: i + 1 }));
+    return { ...f, skills };
+  });
+  const setSkillLevel = (id, level) => setForm((f) => ({ ...f, skills: (f.skills || []).map((s) => s.id === id ? { ...s, level } : s) }));
   const toggleArr = (k, id) => setForm((f) => ({
     ...f, [k]: f[k].includes(id) ? f[k].filter((x) => x !== id) : [...f[k], id],
   }));
@@ -259,15 +268,38 @@ export default function Onboard() {
 
   // ---- PHASE: PROGRAM ----
   add({ key: 'goal', phase: 'program', title: 'Primary goal?',
-    valid: (f) => !!f.goal,
+    valid: (f) => f.goal && (f.goal !== 'calisthenics' || (f.skills || []).length >= 1),
     node: (f, st) => (
       <div className="ob-options">
         <OptionCard icon="📈" title="Muscle Hypertrophy" desc="Size: moderate weights, moderate-high reps" selected={f.goal === 'hypertrophy'} onClick={() => st('goal', 'hypertrophy')} />
         <OptionCard icon="🏋️" title="Muscle Strength" desc="Maximal strength: heavier weights, fewer reps" selected={f.goal === 'strength'} onClick={() => st('goal', 'strength')} />
         <OptionCard icon="⚖️" title="Both Strength & Hypertrophy" desc="Balanced mix of rep schemes" selected={f.goal === 'both'} onClick={() => st('goal', 'both')} />
         <OptionCard icon="🔥" title="Fat Loss" desc="Fat loss: moderate reps, shorter rests to keep muscle" selected={f.goal === 'fat_loss'} onClick={() => st('goal', 'fat_loss')} />
-        <OptionCard icon="🤸" title="Calisthenics" desc="Bodyweight training: high reps and skill progressions" selected={f.goal === 'calisthenics'} onClick={() => st('goal', 'calisthenics')} />
+        <OptionCard icon="🤸" title="Calisthenics" desc="Bodyweight training: skill-based path" selected={f.goal === 'calisthenics'} onClick={() => st('goal', 'calisthenics')} />
       </div>
+      {f.goal === 'calisthenics' && (
+        <div className="skill-picker" style={{ marginTop: 16 }}>
+          <h4 style={{ margin: '0 0 10px', fontSize: 16 }}>Choose up to 4 skills to train</h4>
+          {SKILL_ORDER.map((skillId) => {
+            const skill = SKILLS[skillId];
+            const sel = (f.skills || []).find((s) => s.id === skillId);
+            return (
+              <div key={skillId} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <input type="checkbox" checked={!!sel} disabled={!sel && (f.skills || []).length >= 4} onChange={(e) => toggleSkill(skillId, e.target.checked)} />
+                <span style={{ flex: 1 }}>{skill.name}{sel ? ` · priority ${sel.priority}` : ''}</span>
+                {sel && (
+                  <select value={sel.level} onChange={(e) => setSkillLevel(skillId, e.target.value)} style={{ minHeight: 36 }}>
+                    <option value="not_yet">Not yet able</option>
+                    <option value="learning">Currently learning</option>
+                    <option value="able">Able · improving</option>
+                  </select>
+                )}
+              </div>
+            );
+          })}
+          {(f.skills || []).length === 0 && <p className="subtle" style={{ margin: 0 }}>Pick one or two to start. Your skill is practised fresh, then supporting strength, then general training.</p>}
+        </div>
+      )}
     ) });
 
   add({ key: 'focus', phase: 'program', title: 'Focus muscles',
@@ -621,6 +653,17 @@ const prettyMuscle = (id) => (id || '').replace(/_/g, ' ').replace(/\b\w/g, (c) 
 
 function safeGenerate(f, catalogRows) {
   try {
+    const equipmentIds = Object.entries(f.equipment || {}).filter(([, v]) => v.selected).map(([id]) => id);
+    if (f.goal === 'calisthenics' && (f.skills || []).length) {
+      return buildSkillGeneratedProgram({
+        skills: f.skills.map((s) => ({ id: s.id, level: s.level, priority: s.priority })),
+        equipmentIds,
+        daysPerWeek: f.days_per_week || 3,
+        sessionMinutes: Number(f.session_minutes) || 60,
+        exercises: catalogRows,
+        name: f.programme_name || 'Calisthenics Skills',
+      });
+    }
     return generateProgram({
       goal: f.goal || 'hypertrophy',
       daysPerWeek: f.days_per_week || 4,
@@ -629,7 +672,7 @@ function safeGenerate(f, catalogRows) {
       experience: f.training_experience || 'intermediate',
       focus: f.focus || [],
       deprioritized: f.deprioritized || [],
-      equipmentIds: Object.entries(f.equipment || {}).filter(([, v]) => v.selected).map(([id]) => id),
+      equipmentIds,
       name: f.programme_name || '',
     }, { exercises: catalogRows });
   } catch (e) {
