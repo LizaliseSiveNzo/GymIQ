@@ -270,7 +270,8 @@ export default function Onboard() {
   add({ key: 'goal', phase: 'program', title: 'Primary goal?',
     valid: (f) => f.goal && (f.goal !== 'calisthenics' || (f.skills || []).length >= 1),
     node: (f, st) => (
-      <div className="ob-options">
+      <>
+        <div className="ob-options">
         <OptionCard icon="📈" title="Muscle Hypertrophy" desc="Size: moderate weights, moderate-high reps" selected={f.goal === 'hypertrophy'} onClick={() => st('goal', 'hypertrophy')} />
         <OptionCard icon="🏋️" title="Muscle Strength" desc="Maximal strength: heavier weights, fewer reps" selected={f.goal === 'strength'} onClick={() => st('goal', 'strength')} />
         <OptionCard icon="⚖️" title="Both Strength & Hypertrophy" desc="Balanced mix of rep schemes" selected={f.goal === 'both'} onClick={() => st('goal', 'both')} />
@@ -300,6 +301,7 @@ export default function Onboard() {
           {(f.skills || []).length === 0 && <p className="subtle" style={{ margin: 0 }}>Pick one or two to start. Your skill is practised fresh, then supporting strength, then general training.</p>}
         </div>
       )}
+      </>
     ) });
 
   add({ key: 'focus', phase: 'program', title: 'Focus muscles',

@@ -19,9 +19,9 @@ export function normalizeQuery(text) {
 // real gate. Anything ambiguous bypasses.
 const FAQ_DENY = [
   // Medical / injury — always bypass.
-  /\b(injur|pain|hurt|ache|sore|medical|doctor|diagnos|condition|symptom|disease|pregnant|breastfeed|allerg)\b/i,
+  /\b(injur|pain|hurt|ache|sore|medical|doctor|diagnos|condition|symptom|disease|pregnant|breastfeed|allerg)\w*/i,
   // Fitness / nutrition advice terms (feature names like "Calorie Bank" are not advice).
-  /\b(protein|carb|macros?|muscle|workout|exercise|train|routine|meal|diet|nutrition|supplement|reps|sets|bulk)\b/i,
+  /\b(protein|carb|macros?|muscle|workout|exercise|train|routine|meal|diet|nutrition|supplement|reps|sets|bulk)\w*/i,
   // Recommendations / personalized advice requests.
   /\b(recommend|suggest|advise|prescribe|should i|how should|give me)\b/i,
 ];
