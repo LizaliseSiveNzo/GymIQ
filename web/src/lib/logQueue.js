@@ -36,7 +36,7 @@ export async function retryPending(userId){for(const entry of await queueStore.l
 export async function forgetPending(id,userId){await queueStore.remove(id,userId);changed();}
 export function syncPending(userId){
  if(running.has(userId))return running.get(userId);
- const run=syncQueueBatch({userId,store:queueStore,online:()=>navigator.onLine,send:async entry=>{
+ const run=syncQueueBatch({userId,store:queueStore,online:()=>true,send:async entry=>{
   const {data:auth}=await supabase.auth.getSession();if(auth.session?.user.id!==userId)throw {code:'42501',message:'Sign in to sync'};
   const {data,error}=await supabase.rpc('sync_log_entry',{p_id:entry.id,p_kind:entry.kind,p_payload:entry.payload});if(error)throw error;
   if(!validSyncAck(data,entry.id))throw Error('Sync confirmation was incomplete. Your entry is still saved on this device.');return data;
