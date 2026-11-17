@@ -11,17 +11,17 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import useMembership from '../../hooks/useMembership.js';
 import PremiumPaywall from '../../components/ui/PremiumPaywall.jsx';
 import {PREMIUM_BANK_SECTIONS} from '../../lib/premium.js';
-import BankMenu,{bankSection} from '../../components/ui/BankMenu.jsx';
+import BankMenu from '../../components/ui/BankMenu.jsx';
+import {resolveBankSection,rememberBankSection} from '../../lib/bankSection.js';
 
 // Food planning and actual intake share one dated calorie guide.
 export default function BankTab() {
   const { session, profile } = useAuth();
   const access=useMembership(profile?.id);
   const [search,setSearch]=useSearchParams();
-  const explicit=search.has('section')||search.get('goals')==='1';
-  const section=explicit?bankSection(search):(()=>{try{return localStorage.getItem('gymiq_bank_section')||'home';}catch{return 'home';}})();
-  useEffect(()=>{window.scrollTo({top:0});if(section!=='home'){try{localStorage.setItem('gymiq_bank_section',section);}catch{/* optional */}}},[section]);
-  const navigateSection=next=>{if(next!==section)setSearch(next==='home'?{}:{section:next});};
+  const section=resolveBankSection(search);
+  useEffect(()=>{window.scrollTo({top:0});rememberBankSection(section);},[section]);
+  const navigateSection=next=>{if(next!==section)setSearch({section:next});};
   if (session?.demo || !profile) {
     return <TabShell active="bank" title="Calorie Bank"><div className="mf-card">Loading…</div></TabShell>;
   }
