@@ -100,7 +100,7 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const cardById=id=>cards.find(c=>c.id===id);
   const patchCard=(id,patch)=>setCards(cs=>cs.map(c=>c.id===id?{...c,...patch}:c));
   const patchCardItem=(id,index,key,value)=>setCards(cs=>cs.map(c=>c.id===id?{...c,items:c.items.map((i,n)=>n===index?{...i,[key]:value}:i)}:c));
-  function cardKcal(card){if(card.manual)return card.kcal?`${format(card.kcal)} kcal`:'— kcal';try{return `${format(mealTotals(card.items,foods).kcal)} kcal`;}catch{return '— kcal';}}
+  function cardKcal(card){if(card.manual)return card.kcal?`${format(card.kcal)} kcal`:'— kcal';try{const t=mealTotals(card.items,foods);return `${format(t.kcal)} kcal · P ${format(t.protein)}g · C ${format(t.carbs)}g · F ${format(t.fat)}g`;}catch{return '—';}}
   function choose(m){setCards(cs=>cs.map(c=>c.slot===m.slot?{...c,name:m.name,items:m.items.map(i=>({...i})),manual:false,kcal:'',eaten:false}:c));}
   function useQuick(value){const slot=value.slot||'snack';if(value.items)choose(value);else setCards(cs=>cs.map(c=>c.slot===slot?{...c,name:value.name,items:null,manual:true,kcal:String(value.kcal),eaten:false}:c));}
   function edit(entry){setCorrecting({id:entry.id,name:entry.label||'Food',slot:entry.meal_slot||'snack',items:entry.meal_snapshot?.items||null,manual:!entry.meal_snapshot?.items,kcal:Math.abs(entry.kcal)});onSectionChange('builder');}
@@ -166,6 +166,7 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const dayData=days.find(d=>d.day===day);
   const periodStart=period==='day'?day:period==='week'?startOfWeek(day):day.slice(0,7)+'-01';
   const summary=periodSummary(days,periodStart,day);
+  const dayMacros=entries.reduce((m,e)=>{if(e.meal_snapshot?.items){try{const t=mealTotals(e.meal_snapshot.items,foods);m.protein+=t.protein;m.carbs+=t.carbs;m.fat+=t.fat;}catch{}}return m;},{protein:0,carbs:0,fat:0});
   const periodRecords=days.filter(d=>d.day>=periodStart&&d.day<=day);
   const guideKnown=summary.guideDays===summary.days&&summary.guideDays>0;
   const periodName=period==='day'?'Daily':period==='week'?'Week':'Month';
@@ -188,6 +189,11 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
       <div className="nutrition-periods" aria-label="Food summary period">{['day','week','month'].map(p=><button className={`btn ${period===p?'btn-primary':'btn-ghost'}`} aria-pressed={period===p} key={p} onClick={()=>setPeriod(p)}>{p==='day'?'Day':p==='week'?'Week to date':'Month to date'}</button>)}</div>
       <div className="nutrition-numbers"><div><span>Food logged</span><strong>{format(summary.logged)}<small> kcal</small></strong></div><div><span>{periodName} guide · estimate{!guideKnown&&summary.guideDays>0?` · ${summary.guideDays} known days`:''}</span><strong>{summary.guideDays?format(summary.guide):'—'}<small>{summary.guideDays?' kcal':''}</small></strong></div></div>
       {guideKnown&&summary.guide>0&&<div className="nutrition-meter" role="meter" aria-label={`${periodName} calories logged against guide`} aria-valuemin={0} aria-valuemax={summary.guide} aria-valuenow={Math.min(summary.logged,summary.guide)}><span style={{width:`${Math.min(100,summary.logged/summary.guide*100)}%`}}/></div>}
+      <div className="nutrition-macros" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12, fontSize: 13 }}>
+        <span>Protein <strong>{format(dayMacros.protein)} g</strong></span>
+        <span>Carbs <strong>{format(dayMacros.carbs)} g</strong></span>
+        <span>Fat <strong>{format(dayMacros.fat)} g</strong></span>
+      </div>
       <p className="subtle">{summary.loggedDays} of {summary.days} days have entries · {summary.completeDays} marked complete. {summary.guideDays<summary.days?'Some days have no saved guide; those targets are unknown.':''}</p>
       {guideKnown&&<p className="subtle">{difference===0?'Your logged food matches the guide.':`${format(Math.abs(difference))} kcal ${difference>0?'above':'below'} the guide in your records.`} {summary.completeDays<summary.days?'Logging is incomplete; this is not a measured calorie deficit.':''}</p>}
       {!goal&&<p className="subtle">Set a monthly goal for a calorie guide and meal plan. You can log food at any time.</p>}
