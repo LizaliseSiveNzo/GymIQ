@@ -40,6 +40,9 @@ coverage/
 
 # Original exercise exports; optimized website assets live in web/public/exercises.
 /exercises/
-/artifacts/nutrition-source/
-/artifacts/aged-account/
+# QA screenshots, verification scripts and temporary working files
+/artifacts/
+/calisthenics_files.txt
+/calisthenics_renamed.txt
+/line59.txt
 /scripts/fixtures/prepare-consistent-reset.mjs
