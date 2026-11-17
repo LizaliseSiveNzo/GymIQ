@@ -905,5 +905,18 @@
     "vegan": true,
     "source_description": "Hummus, commercial",
     "source_url": "https://fdc.nal.usda.gov/food-details/174278/nutrients"
+  },
+  {
+    "id": "19296",
+    "name": "Honey",
+    "kcal": 304.0,
+    "protein": 0.3,
+    "fat": 0.0,
+    "carbs": 82.4,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": false,
+    "source_description": "Honey",
+    "source_url": "https://fdc.nal.usda.gov/food-details/19296/nutrients"
   }
 ]
