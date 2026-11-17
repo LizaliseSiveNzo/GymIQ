@@ -167,6 +167,8 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const periodStart=period==='day'?day:period==='week'?startOfWeek(day):day.slice(0,7)+'-01';
   const summary=periodSummary(days,periodStart,day);
   const dayMacros=entries.reduce((m,e)=>{if(e.meal_snapshot?.items){try{const t=mealTotals(e.meal_snapshot.items,foods);m.protein+=t.protein;m.carbs+=t.carbs;m.fat+=t.fat;}catch{}}return m;},{protein:0,carbs:0,fat:0});
+  const guideKcal=summary.guide||0;
+  const macroTargets={protein:guideKcal?Math.round(guideKcal*0.25/4):0,carbs:guideKcal?Math.round(guideKcal*0.45/4):0,fat:guideKcal?Math.round(guideKcal*0.30/9):0};
   const periodRecords=days.filter(d=>d.day>=periodStart&&d.day<=day);
   const guideKnown=summary.guideDays===summary.days&&summary.guideDays>0;
   const periodName=period==='day'?'Daily':period==='week'?'Week':'Month';
@@ -189,11 +191,18 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
       <div className="nutrition-periods" aria-label="Food summary period">{['day','week','month'].map(p=><button className={`btn ${period===p?'btn-primary':'btn-ghost'}`} aria-pressed={period===p} key={p} onClick={()=>setPeriod(p)}>{p==='day'?'Day':p==='week'?'Week to date':'Month to date'}</button>)}</div>
       <div className="nutrition-numbers"><div><span>Food logged</span><strong>{format(summary.logged)}<small> kcal</small></strong></div><div><span>{periodName} guide · estimate{!guideKnown&&summary.guideDays>0?` · ${summary.guideDays} known days`:''}</span><strong>{summary.guideDays?format(summary.guide):'—'}<small>{summary.guideDays?' kcal':''}</small></strong></div></div>
       {guideKnown&&summary.guide>0&&<div className="nutrition-meter" role="meter" aria-label={`${periodName} calories logged against guide`} aria-valuemin={0} aria-valuemax={summary.guide} aria-valuenow={Math.min(summary.logged,summary.guide)}><span style={{width:`${Math.min(100,summary.logged/summary.guide*100)}%`}}/></div>}
-      <div className="nutrition-macros" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12, fontSize: 13 }}>
-        <span>Protein <strong>{format(dayMacros.protein)} g</strong></span>
-        <span>Carbs <strong>{format(dayMacros.carbs)} g</strong></span>
-        <span>Fat <strong>{format(dayMacros.fat)} g</strong></span>
+      <div style={{ marginTop: 14, display: 'grid', gap: 12 }}>
+        {[['Protein', dayMacros.protein, macroTargets.protein], ['Carbs', dayMacros.carbs, macroTargets.carbs], ['Fat', dayMacros.fat, macroTargets.fat]].map(([label, value, target]) => (
+          <div key={label}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+              <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+              <span>{format(value)} / {format(target)} g</span>
+            </div>
+            <div className="nutrition-meter" role="meter" aria-label={`${label} against suggested target`} aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(value, target)}><span style={{ width: `${target ? Math.min(100, value / target * 100) : 0}%` }} /></div>
+          </div>
+        ))}
       </div>
+      {guideKcal > 0 && <p className="subtle" style={{ fontSize: 11, marginTop: 8 }}>Suggested split: 25% protein · 45% carbs · 30% fat of your daily guide.</p>}
       <p className="subtle">{summary.loggedDays} of {summary.days} days have entries · {summary.completeDays} marked complete. {summary.guideDays<summary.days?'Some days have no saved guide; those targets are unknown.':''}</p>
       {guideKnown&&<p className="subtle">{difference===0?'Your logged food matches the guide.':`${format(Math.abs(difference))} kcal ${difference>0?'above':'below'} the guide in your records.`} {summary.completeDays<summary.days?'Logging is incomplete; this is not a measured calorie deficit.':''}</p>}
       {!goal&&<p className="subtle">Set a monthly goal for a calorie guide and meal plan. You can log food at any time.</p>}
