@@ -3,9 +3,8 @@ import {mealTotals,SLOTS} from './nutrition/planner.js';
 const int=(n,min,max)=>Number.isInteger(n)&&n>=min&&n<=max;
 const title=(text,max=100)=>{if(typeof text!=='string'||!text.trim()||text.length>max)throw Error('Use a short, clear name.');return text.trim();};
 export function validateKitchen(settings,foods,equipment) {
-  if(!settings||!Array.isArray(settings.pantry)||!Array.isArray(settings.equipment))throw Error('Save your ingredients and equipment first.');
-  if(settings.pantry.some(id=>!foods.some(f=>f.id===id))||settings.equipment.some(id=>!equipment.some(e=>e.id===id)))throw Error('Update your ingredient and equipment selections.');
-  return {pantry:[...new Set(settings.pantry)],equipment:[...new Set(settings.equipment)]};
+  // Auto-assume a full pantry and equipment: everyone can cook with and train with everything.
+  return {pantry:foods.map(f=>f.id),equipment:equipment.map(e=>e.id)};
 }
 export function validateMeal(input,context) {
   const {foods,kitchen,diet='regular',excludes=[]}=context;

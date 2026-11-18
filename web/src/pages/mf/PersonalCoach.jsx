@@ -135,7 +135,7 @@ export default function PersonalCoach(){
      <div className="coach-composer-actions"><span className="coach-composer-hint">{listening?'Listening…':''}</span><div>{speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{listening?'■ Stop':'🎙 Speak'}</button>}<button type="submit" className="coach-send" aria-label="Send message" disabled={!!busy||!message.trim()||!access.configured}>{busy==='chat'?'…':'↑'}</button></div></div>
     </form>
     <div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>
-    <div className="coach-footer"><Link to="/privacy">Privacy</Link> · <Link to="/more">Ingredients & equipment</Link></div>
+    <div className="coach-footer"><Link to="/privacy">Privacy</Link></div>
    </div>
   </>}
  </div></TabShell>;

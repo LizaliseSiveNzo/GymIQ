@@ -20,8 +20,8 @@ export default function TabShell({ title, showKicker = true, showCoachFab = true
     </header>
     <main id="main-content" className="mf-content"><LogSyncBanner/>{children}</main>
     <nav className="mf-tabbar" aria-label="Main navigation">
-      {TABS.map(t => <NavLink key={t.path} to={t.path} className={({ isActive }) => `mf-tab ${isActive ? 'active' : ''}`}>
-        <span className="ic" aria-hidden="true">{t.icon}</span>{t.label}
+      {TABS.map(t => <NavLink key={t.path} to={t.path} aria-label={t.label} className={({ isActive }) => `mf-tab ${isActive ? 'active' : ''}`}>
+        <span className="ic" aria-hidden="true">{t.icon}</span>
       </NavLink>)}
     </nav>
     {showCoachFab && <Link className="coach-fab" to="/coach" aria-label="Open your AI coach" title="AI coach">✦</Link>}
