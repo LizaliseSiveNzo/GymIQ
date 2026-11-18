@@ -10,23 +10,20 @@ async function authenticate(req) {
   return error ? null : data.user;
 }
 
-// Gemini TTS. Energetic, confident prebuilt voices: male + female.
-const GEMINI_VOICES = { male: 'Puck', female: 'Kore' };
-const TTS_MODEL = 'gemini-2.5-flash-tts';
+const TTS_MODEL = 'gemini-3.8-flash-tts';
+const TTS_VOICE = 'Kore';
 
-async function geminiSpeech({ text, voice, key, signal }) {
+async function geminiSpeech({ text, key, signal }) {
   if (!key) throw Error('Gemini voice is not configured');
   if (typeof text !== 'string' || !text.trim()) throw Error('Reply unavailable for speech');
-  const voiceName = GEMINI_VOICES[voice];
-  if (!voiceName) throw Error('Choose a valid voice');
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${key}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text }] }],
+      contents: [{ parts: [{ text: text.trim() }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
+        speechConfig: { voiceConfig: { voice: TTS_VOICE } },
       },
     }),
     signal,
@@ -49,9 +46,8 @@ Deno.serve(async (req) => {
   const db = admin(); let reserved = false, turnId = '';
   try {
     const raw = await req.text();
-    if (raw.length > 300) return json({ error: 'Invalid speech request' }, 400);
+    if (raw.length > 250) return json({ error: 'Invalid speech request' }, 400);
     const body = JSON.parse(raw); turnId = body.turn_id;
-    const voice = GEMINI_VOICES[body.voice] ? body.voice : 'female';
     if (typeof turnId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(turnId)) return json({ error: 'Choose a saved reply.' }, 400);
     const scoped = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization')! } }, auth: { persistSession: false } });
     const [access, membership, turn] = await Promise.all([
@@ -62,25 +58,24 @@ Deno.serve(async (req) => {
     if (turn.error || !turn.data?.reply || turn.data.status !== 'done') return json({ error: 'Reply unavailable.' }, 404);
     const key = Deno.env.get('GEMINI_API_KEY')?.trim();
     if (!key) return json({ error: 'Gemini voice is not configured yet.', code: 'not_configured' }, 503);
-    const voiceName = GEMINI_VOICES[voice];
     const cap = Number(Deno.env.get('GEMINI_TTS_DAILY_CHARS') || 1000000);
-    const reservation = await db.rpc('reserve_coach_speech', { p_user: user.id, p_turn: turnId, p_voice: voiceName, p_daily_cap: Number.isInteger(cap) && cap > 0 ? cap : 1000000 });
+    const reservation = await db.rpc('reserve_coach_speech', { p_user: user.id, p_turn: turnId, p_voice: TTS_VOICE, p_daily_cap: Number.isInteger(cap) && cap > 0 ? cap : 1000000 });
     if (reservation.error) throw Error('Could not prepare speech: ' + (reservation.error.message || ''));
     const status = reservation.data?.status;
     if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'Gemini reading allowance reached. Try the device voice.', code: status }, 429);
-    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${voiceName}.wav`;
+    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.wav`;
     if (status === 'generate') {
       reserved = true;
-      const { bytes, mimeType } = await geminiSpeech({ text: turn.data.reply, voice, key, signal: AbortSignal.timeout(120000) });
+      const { bytes, mimeType } = await geminiSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(120000) });
       const upload = await bucket.upload(path, bytes, { contentType: mimeType, upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
-      const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', voiceName).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
+      const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
       reserved = false;
     } else if (status !== 'cached') throw Error('Could not prepare speech');
     const signed = await bucket.createSignedUrl(path, 900); if (signed.error) throw Error('Could not open speech');
-    const response = json({ url: signed.data.signedUrl, voice: voiceName, expires_in: 900, cached: status === 'cached' }); response.headers.set('Cache-Control', 'private, no-store'); return response;
+    const response = json({ url: signed.data.signedUrl, voice: TTS_VOICE, expires_in: 900, cached: status === 'cached' }); response.headers.set('Cache-Control', 'private, no-store'); return response;
   } catch (error) {
     console.error('gymiq-speech:', error instanceof Error ? error.message : String(error));
-    if (reserved) await db.from('coach_speech_jobs').update({ state: 'failed', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', voiceName).eq('user_id', user.id);
+    if (reserved) await db.from('coach_speech_jobs').update({ state: 'failed', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id);
     return json({ error: 'Gemini voice is unavailable. Try the device voice.' }, 503);
   }
 });

@@ -109,10 +109,10 @@ export default function PersonalCoach(){
  function stopReading(){readingVersion.current++;cloudAudio.current?.stop();speech.current=null;globalThis.speechSynthesis?.cancel();setReadingId(null);}
  async function readReply(id,text){
   stopReading();const version=readingVersion.current;
-  if((voiceUri==='gemini-male'||voiceUri==='gemini-female')&&navigator.onLine){
+  if(voiceUri==='gemini'&&navigator.onLine){
    setReadingId(id);
    cloudAudio.current ||= createCoachAudio({load:async(turnId,signal)=>{
-    const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId,voice:voiceUri==='gemini-male'?'male':'female'},signal});
+    const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId},signal});
     if(error)throw Error('Gemini voice is unavailable.');return data;
    }});
    try{await cloudAudio.current.read(id,error=>{if(readingVersion.current===version){stopReading();if(error)setError(error.message);}});return;}
@@ -143,7 +143,7 @@ export default function PersonalCoach(){
     {gyms.length>0&&<label className="coach-gym">Use equipment from a saved gym<select defaultValue="" disabled={!!busy} onChange={e=>{if(e.target.value)setKitchen(k=>({...k,equipment:gymEquipment.filter(x=>x.profile_id===e.target.value).map(x=>x.equipment_id)}));}}><option value="">Choose a gym</option>{gyms.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}
     <fieldset disabled={!!busy}><legend>Available equipment</legend><div className="coach-choice-grid">{equipment.filter(e=>e.id!=='bodyweight').map(e=><label key={e.id}><input type="checkbox" checked={kitchen.equipment.includes(e.id)} onChange={()=>setKitchen(k=>({...k,equipment:toggle(k.equipment,e.id)}))}/>{e.name}</label>)}</div></fieldset>
     <button className="btn btn-primary" disabled={!!busy||!dirty} onClick={saveKitchen}>Save ingredients & equipment</button>
-    {<div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={['','gemini-male','gemini-female'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:''} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="">Device · {selectedVoice?.name||'default'}</option><option value="gemini-male">Gemini · Male (energetic)</option><option value="gemini-female">Gemini · Female (confident)</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>}
+    {<div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:''} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="">Device · {selectedVoice?.name||'default'}</option><option value="gemini">Gemini (Read aloud)</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>}
    </details>
 
    <div className="coach-workspace">
