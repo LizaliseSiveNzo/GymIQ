@@ -36,13 +36,13 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   try {
     const key = Deno.env.get('GEMINI_API_KEY');
-    if (!key) return json({ error: 'Photo analysis is not configured yet.' }, 503);
+    if (!key) return json({ error: 'Photo analysis is not configured yet.' });
     const user = await authenticate(req);
-    if (!user) return json({ error: 'Sign in to analyse a meal.' }, 401);
+    if (!user) return json({ error: 'Sign in to analyse a meal.' });
 
     const { image } = await req.json();
-    if (typeof image !== 'string' || !image) return json({ error: 'Choose a photo first.' }, 400);
-    if (image.length > MAX_BYTES) return json({ error: 'That photo is too large. Use a smaller one.' }, 413);
+    if (typeof image !== 'string' || !image) return json({ error: 'Choose a photo first.' });
+    if (image.length > MAX_BYTES) return json({ error: 'That photo is too large. Use a smaller one.' });
 
     const prompt = 'Identify the foods in this meal photo. For each food estimate the grams on the plate.'
       + ' Return ONLY a JSON object in the shape {"foods":[{"name":"...","grams":120}]}.'
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     });
     const j = await r.json();
     if (!r.ok || j?.error) {
-      return json({ error: 'Photo analysis is unavailable right now.', detail: j?.error?.message || `Gemini returned ${r.status}` }, 502);
+      return json({ error: 'Photo analysis is unavailable right now.', detail: j?.error?.message || `Gemini returned ${r.status}` });
     }
     const raw = j?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     let parsed: { foods?: Array<{ name?: string; grams?: unknown }> } = {};
@@ -87,6 +87,6 @@ Deno.serve(async (req) => {
     }
     return json({ foods: outFoods, totals, matched: items.length, unmatched: outFoods.length - items.length });
   } catch (e) {
-    return json({ error: 'Could not analyse that photo. Try again or log it manually.', detail: String(e) }, 500);
+    return json({ error: 'Could not analyse that photo. Try again or log it manually.', detail: String(e) });
   }
 });
