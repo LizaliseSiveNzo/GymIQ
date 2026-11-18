@@ -17,6 +17,8 @@ const initial={sex:'female',age:'',height_cm:'',weight_kg:'',goal_weight_kg:'',m
 const blankMeal=()=>({id:crypto.randomUUID(),name:'',slot:'breakfast',items:[{food_id:foods[0].id,grams:50}],manual:false,kcal:''});
 const format=n=>Math.round(Number(n)||0).toLocaleString();
 const startOfWeek=day=>{const d=new Date(`${day}T12:00:00`);d.setDate(d.getDate()-(d.getDay()+6)%7);return localDay(d);};
+const addDays=(day,n)=>{const d=new Date(`${day}T12:00:00`);d.setDate(d.getDate()+n);return localDay(d);};
+const dateLabel=day=>new Date(`${day}T12:00:00`).toLocaleDateString(undefined,{day:'numeric',month:'short'});
 async function invoke(body){
   const {data,error}=await supabase.functions.invoke('gymiq-meal-plan',{body:{...body,offset:new Date().getTimezoneOffset()}});
   if(error){let message;try{message=(await error.context.json()).error;}catch{/* generic network error */}throw Error(message||'Could not reach the planner. Please try again.');}
@@ -201,6 +203,8 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const macroTargets={protein:guideKcal?Math.round(guideKcal*0.25/4):0,carbs:guideKcal?Math.round(guideKcal*0.45/4):0,fat:guideKcal?Math.round(guideKcal*0.30/9):0};
   const guideKnown=summary.guideDays===summary.days&&summary.guideDays>0;
   const periodName=period==='day'?'Daily':period==='week'?'Week':'Month';
+  const weekStartDay=startOfWeek(day),currentWeekStart=startOfWeek(today);
+  function shiftWeek(n){const d=addDays(startOfWeek(day),n);setDay(d);setCards(SLOTS.map(slot=>({...blankMeal(),slot})));setEditingId(null);setCorrecting(null);}
   const show=key=>section==='home'||section===key;
   useEffect(()=>{
     if(!loading && !goal && !goalDismissed && goalDialog.current){
@@ -215,7 +219,7 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
     {section!=='home'&&!['sources','insights'].includes(section)&&<div className="nutrition-view-date">{datePicker}</div>}
     {section==='home'&&<section className="mf-card nutrition-overview">
       <div className="section-heading"><div><span className="nutrition-eyebrow">FOOD & FOCUS</span><h2>Calorie overview</h2></div><button className="btn btn-ghost" onClick={()=>onSectionChange('goals')}>Edit goals</button></div>
-      {datePicker}
+      <nav aria-label="Food week" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, marginBottom:10 }}><button type="button" className="btn btn-ghost" aria-label="Previous week" onClick={()=>shiftWeek(-7)}>←</button><div style={{ textAlign:'center', minWidth:0 }}><strong style={{ display:'block', fontSize:14 }}>{weekStartDay===currentWeekStart?'This week':'Previous week'}</strong><span style={{ fontSize:12, color:'var(--text-muted)' }}>{dateLabel(weekStartDay)} – {dateLabel(addDays(weekStartDay,6))}</span></div><button type="button" className="btn btn-ghost" aria-label="Next week" disabled={busy||weekStartDay>=currentWeekStart} onClick={()=>shiftWeek(7)}>→</button></nav>
       <div className="nutrition-periods" aria-label="Food summary period">{['day','week','month'].map(p=><button className={`btn ${period===p?'btn-primary':'btn-ghost'}`} aria-pressed={period===p} key={p} onClick={()=>setPeriod(p)}>{p==='day'?'Day':p==='week'?'Week to date':'Month to date'}</button>)}</div>
       <div className="nutrition-numbers"><div><span>Food logged</span><strong>{format(summary.logged)}<small> kcal</small></strong></div><div><span>{periodName} guide · estimate{!guideKnown&&summary.guideDays>0?` · ${summary.guideDays} known days`:''}</span><strong>{summary.guideDays?format(summary.guide):'—'}<small>{summary.guideDays?' kcal':''}</small></strong></div></div>
       {guideKnown&&summary.guide>0&&<div className="nutrition-meter" role="meter" aria-label={`${periodName} calories logged against guide`} aria-valuemin={0} aria-valuemax={summary.guide} aria-valuenow={Math.min(summary.logged,summary.guide)}><span style={{width:`${Math.min(100,summary.logged/summary.guide*100)}%`}}/></div>}
