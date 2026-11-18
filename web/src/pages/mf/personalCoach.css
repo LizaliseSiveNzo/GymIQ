@@ -1,8 +1,9 @@
-.mf-app:has(.coach-page){box-sizing:border-box;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom))}
+.mf-app:has(.coach-page){box-sizing:border-box;height:100vh;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom))}
+html:has(.coach-page),body:has(.coach-page){overflow:hidden}
 .mf-app:has(.coach-page) .mf-header{flex:none;width:100%;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 20px 12px}
 .mf-app:has(.coach-page) .mf-header .app-wordmark{margin-bottom:0}
 .mf-app:has(.coach-page) .mf-title{font-size:24px;margin:0}
-.mf-app:has(.coach-page) .mf-content{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-bottom:8px}
+.mf-app:has(.coach-page) .mf-content{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-bottom:0}
 .coach-page{display:flex;flex-direction:column;gap:10px;width:100%;flex:1;min-height:0;max-width:820px;margin:0 auto}
 .coach-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px;flex:none}
 .coach-model{display:flex;align-items:center;gap:8px;font-size:13px;color:#a7aaa5}.coach-model>span{color:#c6ff3a;font-size:20px}.coach-stop{font-size:12px;min-height:36px;padding:6px 12px}
@@ -16,4 +17,4 @@
 .coach-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.coach-actions .btn{min-height:44px}.coach-proposal{margin-top:16px;border:1px solid #43532d;border-radius:16px;padding:16px;background:#10140b}.coach-proposal summary{cursor:pointer;min-height:44px;align-content:center}.coach-proposal h3,.coach-meal h4{margin:8px 0}.coach-proposal li{line-height:1.65;overflow-wrap:anywhere}.coach-meal{padding:10px 0;border-bottom:1px solid #313628}.coach-meal:last-child{border-bottom:0}.coach-meal p{line-height:1.6}.coach-proposal .section-heading{flex-wrap:wrap}.coach-page .subtle{color:#afb3b8}.coach-role{text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:700;color:#c6ff3a}
 @media(max-width:480px){.coach-choice-grid{grid-template-columns:1fr}.coach-actions .btn{flex:1 1 auto}.coach-proposal{padding:12px}.coach-conversation{gap:24px}.coach-starters{flex-direction:column;align-items:stretch}.coach-welcome{padding:10px 0}.coach-welcome p{margin-bottom:16px}.coach-welcome-mark{font-size:30px;margin-bottom:8px}.coach-starters button{justify-content:space-between;padding:10px 12px}.coach-user-message{max-width:92%}.coach-page{gap:8px}}
 
-.coach-voice-setting{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #30362a;font-size:13px}.coach-voice-setting label{font-weight:700;white-space:nowrap}.coach-voice-setting select{flex:1}.coach-voice-setting p{margin:0;font-size:12px;line-height:1.5}
+.coach-voice-setting{display:flex;align-items:center;gap:10px;font-size:13px;flex:none;color:var(--text-subtle)}.coach-voice-setting label{font-weight:700;white-space:nowrap;color:var(--ink)}.coach-voice-setting select{flex:1;min-width:0}.coach-voice-setting p{margin:0;font-size:12px;line-height:1.5}.coach-privacy{margin-left:auto;color:#8e9882;text-decoration:none;font-size:11px;flex:none}
