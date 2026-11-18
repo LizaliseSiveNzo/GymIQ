@@ -54,15 +54,15 @@ Deno.serve(async (req) => {
       scoped.from('personal_coach_access').select('enabled').eq('user_id', user.id).maybeSingle(), scoped.rpc('has_active_membership'),
       scoped.from('coach_turns').select('reply,status').eq('id', turnId).eq('user_id', user.id).maybeSingle(),
     ]);
-    if (access.error || !access.data?.enabled || membership.error || membership.data !== true) return json({ error: 'Active coach access is required.' }, 403);
-    if (turn.error || !turn.data?.reply || turn.data.status !== 'done') return json({ error: 'Reply unavailable.' }, 404);
+    if (access.error || !access.data?.enabled || membership.error || membership.data !== true) return json({ error: 'Active coach access is required.' });
+    if (turn.error || !turn.data?.reply || turn.data.status !== 'done') return json({ error: 'Reply unavailable.' });
     const key = Deno.env.get('GEMINI_API_KEY')?.trim();
     if (!key) return json({ error: 'Gemini voice is not configured yet.', code: 'not_configured' }, 503);
     const cap = Number(Deno.env.get('GEMINI_TTS_DAILY_CHARS') || 1000000);
     const reservation = await db.rpc('reserve_coach_speech', { p_user: user.id, p_turn: turnId, p_voice: TTS_VOICE, p_daily_cap: Number.isInteger(cap) && cap > 0 ? cap : 1000000 });
     if (reservation.error) throw Error('Could not prepare speech: ' + (reservation.error.message || ''));
     const status = reservation.data?.status;
-    if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'Gemini reading allowance reached. Try the device voice.', code: status }, 429);
+    if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'Gemini reading allowance reached. Try the device voice.' });
     const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.wav`;
     if (status === 'generate') {
       reserved = true;
