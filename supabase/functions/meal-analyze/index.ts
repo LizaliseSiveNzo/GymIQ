@@ -100,26 +100,35 @@ Deno.serve(async (req) => {
     if (!r.ok || j?.error) {
       return json({ error: 'Photo analysis is unavailable right now.', detail: j?.error?.message || `Gemini returned ${r.status}` });
     }
-    let raw = j?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    let raw = (j?.candidates?.[0]?.content?.parts || []).map((p: any) => p?.text || '').join('').trim();
     raw = String(raw).replace(/```(?:json)?\s*/gi, '').replace(/```\s*$/g, '').trim();
-    let parsed: { foods?: Array<{ name?: string; portion?: unknown; grams?: unknown }> } = {};
-    try { parsed = JSON.parse(raw); } catch { /* fall through to empty */ }
+    let parsed: any = {};
+    try { parsed = JSON.parse(raw); }
+    catch {
+      const start = raw.search(/[{[]/);
+      if (start >= 0) { try { parsed = JSON.parse(raw.slice(start)); } catch { parsed = {}; } }
+    }
 
-    const detected = Array.isArray(parsed?.foods) ? parsed.foods : [];
-    const outFoods = [];
+    const detected: any[] = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.foods) ? parsed.foods : Array.isArray(parsed?.items) ? parsed.items : [];
+
+    const outFoods: any[] = [];
     const items: Array<{ food_id: string; grams: number }> = [];
     for (const d of detected) {
-      const name = String(d?.name || '').trim();
+      const name = String(d?.name || d?.item || d?.food || '').trim();
       if (!name) continue;
       const food = matchFood(name);
-      const grams = d?.grams ? gramsOf(d.grams) : portionToGrams(d?.portion, food);
-      const portion = String(d?.portion || 'medium').toLowerCase();
+      const grams = d?.grams ? gramsOf(d.grams) : portionToGrams(d?.portion || d?.size, food);
+      const portion = String(d?.portion || d?.size || 'medium').toLowerCase();
       if (food) {
         outFoods.push({ name: food.name, food_id: food.id, grams, estimated: false, portion });
         items.push({ food_id: food.id, grams });
       } else {
         outFoods.push({ name, food_id: null, grams, estimated: true, portion });
       }
+    }
+
+    if (!outFoods.length) {
+      return json({ error: 'No foods were detected. Try a clearer, closer photo.', detail: raw.slice(0, 400) });
     }
 
     let totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
