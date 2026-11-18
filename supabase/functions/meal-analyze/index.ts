@@ -32,6 +32,15 @@ function gramsOf(value: unknown): number {
   return Number.isFinite(n) && n >= 1 && n <= 2000 ? Math.round(n) : 0;
 }
 
+const DEFAULT_PORTION = 100;
+function portionToGrams(portion: unknown, food: { portion_grams?: number } | null): number {
+  const base = Number(food?.portion_grams) || DEFAULT_PORTION;
+  const p = String(portion || '').toLowerCase().trim();
+  if (p === 'small' || p === 's') return Math.max(20, Math.round(base * 0.5));
+  if (p === 'large' || p === 'l' || p === 'big' || p === 'xl') return Math.min(2000, Math.round(base * 1.5));
+  return base;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   try {
@@ -44,10 +53,10 @@ Deno.serve(async (req) => {
     if (typeof image !== 'string' || !image) return json({ error: 'Choose a photo first.' });
     if (image.length > MAX_BYTES) return json({ error: 'That photo is too large. Use a smaller one.' });
 
-    const prompt = 'Identify the foods in this meal photo. For each food estimate the grams on the plate.'
-      + ' Return ONLY a JSON object in the shape {"foods":[{"name":"...","grams":120}]}.'
-      + ' Use common food names (e.g. "chicken breast", "brown rice", "broccoli").'
-      + ' Ignore plates, cutlery, packaging, hands and background. Do not invent foods.';
+    const prompt = 'Identify each distinct food on this plate separately (for example: chicken breast, brown rice, broccoli).'
+      + ' For each food, estimate its portion size as "small", "medium", or "large" (a portion, not an exact weight).'
+      + ' Return ONLY a JSON object in the shape {"foods":[{"name":"chicken breast","portion":"medium"}]}.'
+      + ' Use common food names. Ignore plates, cutlery, packaging, hands and background. Do not invent foods.';
 
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
       method: 'POST',
@@ -62,7 +71,7 @@ Deno.serve(async (req) => {
       return json({ error: 'Photo analysis is unavailable right now.', detail: j?.error?.message || `Gemini returned ${r.status}` });
     }
     const raw = j?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    let parsed: { foods?: Array<{ name?: string; grams?: unknown }> } = {};
+    let parsed: { foods?: Array<{ name?: string; portion?: unknown; grams?: unknown }> } = {};
     try { parsed = JSON.parse(raw); } catch { /* fall through to empty */ }
 
     const detected = Array.isArray(parsed?.foods) ? parsed.foods : [];
@@ -70,14 +79,15 @@ Deno.serve(async (req) => {
     const items: Array<{ food_id: string; grams: number }> = [];
     for (const d of detected) {
       const name = String(d?.name || '').trim();
-      const grams = gramsOf(d?.grams);
-      if (!name || !grams) continue;
+      if (!name) continue;
       const food = matchFood(name);
+      const grams = d?.grams ? gramsOf(d.grams) : portionToGrams(d?.portion, food);
+      const portion = String(d?.portion || 'medium').toLowerCase();
       if (food) {
-        outFoods.push({ name: food.name, food_id: food.id, grams, estimated: false });
+        outFoods.push({ name: food.name, food_id: food.id, grams, estimated: false, portion });
         items.push({ food_id: food.id, grams });
       } else {
-        outFoods.push({ name, food_id: null, grams, estimated: true });
+        outFoods.push({ name, food_id: null, grams, estimated: true, portion });
       }
     }
 

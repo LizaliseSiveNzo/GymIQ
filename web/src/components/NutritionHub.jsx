@@ -31,7 +31,7 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const [cards,setCards]=useState(()=>SLOTS.map(slot=>({...blankMeal(),slot}))),[editingId,setEditingId]=useState(null),[correcting,setCorrecting]=useState(null),[period,setPeriod]=useState('day');
   const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [weights,setWeights]=useState([]),[weighIn,setWeighIn]=useState('');
-  const [photoBusy,setPhotoBusy]=useState(false),[photoResult,setPhotoResult]=useState(null),[photoError,setPhotoError]=useState(''),[photoPreview,setPhotoPreview]=useState(null);
+  const [photoBusy,setPhotoBusy]=useState(false),[photoResult,setPhotoResult]=useState(null),[photoError,setPhotoError]=useState(''),[photoPreview,setPhotoPreview]=useState(null),[photoItems,setPhotoItems]=useState(null);
   const photoInput=useRef(null);
   const today=localDay();
   const goalDialog=useRef(null);
@@ -120,15 +120,17 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
     const file=e.target.files?.[0];e.target.value='';
     if(!file)return;
     setPhotoBusy(true);setPhotoError('');setPhotoResult(null);setPhotoPreview(URL.createObjectURL(file));
-    try{setPhotoResult(await analyzeMealPhoto(file));}
+    try{const result=await analyzeMealPhoto(file);setPhotoResult(result);setPhotoItems(result.foods||[]);}
     catch(err){setPhotoError(err.message||'Could not analyse that photo.');}
     finally{setPhotoBusy(false);}
   }
+  function patchPhotoItem(i,patch){setPhotoItems(prev=>prev.map((f,n)=>n===i?{...f,...patch}:f));}
+  function photoTotals(){const items=(photoItems||[]).filter(f=>f.food_id&&f.grams>0).map(f=>({food_id:f.food_id,grams:f.grams}));if(!items.length)return {kcal:0,protein:0,carbs:0,fat:0};try{return mealTotals(items,foods);}catch{return {kcal:0,protein:0,carbs:0,fat:0};}}
   function logPhotoMeal(){
-    const items=photoResult.foods.filter(f=>f.food_id).map(f=>({food_id:f.food_id,grams:f.grams}));
-    if(!items.length){setPhotoError('No recognisable foods matched the library. Log it manually instead.');return;}
-    const name=photoResult.foods.map(f=>f.name).slice(0,3).join(' + ');
-    action(async()=>{await enqueueFood({name,slot:'snack',items,kcal:null},crypto.randomUUID());setPhotoResult(null);setPhotoPreview(null);});
+    const items=(photoItems||[]).filter(f=>f.food_id&&f.grams>0).map(f=>({food_id:f.food_id,grams:f.grams}));
+    if(!items.length){setPhotoError('No recognisable foods matched the library. Pick a food or log it manually instead.');return;}
+    const name=(photoItems||[]).filter(f=>f.food_id).map(f=>f.name).slice(0,3).join(' + ');
+    action(async()=>{await enqueueFood({name,slot:'snack',items,kcal:null},crypto.randomUUID());setPhotoResult(null);setPhotoPreview(null);setPhotoItems(null);});
   }
   async function toggleEaten(card){
     if(busy)return;
@@ -259,10 +261,17 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
     </section>}
     {photoResult&&<section className="mf-card" style={{ marginBottom: 12 }}>
       {photoPreview&&<img src={photoPreview} alt="Meal" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 12, marginBottom: 8 }} />}
-      <div className="section-heading"><h2>Photo estimate</h2><button className="btn btn-ghost" onClick={()=>{setPhotoResult(null);setPhotoPreview(null);}} aria-label="Close">✕</button></div>
-      {photoResult.foods.map((f,i)=><div className="nutrition-log" key={i}><span>{f.name}{f.estimated?' · estimated':''}</span><strong>{f.grams} g</strong></div>)}
-      <p className="subtle" style={{ margin: '8px 0' }}>Total: {format(photoResult.totals.kcal)} kcal · P {format(photoResult.totals.protein)}g · C {format(photoResult.totals.carbs)}g · F {format(photoResult.totals.fat)}g{photoResult.unmatched?` · ${photoResult.unmatched} not matched` : ''}</p>
-      <div className="launch-actions"><button className="btn btn-primary" disabled={busy} onClick={logPhotoMeal}>Log this meal</button></div>
+      <div className="section-heading"><h2>Photo estimate</h2><button className="btn btn-ghost" onClick={()=>{setPhotoResult(null);setPhotoPreview(null);setPhotoItems(null);}} aria-label="Close">✕</button></div>
+      <p className="subtle" style={{ marginBottom: 8 }}>Check the foods and adjust the amounts. Tap an unmatched food to pick the closest library item.</p>
+      {(photoItems||[]).map((f,i)=><div className="nutrition-log" key={i} style={{ alignItems: 'center', gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {f.food_id ? <span>{f.name}</span> : <FoodPicker foods={foods} value={null} onChange={foodId=>{const food=foods.find(x=>x.id===foodId);patchPhotoItem(i,{food_id:foodId,name:food?.name||f.name,estimated:false});}} />}
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, flexShrink: 0 }}><input type="number" inputMode="decimal" min="1" max="2000" step="1" value={f.grams} onChange={e=>patchPhotoItem(i,{grams:Math.max(0,Number(e.target.value)||0)})} style={{ width: 64, textAlign: 'center' }} />g</label>
+        {f.estimated&&!f.food_id&&<span className="badge badge-neutral" style={{ flexShrink: 0 }}>unmatched</span>}
+      </div>)}
+      <p className="subtle" style={{ margin: '8px 0' }}>Total: {format(photoTotals().kcal)} kcal · P {format(photoTotals().protein)}g · C {format(photoTotals().carbs)}g · F {format(photoTotals().fat)}g</p>
+      <div className="launch-actions"><button className="btn btn-primary" disabled={busy||!(photoItems||[]).some(f=>f.food_id&&f.grams>0)} onClick={logPhotoMeal}>Log this meal</button></div>
     </section>}
     {show('builder')&&<section className="mf-card" id="meal-builder">
       {correcting?<><h2>Correct food entry</h2><form onSubmit={saveCorrection} className="nutrition-form"><div className="nutrition-fields"><label>Meal or food name<input required maxLength="100" value={correcting.name} onChange={e=>setCorrecting(c=>({...c,name:e.target.value}))}/></label><label>Meal time<select value={correcting.slot} onChange={e=>setCorrecting(c=>({...c,slot:e.target.value}))}>{SLOTS.map(s=><option value={s} key={s}>{s}</option>)}</select></label></div>{correcting.manual?<label>Calories eaten · kcal<input type="number" min="1" max="10000" required step="1" value={correcting.kcal} onChange={e=>setCorrecting(c=>({...c,kcal:e.target.value}))}/></label>:<p className="subtle">Ingredients are kept from the original entry.</p>}<div className="launch-actions"><button type="submit" className="btn btn-primary" disabled={busy}>{busy?'Saving…':'Save correction'}</button><button type="button" className="btn btn-ghost" disabled={busy} onClick={()=>setCorrecting(null)}>Cancel</button></div></form></>
