@@ -1,7 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 import { admin, authenticate, json } from '../_shared/launch.ts';
 import foods from '../_shared/nutrition/foods.json' with { type: 'json' };
-import { SLOTS, RECIPES, calorieGuide, buildPlan, shufflePlan } from '../_shared/nutrition/planner.js';
+import { SLOTS, RECIPES, calorieGuide, buildPlan, shufflePlan, WEEKLY_PLANS, buildPresetPlan } from '../_shared/nutrition/planner.js';
 
 Deno.serve(async(req:Request)=>{
   if(req.method==='OPTIONS')return json({});
@@ -35,10 +35,26 @@ Deno.serve(async(req:Request)=>{
       if(saved.error)throw Error('Goal save failed');
       return json({result,settings});
     }
-    if(!['plan','shuffle'].includes(body.action))return json({error:'Invalid action'},400);
-    const goal=await scoped.from('nutrition_goals').select('settings,result').eq('user_id',user.id).single();
+    if(!['plan','shuffle','preset','default'].includes(body.action))return json({error:'Invalid action'},400);
+    const goal=await scoped.from('nutrition_goals').select('id,settings,result').eq('user_id',user.id).single();
     if(goal.error||!goal.data)return json({error:'Save your monthly goal first.'},400);
     const {settings,result}=goal.data;
+    if(body.action==='preset'||body.action==='default'){
+      const preset=WEEKLY_PLANS.find(p=>p.id===body.preset_id);
+      if(!preset)return json({error:'Choose a meal preset.'},400);
+      if(body.action==='default'){
+        const nextSettings={...(goal.data.settings||{}),default_plan:preset.id};
+        const saved=await db.from('nutrition_goals').update({settings:nextSettings}).eq('id',goal.data.id);
+        if(saved.error)throw Error('Default save failed');
+        return json({default_plan:preset.id,settings:nextSettings});
+      }
+      let plan;
+      try{plan=buildPresetPlan(preset,foods);}catch(e){return json({error:(e as Error).message},400);}
+      const target=plan.reduce((n:any,m:any)=>n+m.kcal,0);
+      const savedPlan=await db.from('nutrition_meal_plans').upsert({user_id:user.id,day:today,source:'preset',plan,target,created_at:new Date().toISOString()},{onConflict:'user_id,day'});
+      if(savedPlan.error)throw Error('Plan save failed');
+      return json({plan,source:'preset',target,preset_id:preset.id});
+    }
     if(body.action==='shuffle'){
       const slot=body.slot||'all';
       if(slot!=='all'&&!SLOTS.includes(slot))return json({error:'Choose a valid meal to shuffle.'},400);

@@ -2,7 +2,7 @@ import { Fragment, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import {readView,saveView} from '../lib/deviceCache.js';
 import foods from '../../../supabase/functions/_shared/nutrition/foods.json';
-import { RECIPES, SLOTS, calorieGuide, mealTotals, localDay, periodSummary, eligibleRecipes, planMatchesDiet } from '../../../supabase/functions/_shared/nutrition/planner.js';
+import { RECIPES, SLOTS, WEEKLY_PLANS, calorieGuide, mealTotals, localDay, periodSummary, eligibleRecipes, planMatchesDiet } from '../../../supabase/functions/_shared/nutrition/planner.js';
 import './nutrition.css';
 import {useLogSync} from '../context/LogSyncContext.jsx';
 import {subscribeSynced} from '../lib/logQueue.js';
@@ -99,6 +99,16 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
     const data=await invoke({action:'shuffle',slot});
     setPlan({...data,day:today});
     setNotice(slot==='all'?'All four meals shuffled. Your logged food is unchanged.':`${slot[0].toUpperCase()+slot.slice(1)} changed. The other meals and your food diary are unchanged.`);
+  });}
+  async function applyPreset(presetId){await action(async()=>{
+    const data=await invoke({action:'preset',preset_id:presetId});
+    setPlan({...data,day:today});
+    setNotice('Preset applied to today. Tick meals in the builder when eaten.');
+  });}
+  async function setDefaultPlan(presetId){await action(async()=>{
+    const data=await invoke({action:'default',preset_id:presetId});
+    setGoal(g=>g?{...g,settings:data.settings}:g);
+    setNotice('Daily default saved. New days will offer this plan.');
   });}
   function newCard(slot){return {...blankMeal(),slot};}
   const cardById=id=>cards.find(c=>c.id===id);
@@ -245,6 +255,8 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
     </form></section>}
     {show('plan')&&<section className="mf-card"><div className="section-heading"><h2>Your daily meal plan</h2><span className="badge badge-neutral">{plan?.plan?.some(m=>m.selection_method==='shuffle')?'Shuffled':plan?.source==='deepseek'?'AI-assisted':'Portions calculated'}</span></div>
       {goal&&day===today&&<><div className="launch-actions"><button className="btn btn-primary" disabled={busy} onClick={()=>generate(true)}>Build with AI</button><button className="btn btn-secondary" disabled={busy} onClick={()=>generate(false)}>Build basic plan</button></div></>}<details className="mf-card" style={{marginTop:12}}><summary>★ Favourites & recent meals</summary><QuickMeals recent={recent} favourites={favourites} day={day} busy={busy} onUse={useQuick} onLog={value=>action(()=>enqueueFood(value))} onRemove={entry=>action(async()=>{const {error}=await supabase.from('food_favourites').delete().eq('user_id',userId).eq('id',entry.id);if(error)throw Error('Could not remove favourite.');setFavourites(v=>v.filter(f=>f.id!==entry.id));})}/></details>
+      {!plan&&goal?.settings?.default_plan&&day===today&&<button className="btn btn-secondary" disabled={busy} onClick={()=>applyPreset(goal.settings.default_plan)} style={{marginTop:12}}>Use your default plan</button>}
+      <details className="mf-card" style={{marginTop:12}}><summary>📅 Weekly plans · plug-and-play day presets</summary><p className="subtle">A complete day of meals to apply as-is, or set as your repeating daily default so you don't have to think about your food plan.</p>{WEEKLY_PLANS.map(preset=>{const totalKcal=SLOTS.reduce((n,slot)=>{try{return n+mealTotals(preset.meals[slot].items,foods).kcal;}catch{return n;}},0);const isDefault=goal?.settings?.default_plan===preset.id;return <div className="mf-card" key={preset.id} style={{marginTop:8}}><div className="row between"><strong>{preset.name}</strong>{isDefault&&<span className="badge badge-neutral">Your default</span>}</div><p className="subtle" style={{margin:'4px 0'}}>{preset.description}</p><p className="subtle">≈ {format(totalKcal)} kcal/day</p><ul style={{fontSize:13,margin:'6px 0'}}>{SLOTS.map(slot=><li key={slot}><b>{slot}</b>: {preset.meals[slot].name} — {preset.meals[slot].items.map(i=>i.grams+'g').join(' + ')}</li>)}</ul><div className="launch-actions"><button className="btn btn-primary" disabled={busy||day!==today} onClick={()=>applyPreset(preset.id)}>Use today</button><button className="btn btn-secondary" disabled={busy||day!==today} onClick={()=>setDefaultPlan(preset.id)}>{isDefault?'Keep as default':'Set as daily default'}</button></div></div>;})}</details>
       {plan&&!planCompatible&&<p className="nutrition-notice">This saved plan does not match your meal preference. Rebuild today’s plan for the updated choices. Your logged food stays unchanged.</p>}
       {plan&&planCompatible&&<><p className="subtle">{plan.plan.some(m=>m.selection_method==='shuffle')?'Shuffled options · GymIQ calculated portions.':plan.source==='deepseek'?'DeepSeek prepared meal choices; GymIQ checked ingredients and calculated portions.':'Basic plan · rule-based choices.'} Plan: {format(plan.plan.reduce((n,m)=>n+m.kcal,0))} kcal · guide when built: {format(plan.target)}. {goal?.result?.target!=null&&plan.target!==goal.result.target?'Your guide has changed; rebuild the plan.':''}</p><div className="nutrition-plan-grid">{plan.plan.map((m,index)=><Fragment key={m.slot}><article className="nutrition-meal"><div className="nutrition-meal-heading"><span className="nutrition-eyebrow">{m.slot}</span><button className="btn btn-ghost nutrition-shuffle-one" aria-label={`Shuffle ${m.slot}`} disabled={busy||day!==today} onClick={()=>shuffle(m.slot)}>↻ Shuffle</button></div><h3>{m.name}</h3><strong>{format(m.kcal)} <small>kcal</small></strong><p className="subtle">{format(m.protein)} g protein · {format(m.carbs)} g carbs · {format(m.fat)} g fat</p><div className="nutrition-meal-thumbs">{m.items.map((i,n)=><FoodImage key={n} foodId={i.food_id}/>)}</div><details><summary>Ingredients & portions</summary><ul>{m.items.map((i,n)=><li className="nutrition-food-row" key={n}><FoodImage foodId={i.food_id}/><span>{format(i.grams)} g {foods.find(f=>f.id===i.food_id)?.name}</span></li>)}</ul>{m.preparation&&<p>{m.preparation}</p>}</details><button className="btn btn-secondary" disabled={busy} onClick={()=>choose(m)}>Use in meal builder</button></article>{index===1&&<div className="nutrition-shuffle-center"><button className="btn btn-primary" disabled={busy||day!==today} onClick={()=>shuffle('all')}>↻ Shuffle all meals</button><small>New choices. Same daily calorie guide.</small></div>}</Fragment>)}</div></>}
       {!plan&&<p className="subtle">{goal?'Build today’s plan, or start with a preset below.':'Save your goal above to generate a plan. The meal builder below works without a goal.'}</p>}

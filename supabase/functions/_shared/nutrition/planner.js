@@ -52,6 +52,31 @@ export const RECIPES = [
   {id:'pork-fillet-dinner',slot:'dinner',name:'Pork fillet, sweet potato & carrots',items:[item('168250',170),item('168484',250),item('170393',150),item('171413',10)]},
 
 ];
+// Full-day meal plan presets ("weekly plans"): plug-and-play day templates the
+// user can apply as-is and optionally set as a repeating daily default.
+export const WEEKLY_PLANS = [
+  {
+    id: 'chicken-rice',
+    name: 'Chicken & rice · high protein',
+    description: 'Chicken, rice & broccoli breakfast · beef mince lunch · cream of rice & whey snack · yoghurt dessert.',
+    meals: {
+      breakfast: { name: 'Chicken, rice, broccoli & bread', items: [item('171477',300),item('20045',300),item('169967',200),item('172688',40)] },
+      lunch: { name: 'Beef mince, rice & broccoli', items: [item('174028',160),item('20045',175),item('169967',100)] },
+      snack: { name: 'Cream of rice, whey & blueberries', items: [item('cp024',80),item('cp023',40),item('09050',100)] },
+      dinner: { name: 'Greek yoghurt, blueberries & dark chocolate', items: [item('01256',300),item('09050',100),item('cp025',15)] },
+    },
+  },
+];
+
+export function buildPresetPlan(preset, foods) {
+  return SLOTS.map((slot) => {
+    const m = preset.meals[slot];
+    if (!m || !Array.isArray(m.items) || !m.items.length) throw new Error('Incomplete meal preset.');
+    const totals = mealTotals(m.items, foods);
+    return { slot, name: m.name, recipe_id: preset.id, items: m.items, ...totals };
+  });
+}
+
 export function mealTotals(items, foods) {
   if (!Array.isArray(items) || items.length < 1 || items.length > 30) throw new Error('Choose between 1 and 30 ingredients.');
   const totals={kcal:0,protein:0,carbs:0,fat:0};

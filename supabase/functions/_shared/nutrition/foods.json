@@ -1423,4 +1423,52 @@
     "source_description": "Composite dish · typical recipe (estimated)",
     "portion_grams": 160
   }
+,
+  {
+    "id": "cp023",
+    "name": "Whey protein · powder",
+    "kcal": 400,
+    "protein": 80,
+    "fat": 6,
+    "carbs": 6,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "supplement",
+    "source_description": "Supplement / treat · typical nutrition label (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "cp024",
+    "name": "Cream of rice · dry",
+    "kcal": 360,
+    "protein": 7,
+    "fat": 1,
+    "carbs": 80,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "supplement",
+    "source_description": "Supplement / treat · typical nutrition label (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "cp025",
+    "name": "Dark chocolate · 85%",
+    "kcal": 600,
+    "protein": 8,
+    "fat": 48,
+    "carbs": 20,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "treat",
+    "source_description": "Supplement / treat · typical nutrition label (estimated)",
+    "portion_grams": 15
+  }
 ]
