@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       scoped.from('personal_coach_access').select('enabled').eq('user_id', user.id).maybeSingle(), scoped.rpc('has_active_membership'),
       scoped.from('coach_turns').select('reply,status').eq('id', turnId).eq('user_id', user.id).maybeSingle(),
     ]);
-    if (access.error || !access.data?.enabled || membership.error || membership.data !== true) return json({ error: 'Active coach access is required.' });
+    if (access.error || !access.data?.enabled || membership.error || membership.data !== true) return json({ error: 'This feature is only for paid users.' });
     if (turn.error || !turn.data?.reply || turn.data.status !== 'done') return json({ error: 'Reply unavailable.' });
     const key = Deno.env.get('GEMINI_API_KEY')?.trim();
     if (!key) return json({ error: 'Gemini voice is not configured yet.', code: 'not_configured' }, 503);

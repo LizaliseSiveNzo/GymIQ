@@ -31,7 +31,7 @@ export default function AiReviewCard({ domain }) {
   const notice=result?.source==='rules'&&result.reason!=='basic_selected' ? {
     not_configured:'AI reviews are not available yet. Your basic review is ready.',
     more_data_needed:'Add more completed records first. Your basic review explains what is missing.',
-    membership_required:'AI reviews require active membership. Your basic review is ready.',
+    membership_required:'AI reviews are only for paid users. Your basic review is ready.',
     user_limit:'Your fresh AI review limit is reached for today. Your basic review is ready.',
     app_limit:'Today’s AI allowance is used up. Your basic review is ready.',
     busy:'AI reviews are busy right now. Your basic review is ready.',

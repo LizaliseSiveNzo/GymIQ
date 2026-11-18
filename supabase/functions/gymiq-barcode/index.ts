@@ -8,7 +8,7 @@ Deno.serve(async(req:Request)=>{
   const raw=await req.text();if(raw.length>1000)return json({error:'Request too large'},400);
   const {barcode}=JSON.parse(raw);if(!validBarcode(barcode))return json({error:'Enter a valid 8, 12, 13 or 14-digit food barcode.'},400);
   const scoped=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{global:{headers:{Authorization:req.headers.get('Authorization')!}},auth:{persistSession:false}});
-  const membership=await scoped.rpc('has_active_membership');if(membership.error||membership.data!==true)return json({error:'Active membership is required.'},403);
+  const membership=await scoped.rpc('has_active_membership');if(membership.error||membership.data!==true)return json({error:'This feature is only for paid users.'},403);
   const db=admin(),cached=await db.from('barcode_product_cache').select('product,fetched_at').eq('barcode',barcode).maybeSingle();
   if(cached.data&&Date.parse(cached.data.fetched_at)>Date.now()-14*86400000)return json({product:cached.data.product,cached:true});
   const reserve=await db.rpc('reserve_barcode_lookup',{p_user:user.id});if(reserve.error||reserve.data!==true)return json({error:'Barcode lookup is busy. Try again in a minute, or enter the label calories.'},429);

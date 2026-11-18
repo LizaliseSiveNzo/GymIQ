@@ -1,7 +1,8 @@
 export function classifySyncError(error){
  const message=String(error?.message||'');
  if(message.includes('CONFLICT:'))return {status:'conflict',message:message.replace(/^.*CONFLICT:\s*/,'')};
- if(['42501','P0001','23514','22P02','23503','PGRST301'].includes(error?.code)||/membership|sign in|jwt|permission|invalid/i.test(message))return {status:'blocked',message:'This entry needs review or renewed sign-in/membership before syncing.'};
+ if(/membership|premium|paid/i.test(message))return {status:'blocked',message:'This feature is only for paid users. Upgrade to sync this entry.'};
+  if(['42501','P0001','23514','22P02','23503','PGRST301'].includes(error?.code)||/sign in|jwt|permission|invalid/i.test(message))return {status:'blocked',message:'This entry needs review or renewed sign-in before syncing.'};
  return {status:'queued',message:'Connection unavailable. Your entry is still on this device.'};
 }
 export function retryDelay(attempt){return Math.min(300000,2000*2**Math.min(attempt,8));}

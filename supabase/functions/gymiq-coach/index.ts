@@ -23,7 +23,7 @@ Deno.serve(async(req:Request)=>{
   const access=await scoped.from('personal_coach_access').select('enabled').eq('user_id',user.id).maybeSingle();
   if(access.error||!access.data?.enabled)return json({error:'The personal coach is not enabled for this account.'},403);
   const membership=await scoped.rpc('has_active_membership');
-  if(membership.error||membership.data!==true)return json({error:'Active membership is required.'},403);
+  if(membership.error||membership.data!==true)return json({error:'This feature is only for paid users.'},403);
   const key=Deno.env.get('DEEPSEEK_API_KEY')?.trim();
   if(body.action==='status')return json({enabled:true,configured:!!key,model:Deno.env.get('DEEPSEEK_MODEL')||'deepseek-flash'});
   if(body.action!=='chat'||body.consent!==true)return json({error:'Enable sharing with DeepSeek before sending a message.'},400);

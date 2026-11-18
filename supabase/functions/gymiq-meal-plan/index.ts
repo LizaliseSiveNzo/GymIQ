@@ -16,7 +16,7 @@ Deno.serve(async(req:Request)=>{
     const today=new Date(Date.now()-body.offset*60000).toISOString().slice(0,10);
     const scoped=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{global:{headers:{Authorization:req.headers.get('Authorization')!}},auth:{persistSession:false}});
     const membership=await scoped.rpc('has_active_membership');
-    if(membership.error||membership.data!==true)return json({error:'Active membership is required.'},403);
+    if(membership.error||membership.data!==true)return json({error:'This feature is only for paid users.'},403);
     const db=admin();
     if(body.action==='goal'){
       const s=body.settings||{};
