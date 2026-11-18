@@ -10,24 +10,35 @@ async function authenticate(req) {
   return error ? null : data.user;
 }
 
-const TTS_VOICE = 'b347db033a6549378b48d00acb0d06cd';
+// Gemini TTS. Energetic, confident prebuilt voices: male + female.
+const GEMINI_VOICES = { male: 'Puck', female: 'Kore' };
+const TTS_MODEL = 'gemini-2.5-flash-tts';
 
-async function openRouterSpeech({ text, key, signal }) {
-  if (!key) throw Error('OpenRouter speech is not configured');
+async function geminiSpeech({ text, voice, key, signal }) {
+  if (!key) throw Error('Gemini voice is not configured');
   if (typeof text !== 'string' || !text.trim()) throw Error('Reply unavailable for speech');
-  const res = await fetch('https://openrouter.ai/api/v1/audio/speech', {
+  const voiceName = GEMINI_VOICES[voice];
+  if (!voiceName) throw Error('Choose a valid voice');
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${key}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'User-Agent': 'GymIQ' },
-    body: JSON.stringify({ model: 'fish-audio/s2.1-pro-free:free', input: text, voice: TTS_VOICE, response_format: 'mp3', speed: 1.25 }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text }] }],
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
+      },
+    }),
     signal,
   });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw Error(`OpenRouter speech failed (HTTP ${res.status}): ${detail.slice(0, 300)}`);
-  }
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  if (!bytes.byteLength || bytes.byteLength > 5000000) throw Error('Invalid speech size');
-  return bytes;
+  const j = await res.json();
+  if (!res.ok || j?.error) throw Error('Gemini voice failed: ' + (j?.error?.message || `HTTP ${res.status}`));
+  const part = j?.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data);
+  const base64 = part?.inlineData?.data;
+  if (!base64) throw Error('Gemini returned no audio');
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  if (!bytes.byteLength || bytes.byteLength > 8000000) throw Error('Invalid speech size');
+  return { bytes, mimeType: part.inlineData.mimeType || 'audio/wav' };
 }
 
 Deno.serve(async (req) => {
@@ -38,8 +49,9 @@ Deno.serve(async (req) => {
   const db = admin(); let reserved = false, turnId = '';
   try {
     const raw = await req.text();
-    if (raw.length > 250) return json({ error: 'Invalid speech request' }, 400);
+    if (raw.length > 300) return json({ error: 'Invalid speech request' }, 400);
     const body = JSON.parse(raw); turnId = body.turn_id;
+    const voice = GEMINI_VOICES[body.voice] ? body.voice : 'female';
     if (typeof turnId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(turnId)) return json({ error: 'Choose a saved reply.' }, 400);
     const scoped = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization')! } }, auth: { persistSession: false } });
     const [access, membership, turn] = await Promise.all([
@@ -48,26 +60,27 @@ Deno.serve(async (req) => {
     ]);
     if (access.error || !access.data?.enabled || membership.error || membership.data !== true) return json({ error: 'Active coach access is required.' }, 403);
     if (turn.error || !turn.data?.reply || turn.data.status !== 'done') return json({ error: 'Reply unavailable.' }, 404);
-    const key = Deno.env.get('OPENROUTER_API_KEY')?.trim();
-    if (!key) return json({ error: 'OpenRouter voice is not configured yet.', code: 'not_configured' }, 503);
-    const cap = Number(Deno.env.get('OPENROUTER_TTS_DAILY_CHARS') || 1000000);
-    const reservation = await db.rpc('reserve_coach_speech', { p_user: user.id, p_turn: turnId, p_voice: TTS_VOICE, p_daily_cap: Number.isInteger(cap) && cap > 0 ? cap : 1000000 });
+    const key = Deno.env.get('GEMINI_API_KEY')?.trim();
+    if (!key) return json({ error: 'Gemini voice is not configured yet.', code: 'not_configured' }, 503);
+    const voiceName = GEMINI_VOICES[voice];
+    const cap = Number(Deno.env.get('GEMINI_TTS_DAILY_CHARS') || 1000000);
+    const reservation = await db.rpc('reserve_coach_speech', { p_user: user.id, p_turn: turnId, p_voice: voiceName, p_daily_cap: Number.isInteger(cap) && cap > 0 ? cap : 1000000 });
     if (reservation.error) throw Error('Could not prepare speech: ' + (reservation.error.message || ''));
     const status = reservation.data?.status;
-    if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'OpenRouter reading allowance reached. Try the device voice.', code: status }, 429);
-    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.mp3`;
+    if (status === 'busy' || status === 'limited') return json({ error: status === 'busy' ? 'This reply is already being prepared. Try again shortly.' : 'Gemini reading allowance reached. Try the device voice.', code: status }, 429);
+    const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${voiceName}.wav`;
     if (status === 'generate') {
       reserved = true;
-      const audio = await openRouterSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(120000) });
-      const upload = await bucket.upload(path, audio, { contentType: 'audio/mpeg', upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
-      const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
+      const { bytes, mimeType } = await geminiSpeech({ text: turn.data.reply, voice, key, signal: AbortSignal.timeout(120000) });
+      const upload = await bucket.upload(path, bytes, { contentType: mimeType, upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
+      const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', voiceName).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
       reserved = false;
     } else if (status !== 'cached') throw Error('Could not prepare speech');
     const signed = await bucket.createSignedUrl(path, 900); if (signed.error) throw Error('Could not open speech');
-    const response = json({ url: signed.data.signedUrl, voice: TTS_VOICE, expires_in: 900, cached: status === 'cached' }); response.headers.set('Cache-Control', 'private, no-store'); return response;
+    const response = json({ url: signed.data.signedUrl, voice: voiceName, expires_in: 900, cached: status === 'cached' }); response.headers.set('Cache-Control', 'private, no-store'); return response;
   } catch (error) {
     console.error('gymiq-speech:', error instanceof Error ? error.message : String(error));
-    if (reserved) await db.from('coach_speech_jobs').update({ state: 'failed', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id);
-    return json({ error: 'OpenRouter reading is unavailable. Try the device voice.' }, 503);
+    if (reserved) await db.from('coach_speech_jobs').update({ state: 'failed', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', voiceName).eq('user_id', user.id);
+    return json({ error: 'Gemini voice is unavailable. Try the device voice.' }, 503);
   }
 });
