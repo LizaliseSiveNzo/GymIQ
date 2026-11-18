@@ -193,6 +193,10 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 .mf-header .app-wordmark { margin-bottom: 28px; }
 .mf-title { text-transform: none; letter-spacing: -.045em; font-size: clamp(30px, 7vw, 40px); }
 .mf-kicker { font-size: 10px; letter-spacing: .12em; margin-bottom: 6px; }
+.mf-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mf-header-row .app-wordmark { margin-bottom: 0; flex: none; font-size: 20px; }
+.mf-header-row .mf-title { margin: 0; flex: 1; text-align: center; }
+.mf-edge { color: var(--text-subtle); font: 600 9px var(--font-body, sans-serif); letter-spacing: .16em; white-space: nowrap; flex: none; }
 .mf-tabbar { grid-template-columns: repeat(3, 1fr); max-width: 760px; margin: auto; border-radius: 20px 20px 0 0; background: rgba(20, 22, 19, .96); align-items: center; }
 .mf-tab { height: 60px; text-decoration: none; font-size: 11px; gap: 7px; border-radius: 12px; margin: 4px; }
 .mf-tab.active { background: rgba(198,255,58,.065); }

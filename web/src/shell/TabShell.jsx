@@ -10,9 +10,12 @@ const TABS = [
 export default function TabShell({ title, showKicker = true, showCoachFab = true, children }) {
   return <div className="mf-app">
     <header className="mf-header" style={{ position: 'relative' }}>
-      <Link className="app-wordmark" to="/workout">GYM<span>IQ</span><span className="wordmark-note">YOUR DAILY EDGE</span></Link>
+      <div className="mf-header-row">
+        <Link className="app-wordmark" to="/workout">GYM<span>IQ</span></Link>
+        <h1 className="mf-title">{title}</h1>
+        <span className="mf-edge">YOUR DAILY EDGE</span>
+      </div>
       {showKicker && <div className="mf-kicker">{new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
-      <h1 className="mf-title">{title}</h1>
       <div style={{ position: 'absolute', top: 10, right: 12 }}><InstallPrompt/></div>
     </header>
     <main id="main-content" className="mf-content"><LogSyncBanner/>{children}</main>
