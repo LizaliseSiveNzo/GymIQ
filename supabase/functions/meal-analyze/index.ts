@@ -83,9 +83,9 @@ Deno.serve(async (req) => {
     if (image.length > MAX_BYTES) return json({ error: 'That photo is too large. Use a smaller one.' });
 
     const prompt = 'Identify each distinct food on this plate separately (for example: chicken breast, white rice, broccoli, beef mince).'
-      + ' For each food, estimate its portion size as "small", "medium", or "large" (a portion, not an exact weight).'
-      + ' Return ONLY a JSON object in the shape {"foods":[{"name":"chicken breast","portion":"medium"}]}.'
-      + ' Use singular, specific food names (e.g. "carrot" not "carrots", "beef mince" not "mince meat").'
+      + ' For each, estimate the portion as "small", "medium", or "large".'
+      + ' Return ONLY compact JSON with no extra spaces or line breaks, shaped exactly like {"foods":[{"name":"chicken breast","portion":"medium"}]}.'
+      + ' Use singular, specific food names ("carrot" not "carrots", "beef mince" not "mince meat").'
       + ' Ignore plates, cutlery, packaging, hands and background. Do not invent foods.';
 
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ inlineData: { mimeType: 'image/jpeg', data: image } }, { text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 512, responseMimeType: 'application/json' },
+        generationConfig: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: 'application/json' },
       }),
     });
     const j = await r.json();
@@ -128,7 +128,8 @@ Deno.serve(async (req) => {
     }
 
     if (!outFoods.length) {
-      return json({ error: 'No foods were detected. Try a clearer, closer photo.', detail: raw.slice(0, 400) });
+      const fr = j?.candidates?.[0]?.finishReason;
+      return json({ error: 'No foods were detected. Try a clearer, closer photo.', detail: `finishReason=${fr} raw=${raw.slice(0, 300)}` });
     }
 
     let totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
