@@ -41,7 +41,7 @@ export default function PersonalCoach(){
  const selectedVoice=chooseCoachVoice(voices);
  useEffect(()=>{
   readingVersion.current++;cloudAudio.current?.stop();cloudAudio.current=null;setReadingId(null);
-  try{setVoiceUri(localStorage.getItem(`gymiq_coach_voice_${profile.id}`)??'');}catch{/* Device preference is optional. */}
+  try{setVoiceUri(localStorage.getItem(`gymiq_coach_voice_${profile.id}`)??'gemini');}catch{/* Device preference is optional. */}
   const synthesis=globalThis.speechSynthesis,update=()=>setVoices(coachVoices(synthesis));
   update();synthesis?.addEventListener?.('voiceschanged',update);
   return()=>synthesis?.removeEventListener?.('voiceschanged',update);
@@ -143,7 +143,6 @@ export default function PersonalCoach(){
     {gyms.length>0&&<label className="coach-gym">Use equipment from a saved gym<select defaultValue="" disabled={!!busy} onChange={e=>{if(e.target.value)setKitchen(k=>({...k,equipment:gymEquipment.filter(x=>x.profile_id===e.target.value).map(x=>x.equipment_id)}));}}><option value="">Choose a gym</option>{gyms.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}
     <fieldset disabled={!!busy}><legend>Available equipment</legend><div className="coach-choice-grid">{equipment.filter(e=>e.id!=='bodyweight').map(e=><label key={e.id}><input type="checkbox" checked={kitchen.equipment.includes(e.id)} onChange={()=>setKitchen(k=>({...k,equipment:toggle(k.equipment,e.id)}))}/>{e.name}</label>)}</div></fieldset>
     <button className="btn btn-primary" disabled={!!busy||!dirty} onClick={saveKitchen}>Save ingredients & equipment</button>
-    {<div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:''} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="">Device · {selectedVoice?.name||'default'}</option><option value="gemini">Gemini (Read aloud)</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>}
    </details>
 
    <div className="coach-workspace">
@@ -166,6 +165,7 @@ export default function PersonalCoach(){
      <textarea id="coach-message" maxLength={2000} rows={2} value={message} disabled={!!busy} placeholder="Message your coach…" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
      <div className="coach-composer-actions"><span className="coach-composer-hint">{listening?'Listening…':dirty?'Save your ingredients & equipment first.':''}</span><div>{speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{listening?'■ Stop':'🎙 Speak'}</button>}<button type="submit" className="coach-send" aria-label="Send message" disabled={!!busy||dirty||!message.trim()||!access.configured}>{busy==='chat'?'…':'↑'}</button></div></div>
     </form>
+    <div className="coach-voice-setting"><label htmlFor="coach-voice">Reading voice</label><select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></div>
     <div className="coach-footer"><Link to="/privacy">Privacy</Link></div>
     <dialog ref={setupDialog} className="session-discard-dialog" aria-labelledby="coach-setup-title" onCancel={()=>setSetupPrompt(false)}>
       <h2 id="coach-setup-title">Set up your ingredients & equipment</h2>
