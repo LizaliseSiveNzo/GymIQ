@@ -113,7 +113,7 @@ export default function PersonalCoach(){
    setReadingId(id);
    cloudAudio.current ||= createCoachAudio({load:async(turnId,signal)=>{
     const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId},signal});
-    if(error)throw Error('Gemini voice is unavailable.');return data;
+    if(error)throw Error('Gemini voice is unavailable.');if(data?.error)throw Error(data.detail?`${data.error} — ${data.detail}`:data.error);return data;
    }});
    try{await cloudAudio.current.read(id,error=>{if(readingVersion.current===version){stopReading();if(error)setError(error.message);}});return;}
    catch(error){

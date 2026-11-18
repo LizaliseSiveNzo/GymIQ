@@ -23,7 +23,7 @@ async function geminiSpeech({ text, key, signal }) {
       contents: [{ parts: [{ text: text.trim() }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
-        speechConfig: { voiceConfig: { voice: TTS_VOICE } },
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: TTS_VOICE } } },
       },
     }),
     signal,
@@ -76,6 +76,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('gymiq-speech:', error instanceof Error ? error.message : String(error));
     if (reserved) await db.from('coach_speech_jobs').update({ state: 'failed', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id);
-    return json({ error: 'Gemini voice is unavailable. Try the device voice.' }, 503);
+    return json({ error: 'Gemini voice is unavailable. Try the device voice.', detail: error instanceof Error ? error.message : String(error) });
   }
 });
