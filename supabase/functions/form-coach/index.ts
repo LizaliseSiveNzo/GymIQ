@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
       + `Detected form points: ${points}.\n`
       + `Write 2-3 short sentences of encouraging, specific feedback in plain language. `
       + `Lead with what went well, then the single most important thing to fix. No markdown, no lists.`;
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, maxOutputTokens: 200 } }),
     });
