@@ -119,7 +119,7 @@ export default function PersonalCoach(){
    catch(error){
     if(readingVersion.current!==version)return;
     if(error.name==='NotAllowedError'){setReadingId(null);setNotice('Audio ready. Tap Read aloud again to play.');return;}
-    setNotice('Gemini voice is unavailable. Using your device voice.');
+    setError(error.message||'Gemini voice is unavailable. Using your device voice.');
    }
   }
   if(readingVersion.current!==version)return;
