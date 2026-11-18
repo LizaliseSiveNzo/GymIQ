@@ -6,7 +6,7 @@ export async function analyzeMealPhoto(file) {
   const base64 = await downscaleImage(file);
   const { data, error } = await supabase.functions.invoke('meal-analyze', { body: { image: base64 } });
   if (error) throw Error(error?.message || 'Could not analyse the photo.');
-  if (data?.error) throw Error(data.error);
+  if (data?.error) throw Error(data.detail ? `${data.error} — ${data.detail}` : data.error);
   return data;
 }
 

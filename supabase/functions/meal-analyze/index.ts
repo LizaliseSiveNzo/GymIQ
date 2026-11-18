@@ -58,6 +58,9 @@ Deno.serve(async (req) => {
       }),
     });
     const j = await r.json();
+    if (!r.ok || j?.error) {
+      return json({ error: 'Photo analysis is unavailable right now.', detail: j?.error?.message || `Gemini returned ${r.status}` }, 502);
+    }
     const raw = j?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     let parsed: { foods?: Array<{ name?: string; grams?: unknown }> } = {};
     try { parsed = JSON.parse(raw); } catch { /* fall through to empty */ }
