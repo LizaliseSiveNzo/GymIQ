@@ -11,7 +11,7 @@ const STEPS = [
   { icon: '📋', title: 'Build your programme', to: '/onboarding?new=1', desc: 'Answer a few questions and GymIQ builds a plan around your goal, schedule and equipment.' },
   { icon: '🏋️', title: 'Log a workout', to: '/workout', desc: 'Start a session, log sets and reps, use the rest timer and follow the progression coach.' },
   { icon: '🥗', title: 'Log your food', to: '/bank', desc: 'Set a monthly goal, build meals and log what you eat in the Calorie Bank.' },
-  { icon: '📅', title: 'Review your week', to: '/workout/check-in', desc: 'Each week, review what you completed and accept suggested target changes.' },
+  { icon: '📅', title: 'Review your analytics', to: '/workout/analytics', desc: 'Review your completed sets, body-part balance and weight progression.' },
   { icon: '📈', title: 'See your progress', to: '/workout/stats', desc: 'Track personal records, exercise history and your monthly progress story.' },
   { icon: '✦', title: 'Talk to your coach', to: '/coach', desc: 'Ask your personal AI coach for meals and workouts built from your own data.' },
 ];

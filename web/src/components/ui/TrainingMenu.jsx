@@ -14,15 +14,12 @@ export default function TrainingMenu(){
   <summary aria-label="Training menu" aria-controls={menuId}><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg><span>Menu</span></summary>
   <nav id={menuId} className="training-tools-panel" aria-label="Training shortcuts">
    <span className="training-tools-group">Start & explore</span>
-   <Link to="/coach" onClick={close}><span>Personal AI coach</span><span aria-hidden="true">↗</span></Link>
    <Link to="/workout/session/free" onClick={close}><span>Freestyle workout</span><span aria-hidden="true">＋</span></Link>
    <Link to="/exercises" onClick={close}><span>Exercise library</span><span aria-hidden="true">↗</span></Link>
    <span className="training-tools-group training-tools-divider">Your progress</span>
-   <Link to="/workout/analytics" onClick={close}><span>Training analytics</span><span aria-hidden="true">↗</span></Link>
-   <Link to="/workout/check-in" onClick={close}><span>Weekly check-in</span><span aria-hidden="true">↗</span></Link>
+   <Link to="/workout/analytics" onClick={close}><span>Analytics</span><span aria-hidden="true">↗</span></Link>
    <Link to="/workout/stats" onClick={close}><span>Exercise stats</span><span aria-hidden="true">↗</span></Link>
    <Link to="/workout/history" onClick={close}><span>History</span><span aria-hidden="true">↗</span></Link>
-   <Link to="/workout/progress-story" onClick={close}><span>Monthly progress</span><span aria-hidden="true">↗</span></Link>
   </nav>
  </details>;
 }

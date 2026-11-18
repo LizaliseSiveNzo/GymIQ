@@ -22,8 +22,6 @@ const Summary = lazy(() => import('./pages/mf/WorkoutSummary.jsx'));
 const History = lazy(() => import('./pages/mf/HistoryList.jsx').then(m => ({ default: m.HistoryList })));
 const Stats = lazy(() => import('./pages/mf/ExerciseStats.jsx'));
 const Analytics = lazy(() => import('./pages/mf/TrainingAnalytics.jsx'));
-const ProgressStory = lazy(() => import('./pages/mf/ProgressStory.jsx'));
-const WeeklyCheckIn = lazy(() => import('./pages/mf/WeeklyCheckIn.jsx'));
 const PersonalCoach = lazy(() => import('./pages/mf/PersonalCoach.jsx'));
 const Tour = lazy(() => import('./pages/mf/Tour.jsx'));
 const OwnerDashboard = lazy(() => import('./pages/mf/OwnerDashboard.jsx'));
@@ -52,8 +50,8 @@ export default function App() {
       <Route path="/workout/history" element={secure(<History />)} />
       <Route path="/workout/stats" element={secure(<Stats />)} />
       <Route path="/workout/analytics" element={secure(<Analytics />,true)} />
-      <Route path="/workout/progress-story" element={secure(<ProgressStory />,true)} />
-      <Route path="/workout/check-in" element={secure(<WeeklyCheckIn />,true)} />
+      <Route path="/workout/progress-story" element={<Navigate to="/workout/analytics" replace />} />
+      <Route path="/workout/check-in" element={<Navigate to="/workout/analytics" replace />} />
       <Route path="/workout/history/:logId" element={secure(<Detail />)} />
       <Route path="/customer/calorie-bank" element={<Navigate to="/bank" replace />} />
       <Route path="*" element={<Navigate to="/workout" replace />} />
