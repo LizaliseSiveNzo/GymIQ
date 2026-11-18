@@ -7,3 +7,6 @@
 .nutrition-ingredient .food-image{align-self:center}
 .nutrition-food-row{display:flex;align-items:center;gap:10px;list-style:none}
 .nutrition-meal-thumbs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+
+.photo-spinner{width:52px;height:52px;border:5px solid rgba(255,255,255,.25);border-top-color:#10b981;border-radius:50%;animation:photo-spin .8s linear infinite;}
+@keyframes photo-spin{to{transform:rotate(360deg);}}
