@@ -199,10 +199,8 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const dayMacros=entries.reduce((m,e)=>{if(e.meal_snapshot?.items){try{const t=mealTotals(e.meal_snapshot.items,foods);m.protein+=t.protein;m.carbs+=t.carbs;m.fat+=t.fat;}catch{}}return m;},{protein:0,carbs:0,fat:0});
   const guideKcal=summary.guide||0;
   const macroTargets={protein:guideKcal?Math.round(guideKcal*0.25/4):0,carbs:guideKcal?Math.round(guideKcal*0.45/4):0,fat:guideKcal?Math.round(guideKcal*0.30/9):0};
-  const periodRecords=days.filter(d=>d.day>=periodStart&&d.day<=day);
   const guideKnown=summary.guideDays===summary.days&&summary.guideDays>0;
   const periodName=period==='day'?'Daily':period==='week'?'Week':'Month';
-  const difference=summary.logged-summary.guide;
   const show=key=>section==='home'||section===key;
   useEffect(()=>{
     if(!loading && !goal && !goalDismissed && goalDialog.current){
@@ -233,11 +231,6 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
         ))}
       </div>
       {guideKcal > 0 && <p className="subtle" style={{ fontSize: 11, marginTop: 8 }}>Suggested split: 25% protein · 45% carbs · 30% fat of your daily guide.</p>}
-      <p className="subtle">{summary.loggedDays} of {summary.days} days have entries · {summary.completeDays} marked complete. {summary.guideDays<summary.days?'Some days have no saved guide; those targets are unknown.':''}</p>
-      {guideKnown&&<p className="subtle">{difference===0?'Your logged food matches the guide.':`${format(Math.abs(difference))} kcal ${difference>0?'above':'below'} the guide in your records.`} {summary.completeDays<summary.days?'Logging is incomplete; this is not a measured calorie deficit.':''}</p>}
-      {!goal&&<p className="subtle">Set a monthly goal for a calorie guide and meal plan. You can log food at any time.</p>}
-      <details className="nutrition-overview-notes"><summary>Goal & logging notes</summary>{goal&&<p className="subtle">Requested: {goal.settings?.monthly_loss_kg ?? '—'} kg per 30 days · Modelled pace: about {goal.result?.monthly_loss_kg ?? '—'} kg. Results vary. Gym activity is already included once.</p>}<p className="subtle">Extra food changes these totals. It does not create calorie debt or reduce tomorrow’s guide. Return to regular meals and review your weight trend over time; do not fast or add punitive workouts to compensate.</p></details>
-      <details className="nutrition-overview-records"><summary>Daily records</summary>{periodRecords.map(d=><div className="nutrition-log" key={d.day}><span>{d.day}<small className="subtle"> · {d.complete?'complete':d.entries?'partial':'not logged'}</small></span><span>{format(d.kcal)} / {d.target?format(d.target):'—'} kcal</span></div>)}</details>
     </section>}
     {section==='goals'&&<section className="mf-card"><h2>Your monthly goal</h2><p className="subtle">For general adult planning. Use 0 kg for maintenance. This tool does not provide a weight-gain plan. Limits may reduce the requested pace.</p><form onSubmit={saveGoal} className="nutrition-form">
       <div className="nutrition-fields"><label>Sex used for energy estimate<select value={settings.sex} onChange={e=>update('sex',e.target.value)}><option value="female">Female</option><option value="male">Male</option></select></label>
