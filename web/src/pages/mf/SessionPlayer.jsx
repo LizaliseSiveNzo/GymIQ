@@ -509,13 +509,11 @@ export default function SessionPlayer() {
               </button>
             );
           })}
-          {isFree && (
-            <button type="button" onClick={() => setPickerOpen((v) => !v)} style={{
-              all: 'unset', cursor: 'pointer', flex: '0 0 auto', width: 68, height: 78, borderRadius: 12,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)',
-              border: '2px dashed var(--border-strong)', color: 'var(--text-muted)', fontSize: 26, fontWeight: 700,
-            }}>+</button>
-          )}
+          <button type="button" onClick={() => setPickerOpen((v) => !v)} style={{
+            all: 'unset', cursor: 'pointer', flex: '0 0 auto', width: 68, height: 78, borderRadius: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)',
+            border: '2px dashed var(--border-strong)', color: 'var(--text-muted)', fontSize: 26, fontWeight: 700,
+          }}>+</button>
         </div>
       )}
 
