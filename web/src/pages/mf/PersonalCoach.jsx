@@ -46,6 +46,8 @@ export default function PersonalCoach(){
   update();synthesis?.addEventListener?.('voiceschanged',update);
   return()=>synthesis?.removeEventListener?.('voiceschanged',update);
  },[profile.id]);
+ useEffect(()=>{if(voiceUri==='gemini')cloudAudio.current ||= createCoachAudio({load:loadSpeech});},[voiceUri,profile.id]);
+ useEffect(()=>{const last=turns.filter(t=>t.status==='done'&&t.reply).slice(-1)[0];if(last&&voiceUri==='gemini')cloudAudio.current?.prefetch?.(last.id);},[turns,voiceUri]);
  useEffect(()=>{
     if(setupPrompt&&setupDialog.current&&!setupDialog.current.open)setupDialog.current.showModal();
     else if(!setupPrompt&&setupDialog.current?.open)setupDialog.current.close();
@@ -107,14 +109,15 @@ export default function PersonalCoach(){
   try{voice.current=startCoachDictation({onText:text=>{setMessage(previous=>((previous?previous+' ':'')+text).slice(0,2000));request.current=null;},onError:setError,onEnd:()=>{setListening(false);voice.current=null;}});setListening(true);}catch(e){setError(e.message);}
  }
  function stopReading(){readingVersion.current++;cloudAudio.current?.stop();speech.current=null;globalThis.speechSynthesis?.cancel();setReadingId(null);}
+ async function loadSpeech(turnId,signal){
+  const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId},signal});
+  if(error)throw Error('Gemini voice is unavailable.');if(data?.error)throw Error(data.detail?`${data.error} — ${data.detail}`:data.error);return data;
+ }
  async function readReply(id,text){
   stopReading();const version=readingVersion.current;
   if(voiceUri==='gemini'&&navigator.onLine){
    setReadingId(id);
-   cloudAudio.current ||= createCoachAudio({load:async(turnId,signal)=>{
-    const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId},signal});
-    if(error)throw Error('Gemini voice is unavailable.');if(data?.error)throw Error(data.detail?`${data.error} — ${data.detail}`:data.error);return data;
-   }});
+   cloudAudio.current ||= createCoachAudio({load:loadSpeech});
    try{await cloudAudio.current.read(id,error=>{if(readingVersion.current===version){stopReading();if(error)setError(error.message);}});return;}
    catch(error){
     if(readingVersion.current!==version)return;
