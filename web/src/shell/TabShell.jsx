@@ -10,18 +10,14 @@ const TABS = [
 export default function TabShell({ title, showKicker = true, showCoachFab = true, children }) {
   return <div className="mf-app">
     <header className="mf-header" style={{ position: 'relative' }}>
-      <div className="mf-header-row">
-        <Link className="app-wordmark" to="/workout">GYM<span>IQ</span></Link>
-        <h1 className="mf-title">{title}</h1>
-        <span className="mf-edge">YOUR DAILY EDGE</span>
-      </div>
+      <Link className="app-wordmark" to="/workout">GYM<span>IQ</span><span className="wordmark-note">YOUR DAILY EDGE</span></Link>
       {showKicker && <div className="mf-kicker">{new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
       <div style={{ position: 'absolute', top: 10, right: 12 }}><InstallPrompt/></div>
     </header>
     <main id="main-content" className="mf-content"><LogSyncBanner/>{children}</main>
     <nav className="mf-tabbar" aria-label="Main navigation">
-      {TABS.map(t => <NavLink key={t.path} to={t.path} aria-label={t.label} className={({ isActive }) => `mf-tab ${isActive ? 'active' : ''}`}>
-        <span className="ic" aria-hidden="true">{t.icon}</span>
+      {TABS.map(t => <NavLink key={t.path} to={t.path} className={({ isActive }) => `mf-tab ${isActive ? 'active' : ''}`}>
+        <span className="ic" aria-hidden="true">{t.icon}</span>{t.label}
       </NavLink>)}
     </nav>
     {showCoachFab && <Link className="coach-fab" to="/coach" aria-label="Open your AI coach" title="AI coach">✦</Link>}
