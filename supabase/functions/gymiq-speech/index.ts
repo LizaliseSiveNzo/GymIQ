@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     if (status === 'generate') {
       reserved = true;
       const { bytes, mimeType } = await geminiSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(120000) });
-      const upload = await bucket.upload(path, bytes, { contentType: mimeType, upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech');
+      const upload = await bucket.upload(path, bytes, { contentType: 'audio/wav', upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech: ' + (upload.error.message || String(upload.error)));
       const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
       reserved = false;
     } else if (status !== 'cached') throw Error('Could not prepare speech');
