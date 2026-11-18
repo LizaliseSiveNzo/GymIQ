@@ -1058,4 +1058,369 @@
     "portion_grams": 240},
   {"id":"04047","name":"Coconut oil","kcal":892,"protein":0,"fat":99.06,"carbs":0,"allergens":[],"vegetarian":true,"vegan":true,"category":"oil_fat","source_description":"Oil, coconut","source_url":"https://fdc.nal.usda.gov/food-details/04047/nutrients",
     "portion_grams": 15}
+,
+  {
+    "id": "cp001",
+    "name": "Lasagna · meat sauce",
+    "kcal": 135,
+    "protein": 7,
+    "fat": 6,
+    "carbs": 14,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "cp002",
+    "name": "Spaghetti bolognese",
+    "kcal": 130,
+    "protein": 6,
+    "fat": 5,
+    "carbs": 15,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "cp003",
+    "name": "Cheeseburger",
+    "kcal": 260,
+    "protein": 13,
+    "fat": 12,
+    "carbs": 24,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "cp004",
+    "name": "Pepperoni pizza",
+    "kcal": 280,
+    "protein": 12,
+    "fat": 13,
+    "carbs": 28,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "cp005",
+    "name": "Cheese pizza",
+    "kcal": 240,
+    "protein": 10,
+    "fat": 9,
+    "carbs": 30,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "cp006",
+    "name": "Chicken curry",
+    "kcal": 120,
+    "protein": 8,
+    "fat": 6,
+    "carbs": 8,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "cp007",
+    "name": "Sushi · California roll",
+    "kcal": 150,
+    "protein": 5,
+    "fat": 3,
+    "carbs": 28,
+    "allergens": [
+      "fish",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "cp008",
+    "name": "Chicken stir-fry",
+    "kcal": 110,
+    "protein": 10,
+    "fat": 4,
+    "carbs": 8,
+    "allergens": [
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "cp009",
+    "name": "Macaroni & cheese",
+    "kcal": 160,
+    "protein": 6,
+    "fat": 6,
+    "carbs": 20,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "cp010",
+    "name": "Caesar salad",
+    "kcal": 100,
+    "protein": 5,
+    "fat": 7,
+    "carbs": 4,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "cp011",
+    "name": "Beef stew",
+    "kcal": 95,
+    "protein": 8,
+    "fat": 4,
+    "carbs": 7,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 300
+  },
+  {
+    "id": "cp012",
+    "name": "Fried rice",
+    "kcal": 170,
+    "protein": 5,
+    "fat": 5,
+    "carbs": 25,
+    "allergens": [
+      "soy",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "cp013",
+    "name": "Grilled cheese sandwich",
+    "kcal": 360,
+    "protein": 11,
+    "fat": 20,
+    "carbs": 34,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 120
+  },
+  {
+    "id": "cp014",
+    "name": "Chicken wrap",
+    "kcal": 200,
+    "protein": 10,
+    "fat": 7,
+    "carbs": 22,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "cp015",
+    "name": "Burrito · beef",
+    "kcal": 200,
+    "protein": 9,
+    "fat": 7,
+    "carbs": 25,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "cp016",
+    "name": "Omelette",
+    "kcal": 150,
+    "protein": 11,
+    "fat": 11,
+    "carbs": 2,
+    "allergens": [
+      "egg",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "cp017",
+    "name": "Pancakes",
+    "kcal": 230,
+    "protein": 6,
+    "fat": 10,
+    "carbs": 28,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "cp018",
+    "name": "Fried chicken",
+    "kcal": 250,
+    "protein": 18,
+    "fat": 17,
+    "carbs": 8,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "cp019",
+    "name": "Pad thai",
+    "kcal": 150,
+    "protein": 6,
+    "fat": 5,
+    "carbs": 20,
+    "allergens": [
+      "soy",
+      "fish"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "cp020",
+    "name": "Fish & chips",
+    "kcal": 200,
+    "protein": 8,
+    "fat": 10,
+    "carbs": 20,
+    "allergens": [
+      "fish",
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 300
+  },
+  {
+    "id": "cp021",
+    "name": "Chicken rice bowl",
+    "kcal": 130,
+    "protein": 8,
+    "fat": 2,
+    "carbs": 20,
+    "allergens": [
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 300
+  },
+  {
+    "id": "cp022",
+    "name": "Ham & cheese sandwich",
+    "kcal": 250,
+    "protein": 12,
+    "fat": 9,
+    "carbs": 28,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "composite",
+    "source_description": "Composite dish · typical recipe (estimated)",
+    "portion_grams": 160
+  }
 ]
