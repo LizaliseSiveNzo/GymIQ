@@ -1,0 +1,11 @@
+.morning-drills-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}
+.morning-drill{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)}
+.morning-drill strong{font-size:15px}
+.morning-drill span{font-size:12px;color:var(--text-muted)}
+.morning-drills-options{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;margin:10px 0 14px}
+.drill-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;cursor:pointer}
+.drill-option.is-on{border-color:var(--green-600);background:rgba(198,255,58,.06)}
+.drill-option input{accent-color:var(--green-600);width:18px;height:18px;flex:none}
+.drill-option span{display:flex;flex-direction:column;min-width:0}
+.drill-option b{font-size:14px}
+.drill-option i{font-style:normal;font-size:12px;color:var(--text-muted)}
