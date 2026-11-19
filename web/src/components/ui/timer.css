@@ -1,0 +1,13 @@
+.timer-overlay{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.timer-sheet{position:relative;width:min(380px,100%);background:var(--surface-1,#171a15);border:1px solid var(--border-strong);border-radius:24px;padding:24px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.55);animation:timer-in .22s cubic-bezier(.22,.61,.36,1) both}
+@keyframes timer-in{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.timer-tabs{display:flex;gap:6px;background:var(--surface-2);border-radius:12px;padding:4px;margin-bottom:20px}
+.timer-tabs button{flex:1;border:0;border-radius:9px;background:transparent;color:var(--text-muted);padding:8px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.timer-tabs button.on{background:var(--green-600);color:#0a0a0a}
+.timer-display{font-family:var(--font-display);font-size:72px;font-weight:800;letter-spacing:-.02em;color:var(--green-600);font-variant-numeric:tabular-nums;line-height:1;margin:4px 0 20px}
+.timer-presets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.timer-presets button{min-width:56px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);color:var(--ink);padding:8px 12px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.timer-presets button.on{border-color:var(--green-600);background:rgba(198,255,58,.12)}
+.timer-actions{display:flex;gap:10px}
+.timer-actions .btn{flex:1;min-height:48px}
+.timer-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border:0;border-radius:50%;background:var(--surface-2);color:var(--ink);font-size:15px;cursor:pointer}
