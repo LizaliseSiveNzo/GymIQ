@@ -36,7 +36,7 @@ Deno.serve(async(req:Request)=>{
       return json({result,settings});
     }
     if(!['plan','shuffle','preset','default'].includes(body.action))return json({error:'Invalid action'},400);
-    const goal=await scoped.from('nutrition_goals').select('id,settings,result').eq('user_id',user.id).single();
+    const goal=await scoped.from('nutrition_goals').select('settings,result').eq('user_id',user.id).single();
     if(goal.error||!goal.data)return json({error:'Save your monthly goal first.'},400);
     const {settings,result}=goal.data;
     if(body.action==='preset'||body.action==='default'){
@@ -44,7 +44,7 @@ Deno.serve(async(req:Request)=>{
       if(!preset)return json({error:'Choose a meal preset.'},400);
       if(body.action==='default'){
         const nextSettings={...(goal.data.settings||{}),default_plan:preset.id};
-        const saved=await db.from('nutrition_goals').update({settings:nextSettings}).eq('id',goal.data.id);
+        const saved=await db.from('nutrition_goals').update({settings:nextSettings}).eq('user_id',user.id);
         if(saved.error)throw Error('Default save failed');
         return json({default_plan:preset.id,settings:nextSettings});
       }
