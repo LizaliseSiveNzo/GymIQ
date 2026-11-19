@@ -26,8 +26,7 @@ export default function BankTab() {
     return <TabShell active="bank" title="Calorie Bank"><div className="mf-card">Loading…</div></TabShell>;
   }
   return (
-    <TabShell active="bank" title="Calorie Bank">
-      <div className="bank-page-intro"><p className="bank-intro">Build meals, track the extras and keep your longer-term goal in view.</p><BankMenu section={section}/></div>
+    <TabShell active="bank" title="Calorie Bank" headerAction={<BankMenu section={section}/>}>
       {section!=='home'&&<button className="btn btn-ghost bank-section-back" onClick={()=>navigateSection('home')}>← Calorie overview</button>}
       {PREMIUM_BANK_SECTIONS.includes(section)&&!access.premium?(access.checking?<p role="status">Checking premium access…</p>:<PremiumPaywall feature="meal planning and food insights"/>):<NutritionHub userId={profile.id} section={section} onSectionChange={navigateSection}/>}
     </TabShell>

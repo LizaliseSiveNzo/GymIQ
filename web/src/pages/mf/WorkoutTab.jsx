@@ -29,8 +29,7 @@ function ProgrammeWorkoutTab(){
  const completed=days.filter(d=>statuses[d.id]?.complete).length;
  const trainingDates=new Set(sessions.map(s=>s.day));
  const isLoaded=data?.week_start===week;
- return <TabShell active="workout" title="Your training.">
-  <div className="training-intro"><p>Your programme, your pace. Make every session count.</p><TrainingMenu/></div>
+ return <TabShell active="workout" title="Your training." headerAction={<TrainingMenu/>}>
   <nav className="workout-week-nav" aria-label="Training week"><button className="btn btn-ghost" aria-label="Previous week" disabled={busy||!data?.first_week||week<=data.first_week} onClick={()=>setWeek(addDays(week,-7))}>←</button><div><strong>{past?'Previous week':'This week'}</strong><span>{dateLabel(week)} – {dateLabel(addDays(week,6))}</span></div><button className="btn btn-ghost" aria-label="Next week" disabled={busy||week>=current} onClick={()=>setWeek(addDays(week,7))}>→</button>{past&&<button className="btn btn-secondary" disabled={busy} onClick={()=>setWeek(current)}>This week</button>}</nav>
   {error&&<p className="inline-error" role="alert">{error} <button className="btn btn-ghost" onClick={()=>setRetry(n=>n+1)}>Try again</button>{!isLoaded&&readView(profile?.id,'last-training-week')?.data?.week_start&&<Link className="btn btn-secondary" to={`/workout?week=${readView(profile.id,'last-training-week').data.week_start}`}>Open last saved week</Link>}</p>}
   {busy&&!isLoaded&&<div className="mf-card" role="status">Loading your training week…</div>}
@@ -54,5 +53,5 @@ export default function WorkoutTab(){
  const {profile}=useAuth();const access=useMembership(profile?.id);
  if(access.premium)return <ProgrammeWorkoutTab/>;
  if(access.checking&&!access.member)return <TabShell active="workout" title="Your training."><p role="status">Opening your training…</p></TabShell>;
- return <TabShell active="workout" title="Your training."><div className="training-intro"><p>Your next session starts here.</p><TrainingMenu/></div><Link className="btn btn-primary workout-next-button" to="/workout/session/free">Start freestyle workout</Link><section className="mf-card"><h2>Keep building your progress</h2><p className="subtle">Log sets, weights and reps, use the rest timer and return to your saved records.</p><Link className="btn btn-secondary" to="/workout/stats">Exercise records →</Link><Link className="btn btn-ghost" to="/workout/history">Workout history →</Link></section><PremiumPaywall feature="personalised programmes"/></TabShell>;
+ return <TabShell active="workout" title="Your training." headerAction={<TrainingMenu/>}><Link className="btn btn-primary workout-next-button" to="/workout/session/free">Start freestyle workout</Link><section className="mf-card"><h2>Keep building your progress</h2><p className="subtle">Log sets, weights and reps, use the rest timer and return to your saved records.</p><Link className="btn btn-secondary" to="/workout/stats">Exercise records →</Link><Link className="btn btn-ghost" to="/workout/history">Workout history →</Link></section><PremiumPaywall feature="personalised programmes"/></TabShell>;
 }
