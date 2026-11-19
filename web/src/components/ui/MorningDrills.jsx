@@ -16,6 +16,17 @@ const DRILLS = [
   { id: 'reverselunge', name: 'Reverse lunge', cue: '10 each leg', image: '/exercises/reverse-lunge.jpg' },
   { id: 'calfraise', name: 'Standing calf raise', cue: '20–30 reps', image: '/exercises/calf-raise.jpg' },
   { id: 'catcow', name: 'Cat-cow stretch', cue: '10 slow reps', image: '/exercises/cat-cow.jpg' },
+  { id: 'pushup', name: 'Push-up', cue: '10–20 reps', image: '/exercises/pushup.jpg' },
+  { id: 'squat', name: 'Bodyweight squat', cue: '15–25 reps', image: '/exercises/squat.jpg' },
+  { id: 'wallsit', name: 'Wall sit', cue: 'Hold 30–60s', image: '/exercises/wallsit.jpg' },
+  { id: 'wallpushup', name: 'Wall push-up', cue: '15–20 reps', image: '/exercises/wallpushup.jpg' },
+  { id: 'glutebridge', name: 'Glute bridge', cue: '15–20 reps', image: '/exercises/glutebridge.jpg' },
+  { id: 'mountainclimber', name: 'Mountain climber', cue: '30–45s', image: '/exercises/mountainclimber.jpg' },
+  { id: 'deadbug', name: 'Dead bug', cue: '10 each side', image: '/exercises/deadbug.jpg' },
+  { id: 'superman', name: 'Superman hold', cue: 'Hold 20–30s', image: '/exercises/superman.jpg' },
+  { id: 'hollowhold', name: 'Hollow body hold', cue: 'Hold 20–30s', image: '/exercises/hollowhold.jpg' },
+  { id: 'highknees', name: 'High knees', cue: '30–45s', image: '/exercises/highknees.jpg' },
+  { id: 'walkinglunge', name: 'Walking lunge', cue: '10 each leg', image: '/exercises/walkinglunge.jpg' },
 ];
 
 function localDay() {
