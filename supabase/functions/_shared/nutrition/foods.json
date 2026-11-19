@@ -1471,4 +1471,697 @@
     "source_description": "Supplement / treat · typical nutrition label (estimated)",
     "portion_grams": 15
   }
+,
+  {
+    "id": "jf001",
+    "name": "Cupcake · vanilla frosting",
+    "kcal": 380,
+    "protein": 4,
+    "fat": 17,
+    "carbs": 55,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 70
+  },
+  {
+    "id": "jf002",
+    "name": "Blueberry muffin",
+    "kcal": 375,
+    "protein": 5,
+    "fat": 16,
+    "carbs": 53,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf003",
+    "name": "Chocolate chip cookie",
+    "kcal": 490,
+    "protein": 5,
+    "fat": 26,
+    "carbs": 58,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf004",
+    "name": "Brownie · chocolate",
+    "kcal": 466,
+    "protein": 6,
+    "fat": 27,
+    "carbs": 50,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 60
+  },
+  {
+    "id": "jf005",
+    "name": "Butter croissant",
+    "kcal": 406,
+    "protein": 8,
+    "fat": 21,
+    "carbs": 45,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 60
+  },
+  {
+    "id": "jf006",
+    "name": "Glazed donut",
+    "kcal": 421,
+    "protein": 5,
+    "fat": 22,
+    "carbs": 51,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 60
+  },
+  {
+    "id": "jf007",
+    "name": "Chocolate cake",
+    "kcal": 371,
+    "protein": 5,
+    "fat": 15,
+    "carbs": 53,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 80
+  },
+  {
+    "id": "jf008",
+    "name": "Cinnamon roll",
+    "kcal": 436,
+    "protein": 6,
+    "fat": 22,
+    "carbs": 55,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 90
+  },
+  {
+    "id": "jf009",
+    "name": "Apple pie",
+    "kcal": 237,
+    "protein": 2,
+    "fat": 11,
+    "carbs": 34,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 125
+  },
+  {
+    "id": "jf010",
+    "name": "Cheesecake",
+    "kcal": 321,
+    "protein": 6,
+    "fat": 22,
+    "carbs": 26,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf011",
+    "name": "Milk chocolate bar",
+    "kcal": 535,
+    "protein": 8,
+    "fat": 30,
+    "carbs": 59,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf012",
+    "name": "White chocolate",
+    "kcal": 539,
+    "protein": 6,
+    "fat": 32,
+    "carbs": 59,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf013",
+    "name": "Gummy bears",
+    "kcal": 340,
+    "protein": 6,
+    "fat": 0,
+    "carbs": 77,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf014",
+    "name": "Caramel toffee",
+    "kcal": 398,
+    "protein": 2,
+    "fat": 15,
+    "carbs": 70,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf015",
+    "name": "Marshmallows",
+    "kcal": 318,
+    "protein": 2,
+    "fat": 0,
+    "carbs": 81,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf016",
+    "name": "Vanilla ice cream",
+    "kcal": 207,
+    "protein": 4,
+    "fat": 11,
+    "carbs": 24,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf017",
+    "name": "Chocolate ice cream",
+    "kcal": 216,
+    "protein": 4,
+    "fat": 11,
+    "carbs": 28,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf018",
+    "name": "Ice cream sundae",
+    "kcal": 240,
+    "protein": 4,
+    "fat": 12,
+    "carbs": 30,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf019",
+    "name": "Ice cream sandwich",
+    "kcal": 240,
+    "protein": 4,
+    "fat": 8,
+    "carbs": 37,
+    "allergens": [
+      "milk",
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 70
+  },
+  {
+    "id": "jf020",
+    "name": "Big Mac burger",
+    "kcal": 257,
+    "protein": 12,
+    "fat": 15,
+    "carbs": 20,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 215
+  },
+  {
+    "id": "jf021",
+    "name": "Chicken McNuggets",
+    "kcal": 302,
+    "protein": 16,
+    "fat": 19,
+    "carbs": 17,
+    "allergens": [
+      "gluten",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf022",
+    "name": "McDonald's french fries",
+    "kcal": 312,
+    "protein": 3,
+    "fat": 15,
+    "carbs": 42,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf023",
+    "name": "KFC fried chicken · original",
+    "kcal": 246,
+    "protein": 19,
+    "fat": 15,
+    "carbs": 9,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf024",
+    "name": "KFC chicken wings",
+    "kcal": 254,
+    "protein": 18,
+    "fat": 17,
+    "carbs": 8,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf025",
+    "name": "Whopper burger",
+    "kcal": 240,
+    "protein": 12,
+    "fat": 12,
+    "carbs": 22,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "jf026",
+    "name": "Hot dog · with bun",
+    "kcal": 290,
+    "protein": 10,
+    "fat": 16,
+    "carbs": 25,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 120
+  },
+  {
+    "id": "jf027",
+    "name": "French fries",
+    "kcal": 312,
+    "protein": 3,
+    "fat": 15,
+    "carbs": 42,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf028",
+    "name": "Onion rings",
+    "kcal": 356,
+    "protein": 4,
+    "fat": 20,
+    "carbs": 40,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf029",
+    "name": "Chicken nuggets",
+    "kcal": 296,
+    "protein": 15,
+    "fat": 20,
+    "carbs": 15,
+    "allergens": [
+      "gluten",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf030",
+    "name": "Beef taco",
+    "kcal": 226,
+    "protein": 9,
+    "fat": 11,
+    "carbs": 22,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf031",
+    "name": "Chicken burger",
+    "kcal": 250,
+    "protein": 14,
+    "fat": 10,
+    "carbs": 25,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf032",
+    "name": "Sub sandwich · deli style",
+    "kcal": 200,
+    "protein": 10,
+    "fat": 7,
+    "carbs": 25,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "jf033",
+    "name": "Fried chicken sandwich",
+    "kcal": 280,
+    "protein": 16,
+    "fat": 13,
+    "carbs": 24,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 180
+  },
+  {
+    "id": "jf034",
+    "name": "Pizza · meat lovers",
+    "kcal": 280,
+    "protein": 13,
+    "fat": 13,
+    "carbs": 26,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf035",
+    "name": "Potato chips",
+    "kcal": 536,
+    "protein": 7,
+    "fat": 35,
+    "carbs": 53,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf036",
+    "name": "Tortilla chips",
+    "kcal": 490,
+    "protein": 7,
+    "fat": 25,
+    "carbs": 62,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf037",
+    "name": "Salted pretzels",
+    "kcal": 380,
+    "protein": 10,
+    "fat": 3,
+    "carbs": 80,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf038",
+    "name": "Buttered popcorn",
+    "kcal": 485,
+    "protein": 10,
+    "fat": 27,
+    "carbs": 56,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf039",
+    "name": "Cheese puffs",
+    "kcal": 540,
+    "protein": 7,
+    "fat": 34,
+    "carbs": 54,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf040",
+    "name": "Chocolate caramel bar · Snickers-style",
+    "kcal": 488,
+    "protein": 8,
+    "fat": 25,
+    "carbs": 60,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf041",
+    "name": "Jelly beans",
+    "kcal": 375,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 93,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf042",
+    "name": "Peanut butter cups",
+    "kcal": 500,
+    "protein": 10,
+    "fat": 32,
+    "carbs": 45,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 40
+  }
 ]

@@ -4,7 +4,8 @@ const int=(n,min,max)=>Number.isInteger(n)&&n>=min&&n<=max;
 const title=(text,max=100)=>{if(typeof text!=='string'||!text.trim()||text.length>max)throw Error('Use a short, clear name.');return text.trim();};
 export function validateKitchen(settings,foods,equipment) {
   // Auto-assume a full pantry and equipment: everyone can cook with and train with everything.
-  return {pantry:foods.map(f=>f.id),equipment:equipment.map(e=>e.id)};
+  // Junk/treat foods stay out of meal building but remain camera-identifiable.
+  return {pantry:foods.filter(f=>f.category!=='junk').map(f=>f.id),equipment:equipment.map(e=>e.id)};
 }
 export function validateMeal(input,context) {
   const {foods,kitchen,diet='regular',excludes=[]}=context;
