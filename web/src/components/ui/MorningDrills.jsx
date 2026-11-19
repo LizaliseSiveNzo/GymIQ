@@ -4,24 +4,24 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import './morningDrills.css';
 
 const DRILLS = [
-  { id: 'pushup', name: 'Push-up', cue: '10–20 reps' },
-  { id: 'plank', name: 'Plank', cue: 'Hold 30–60s' },
-  { id: 'squat', name: 'Bodyweight squat', cue: '15–25 reps' },
-  { id: 'lunge', name: 'Walking lunge', cue: '10 each leg' },
-  { id: 'reverselunge', name: 'Reverse lunge', cue: '10 each leg' },
-  { id: 'wallsit', name: 'Wall sit', cue: 'Hold 30–60s' },
-  { id: 'wallpushup', name: 'Wall push-up', cue: '15–20 reps' },
-  { id: 'glutebridge', name: 'Glute bridge', cue: '15–20 reps' },
-  { id: 'mountainclimber', name: 'Mountain climber', cue: '30–45s' },
-  { id: 'birddog', name: 'Bird dog', cue: '10 each side' },
-  { id: 'deadbug', name: 'Dead bug', cue: '10 each side' },
-  { id: 'superman', name: 'Superman hold', cue: 'Hold 20–30s' },
-  { id: 'hollowhold', name: 'Hollow body hold', cue: 'Hold 20–30s' },
-  { id: 'legraise', name: 'Leg raise', cue: '10–15 reps' },
-  { id: 'calfraise', name: 'Calf raise', cue: '20–30 reps' },
-  { id: 'sideplank', name: 'Side plank', cue: 'Hold 20–30s each side' },
-  { id: 'bicyclecrunch', name: 'Bicycle crunch', cue: '20–30 reps' },
-  { id: 'highknees', name: 'High knees', cue: '30–45s' },
+  { id: 'pushup', name: 'Push-up', cue: '10–20 reps', icon: '💪' },
+  { id: 'plank', name: 'Plank', cue: 'Hold 30–60s', icon: '🧘' },
+  { id: 'squat', name: 'Bodyweight squat', cue: '15–25 reps', icon: '🦵' },
+  { id: 'lunge', name: 'Walking lunge', cue: '10 each leg', icon: '🚶' },
+  { id: 'reverselunge', name: 'Reverse lunge', cue: '10 each leg', icon: '↩️' },
+  { id: 'wallsit', name: 'Wall sit', cue: 'Hold 30–60s', icon: '🧱' },
+  { id: 'wallpushup', name: 'Wall push-up', cue: '15–20 reps', icon: '🙌' },
+  { id: 'glutebridge', name: 'Glute bridge', cue: '15–20 reps', icon: '🌉' },
+  { id: 'mountainclimber', name: 'Mountain climber', cue: '30–45s', icon: '⛰️' },
+  { id: 'birddog', name: 'Bird dog', cue: '10 each side', icon: '🐕' },
+  { id: 'deadbug', name: 'Dead bug', cue: '10 each side', icon: '🐞' },
+  { id: 'superman', name: 'Superman hold', cue: 'Hold 20–30s', icon: '🦸' },
+  { id: 'hollowhold', name: 'Hollow body hold', cue: 'Hold 20–30s', icon: '🛡️' },
+  { id: 'legraise', name: 'Leg raise', cue: '10–15 reps', icon: '⬆️' },
+  { id: 'calfraise', name: 'Calf raise', cue: '20–30 reps', icon: '🦶' },
+  { id: 'sideplank', name: 'Side plank', cue: 'Hold 20–30s each side', icon: '🧍' },
+  { id: 'bicyclecrunch', name: 'Bicycle crunch', cue: '20–30 reps', icon: '🚴' },
+  { id: 'highknees', name: 'High knees', cue: '30–45s', icon: '🏃' },
 ];
 
 function localDay() {
@@ -92,7 +92,7 @@ export default function MorningDrills() {
           <p className="subtle">Three to start your day — they rotate daily.</p>
           <div className="morning-drills-list">
             {daily.map((d) => (
-              <div className="morning-drill" key={d.id}><strong>{d.name}</strong><span>{d.cue}</span></div>
+              <div className="morning-drill" key={d.id}><span className="drill-icon" aria-hidden="true">{d.icon}</span><strong>{d.name}</strong><span className="drill-cue">{d.cue}</span></div>
             ))}
           </div>
         </>}
@@ -106,7 +106,7 @@ export default function MorningDrills() {
             {DRILLS.map((d) => (
               <label key={d.id} className={`drill-option ${selected.includes(d.id) ? 'is-on' : ''}`}>
                 <input type="checkbox" checked={selected.includes(d.id)} onChange={() => toggle(d.id)} />
-                <span><b>{d.name}</b><i>{d.cue}</i></span>
+                <span><b>{d.icon} {d.name}</b><i>{d.cue}</i></span>
               </label>
             ))}
           </div>
