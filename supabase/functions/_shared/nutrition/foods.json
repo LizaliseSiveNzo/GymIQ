@@ -4814,4 +4814,223 @@
     "source_description": "South African food · typical nutrition (estimated)",
     "portion_grams": 889
   }
+,
+  {
+    "id": "jf201",
+    "name": "Muffin",
+    "kcal": 375,
+    "protein": 5,
+    "fat": 16,
+    "carbs": 53,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf202",
+    "name": "Cupcake",
+    "kcal": 380,
+    "protein": 4,
+    "fat": 17,
+    "carbs": 55,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 70
+  },
+  {
+    "id": "jf203",
+    "name": "Donut",
+    "kcal": 421,
+    "protein": 5,
+    "fat": 22,
+    "carbs": 51,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 60
+  },
+  {
+    "id": "jf204",
+    "name": "Cookie",
+    "kcal": 480,
+    "protein": 5,
+    "fat": 25,
+    "carbs": 60,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf205",
+    "name": "Cake",
+    "kcal": 350,
+    "protein": 5,
+    "fat": 12,
+    "carbs": 55,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 80
+  },
+  {
+    "id": "jf206",
+    "name": "Pastry",
+    "kcal": 400,
+    "protein": 6,
+    "fat": 22,
+    "carbs": 45,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 60
+  },
+  {
+    "id": "jf207",
+    "name": "Pie",
+    "kcal": 300,
+    "protein": 3,
+    "fat": 14,
+    "carbs": 40,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf208",
+    "name": "Candy",
+    "kcal": 380,
+    "protein": 0,
+    "fat": 5,
+    "carbs": 90,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf209",
+    "name": "Ice cream",
+    "kcal": 210,
+    "protein": 4,
+    "fat": 11,
+    "carbs": 25,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf210",
+    "name": "Chocolate",
+    "kcal": 530,
+    "protein": 7,
+    "fat": 30,
+    "carbs": 60,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf211",
+    "name": "Burger",
+    "kcal": 250,
+    "protein": 13,
+    "fat": 12,
+    "carbs": 22,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf212",
+    "name": "Pizza",
+    "kcal": 266,
+    "protein": 11,
+    "fat": 11,
+    "carbs": 30,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 120
+  },
+  {
+    "id": "jf213",
+    "name": "Chips",
+    "kcal": 312,
+    "protein": 3,
+    "fat": 15,
+    "carbs": 42,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Generic treat / fast food · typical nutrition (estimated)",
+    "portion_grams": 100
+  }
 ]

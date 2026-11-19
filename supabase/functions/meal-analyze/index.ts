@@ -85,8 +85,8 @@ Deno.serve(async (req) => {
     if (imgs.some((img) => typeof img !== 'string' || !img || img.length > MAX_BYTES)) return json({ error: 'One of those photos is too large. Use smaller ones.' });
 
     const prompt = 'These are photos of the same meal (from different angles). Identify each distinct food across all photos, once each.'
-      + ' For each, estimate the portion as "small", "medium", or "large".'
-      + ' Return ONLY compact JSON with no extra spaces or line breaks, shaped exactly like {"foods":[{"name":"chicken breast","portion":"medium"}]}.'
+      + ' For each food, estimate its portion weight in grams as accurately as you can (a typical serving amount).'
+      + ' Return ONLY compact JSON with no extra spaces or line breaks, shaped exactly like {"foods":[{"name":"chicken breast","grams":150}]}.'
       + ' Use singular, specific food names ("carrot" not "carrots", "beef mince" not "mince meat").'
       + ' Ignore plates, cutlery, packaging, hands and background. Do not invent foods or repeat the same food twice.';
 
@@ -119,7 +119,8 @@ Deno.serve(async (req) => {
       const name = String(d?.name || d?.item || d?.food || '').trim();
       if (!name) continue;
       const food = matchFood(name);
-      const grams = d?.grams ? gramsOf(d.grams) : portionToGrams(d?.portion || d?.size, food);
+      const estimated = d?.grams ? gramsOf(d.grams) : 0;
+      const grams = estimated > 0 ? estimated : portionToGrams(d?.portion || d?.size, food);
       const portion = String(d?.portion || d?.size || 'medium').toLowerCase();
       if (food) {
         outFoods.push({ name: food.name, food_id: food.id, grams, estimated: false, portion });
