@@ -6,6 +6,7 @@ import {supabase} from '../../lib/supabaseClient.js';
 import foods from '../../../../supabase/functions/_shared/nutrition/foods.json';
 import {speechRecognitionClass,startCoachDictation,coachVoices,chooseCoachVoice} from '../../lib/coachVoice.js';
 import {createCoachAudio} from '../../lib/coachAudio.js';
+import {readView,saveView} from '../../lib/deviceCache.js';
 import './personalCoach.css';
 
 async function invoke(body){
@@ -54,10 +55,15 @@ export default function PersonalCoach(){
   ]);
   if(results.some(r=>r.error))throw Error('Could not load your coach. Please refresh.');
   const [history,actions]=results.map(r=>r.data);
-  setTurns(history.slice().reverse());setProposals(actions);
+  const turns=history.slice().reverse();
+  setTurns(turns);setProposals(actions);
+  saveView(profile.id,'coach-turns',{turns,proposals:actions});
  }
  useEffect(()=>{let mounted=true;
-  invoke({action:'status'}).then(async result=>{if(mounted){setAccess(result);await refresh();}}).catch(e=>{if(mounted){setAccess({enabled:false});setError(e.message);}});
+  const cachedAccess=readView(profile.id,'coach-access'),cachedTurns=readView(profile.id,'coach-turns');
+  if(cachedAccess?.data)setAccess(cachedAccess.data);
+  if(cachedTurns?.data){setTurns(cachedTurns.data.turns||[]);setProposals(cachedTurns.data.proposals||[]);}
+  invoke({action:'status'}).then(async result=>{if(mounted){setAccess(result);saveView(profile.id,'coach-access',result);await refresh();}}).catch(e=>{if(mounted){setAccess({enabled:false});setError(e.message);}});
   return()=>{mounted=false;};
  // The signed-in profile is the boundary for all coach data.
  // eslint-disable-next-line react-hooks/exhaustive-deps
