@@ -15,8 +15,6 @@ Deno.serve(async(req:Request)=>{
     if(!Number.isInteger(body.offset)||Math.abs(body.offset)>840)return json({error:'Invalid time zone'},400);
     const today=new Date(Date.now()-body.offset*60000).toISOString().slice(0,10);
     const scoped=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{global:{headers:{Authorization:req.headers.get('Authorization')!}},auth:{persistSession:false}});
-    const membership=await scoped.rpc('has_active_membership');
-    if(membership.error||membership.data!==true)return json({error:'This feature is only for paid users.'},403);
     const db=admin();
     if(body.action==='goal'){
       const s=body.settings||{};
@@ -35,6 +33,8 @@ Deno.serve(async(req:Request)=>{
       if(saved.error)throw Error('Goal save failed');
       return json({result,settings});
     }
+    const membership=await scoped.rpc('has_active_membership');
+    if(membership.error||membership.data!==true)return json({error:'This feature is only for paid users.'},403);
     if(!['plan','shuffle','preset','default'].includes(body.action))return json({error:'Invalid action'},400);
     const goal=await scoped.from('nutrition_goals').select('settings,result').eq('user_id',user.id).single();
     if(goal.error||!goal.data)return json({error:'Save your monthly goal first.'},400);

@@ -88,7 +88,7 @@ export default function MealScanSheet({ preview, busy, items = [], foods = [], e
 
       {!busy && error && (
         <div className="meal-scan-error">
-          <h2>Couldn't read that photo</h2>
+          <h2>Couldn't analyse that photo</h2>
           <p>{error}</p>
           <button type="button" className="btn btn-primary" onClick={onClose}>Try another photo</button>
         </div>

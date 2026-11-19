@@ -4,6 +4,7 @@
 // model's guessed numbers. Unmatched foods are returned as estimated-only.
 // Requires secret GEMINI_API_KEY. Nothing personalized is cached.
 
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 import { authenticate, cors, json } from '../_shared/launch.ts';
 import foods from '../_shared/nutrition/foods.json' with { type: 'json' };
 import { mealTotals } from '../_shared/nutrition/planner.js';
@@ -78,6 +79,16 @@ Deno.serve(async (req) => {
     const user = await authenticate(req);
     if (!user) return json({ error: 'Sign in to analyse a meal.' });
 
+    const scoped = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization')! } }, auth: { persistSession: false } });
+    const membership = await scoped.rpc('has_active_membership');
+    const isPremium = membership.data === true;
+    if (!isPremium) {
+      const todaySA = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' });
+      const dayStart = new Date(todaySA + 'T00:00:00+02:00').toISOString();
+      const { count } = await scoped.from('photo_scan_log').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', dayStart);
+      if ((count ?? 0) >= 3) return json({ error: 'You have used your 3 free photo scans today. Upgrade to premium for unlimited scans.' });
+    }
+
     const { image, images } = await req.json();
     const imgs: string[] = Array.isArray(images) && images.length ? images : image ? [image] : [];
     if (!imgs.length) return json({ error: 'Choose a photo first.' });
@@ -139,6 +150,7 @@ Deno.serve(async (req) => {
     if (items.length) {
       try { totals = mealTotals(items, foods); } catch { /* keep zeros */ }
     }
+    if (!isPremium) await scoped.from('photo_scan_log').insert({ user_id: user.id });
     return json({ foods: outFoods, totals, matched: items.length, unmatched: outFoods.length - items.length });
   } catch (e) {
     return json({ error: 'Could not analyse that photo. Try again or log it manually.', detail: String(e) });
