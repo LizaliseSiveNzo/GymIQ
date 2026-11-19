@@ -38,21 +38,41 @@ function parseTime(text) {
   return Math.max(0, Math.min(MAX_MS, sec * 1000));
 }
 function vibrate(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch { /* unsupported */ } }
-function playAlarm() {
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch { audioCtx = null; } }
+  return audioCtx;
+}
+function playTick(secondsLeft) {
+  const ctx = getCtx();
+  if (!ctx) return;
   try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    gain.connect(ctx.destination); gain.gain.value = 0.25;
-    [0, 280, 560].forEach((t, i) => {
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'square';
+    osc.frequency.value = 300 + (secondsLeft - 1) * 40; // deeper each second
+    gain.gain.value = 0.06 + (10 - secondsLeft) * 0.04; // louder each second
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.09);
+  } catch { /* audio unavailable */ }
+}
+function playAlarm() {
+  const ctx = getCtx();
+  if (!ctx) return;
+  try {
+    if (ctx.state === 'suspended') ctx.resume();
+    const master = ctx.createGain();
+    master.connect(ctx.destination); master.gain.value = 0.55;
+    for (let i = 0; i < 6; i++) {
       const osc = ctx.createOscillator();
-      osc.type = 'sine'; osc.frequency.value = i % 2 ? 660 : 880;
-      osc.connect(gain);
-      osc.start(ctx.currentTime + t / 1000);
-      osc.stop(ctx.currentTime + (t + 200) / 1000);
-    });
-    setTimeout(() => ctx.close(), 1200);
+      const g = ctx.createGain();
+      osc.connect(g); g.connect(master);
+      osc.type = 'sine';
+      osc.frequency.value = 620 + i * 110; // rising, prominent
+      const t = ctx.currentTime + i * 0.24;
+      osc.start(t); osc.stop(t + 0.2);
+    }
   } catch { /* audio unavailable */ }
 }
 
@@ -74,6 +94,7 @@ export default function Timer({ onClose }) {
   const [now, setNow] = useState(Date.now());
   const dialRef = useRef(null);
   const dragRef = useRef(null);
+  const tickRef = useRef(null);
 
   // Restore persisted state once.
   useEffect(() => {
@@ -114,6 +135,16 @@ export default function Timer({ onClose }) {
     if (mode === 'timer' && tRunning && remainingMs <= 0) {
       setTRunning(false); setTimesUp(true); setTotalMs(0);
       vibrate([220, 120, 220, 120, 400]); playAlarm();
+    }
+  }, [remainingMs, tRunning, mode]);
+  // Tick cues for the final 10 seconds (deeper + louder each second).
+  useEffect(() => {
+    if (mode !== 'timer' || !tRunning) { tickRef.current = null; return; }
+    const secLeft = Math.ceil(remainingMs / 1000);
+    if (secLeft >= 1 && secLeft <= 10 && tickRef.current !== secLeft) {
+      tickRef.current = secLeft;
+      playTick(secLeft);
+      vibrate(12);
     }
   }, [remainingMs, tRunning, mode]);
 
