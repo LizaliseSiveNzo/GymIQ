@@ -2739,4 +2739,2079 @@
     "source_description": "South African fast food / treat · typical nutrition (estimated)",
     "portion_grams": 80
   }
+,
+  {
+    "id": "jf079",
+    "name": "Blueberry Muffin · Commercial Standard",
+    "kcal": 379,
+    "protein": 2.6,
+    "fat": 17,
+    "carbs": 52,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf080",
+    "name": "Blueberry Muffin · Commercial Low-Fat",
+    "kcal": 255,
+    "protein": 4.2,
+    "fat": 4.2,
+    "carbs": 50,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf081",
+    "name": "Blueberry Muffin · Toaster-Type",
+    "kcal": 313,
+    "protein": 4.6,
+    "fat": 9.5,
+    "carbs": 53.3,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf082",
+    "name": "Cinnamon Crumb Coffee Cake · Unenriched",
+    "kcal": 420,
+    "protein": 6.7,
+    "fat": 23.3,
+    "carbs": 46.6,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf083",
+    "name": "Cinnamon Danish",
+    "kcal": 402,
+    "protein": 7.1,
+    "fat": 22.6,
+    "carbs": 44.4,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf084",
+    "name": "Milk Chocolate Bar · Generic",
+    "kcal": 535,
+    "protein": 7.7,
+    "fat": 29.8,
+    "carbs": 59.4,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 43.9
+  },
+  {
+    "id": "jf085",
+    "name": "Dark Chocolate · Generic",
+    "kcal": 547,
+    "protein": 4.9,
+    "fat": 31.4,
+    "carbs": 61,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf086",
+    "name": "Dark Chocolate · 60–69% Cacao",
+    "kcal": 578,
+    "protein": 6,
+    "fat": 38.4,
+    "carbs": 52.6,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf087",
+    "name": "Dark Chocolate · 70–85% Cacao",
+    "kcal": 600,
+    "protein": 7.8,
+    "fat": 42.7,
+    "carbs": 45.9,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf088",
+    "name": "White Chocolate Bar",
+    "kcal": 539,
+    "protein": 5.9,
+    "fat": 32.1,
+    "carbs": 59.3,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 85.1
+  },
+  {
+    "id": "jf089",
+    "name": "Dove Milk Chocolate",
+    "kcal": 548,
+    "protein": 6,
+    "fat": 31.7,
+    "carbs": 60,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 36.9
+  },
+  {
+    "id": "jf090",
+    "name": "Dove Dark Chocolate",
+    "kcal": 521,
+    "protein": 5.2,
+    "fat": 32.6,
+    "carbs": 59.7,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 36.9
+  },
+  {
+    "id": "jf091",
+    "name": "Snickers Bar",
+    "kcal": 488,
+    "protein": 6.9,
+    "fat": 24.4,
+    "carbs": 62.9,
+    "allergens": [
+      "milk",
+      "egg",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 47
+  },
+  {
+    "id": "jf092",
+    "name": "100 Grand Bar",
+    "kcal": 473,
+    "protein": 2.6,
+    "fat": 19.5,
+    "carbs": 71.7,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 42.5
+  },
+  {
+    "id": "jf093",
+    "name": "3 Musketeers Bar",
+    "kcal": 434,
+    "protein": 2.6,
+    "fat": 12.8,
+    "carbs": 77.3,
+    "allergens": [
+      "milk",
+      "egg",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 60.4
+  },
+  {
+    "id": "jf094",
+    "name": "5th Avenue Candy Bar",
+    "kcal": 476,
+    "protein": 8.6,
+    "fat": 23.6,
+    "carbs": 61.9,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 56.7
+  },
+  {
+    "id": "jf095",
+    "name": "Almond Joy Candy Bar",
+    "kcal": 471,
+    "protein": 4,
+    "fat": 26.5,
+    "carbs": 58.5,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 49.9
+  },
+  {
+    "id": "jf096",
+    "name": "Baby Ruth Bar",
+    "kcal": 479,
+    "protein": 5.4,
+    "fat": 21.8,
+    "carbs": 65.3,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 59.5
+  },
+  {
+    "id": "jf097",
+    "name": "Caramello Candy Bar",
+    "kcal": 457,
+    "protein": 6.2,
+    "fat": 20.9,
+    "carbs": 62.9,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 35.4
+  },
+  {
+    "id": "jf098",
+    "name": "Kit Kat Wafer Bar",
+    "kcal": 513,
+    "protein": 6.3,
+    "fat": 25.6,
+    "carbs": 63.7,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 42.5
+  },
+  {
+    "id": "jf099",
+    "name": "Kit Kat Big Kat Bar",
+    "kcal": 520,
+    "protein": 6.2,
+    "fat": 27.8,
+    "carbs": 63.6,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 55
+  },
+  {
+    "id": "jf100",
+    "name": "Krackel Chocolate Bar",
+    "kcal": 521,
+    "protein": 6.6,
+    "fat": 26.5,
+    "carbs": 64.2,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 41.1
+  },
+  {
+    "id": "jf101",
+    "name": "Hershey's Pot of Gold Almond Bar",
+    "kcal": 567,
+    "protein": 12.6,
+    "fat": 37.8,
+    "carbs": 44.1,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 79.4
+  },
+  {
+    "id": "jf102",
+    "name": "Hershey's Skor Toffee Bar",
+    "kcal": 532,
+    "protein": 3,
+    "fat": 29.7,
+    "carbs": 62.7,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 39.7
+  },
+  {
+    "id": "jf103",
+    "name": "Crispy Bar with Peanut Butter Filling",
+    "kcal": 536,
+    "protein": 9.4,
+    "fat": 31,
+    "carbs": 54.8,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 42.5
+  },
+  {
+    "id": "jf104",
+    "name": "M&M's Crispy Chocolate Candies",
+    "kcal": 492,
+    "protein": 4.4,
+    "fat": 20.1,
+    "carbs": 75,
+    "allergens": [
+      "milk",
+      "gluten",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 45.4
+  },
+  {
+    "id": "jf105",
+    "name": "CocoaVia Chocolate Bar",
+    "kcal": 538,
+    "protein": 5.9,
+    "fat": 28.9,
+    "carbs": 62.9,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 22.1
+  },
+  {
+    "id": "jf106",
+    "name": "CocoaVia Blueberry and Almond Chocolate Bar",
+    "kcal": 525,
+    "protein": 6.3,
+    "fat": 28.5,
+    "carbs": 60.1,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 22.1
+  },
+  {
+    "id": "jf107",
+    "name": "CocoaVia Crispy Chocolate Bar",
+    "kcal": 519,
+    "protein": 8.1,
+    "fat": 26.2,
+    "carbs": 62.5,
+    "allergens": [
+      "milk",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 19.8
+  },
+  {
+    "id": "jf108",
+    "name": "CocoaVia Chocolate Covered Almonds",
+    "kcal": 564,
+    "protein": 9.5,
+    "fat": 36.7,
+    "carbs": 49.7,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf109",
+    "name": "Chocolate Fudge with Nuts",
+    "kcal": 459,
+    "protein": 4.2,
+    "fat": 19,
+    "carbs": 68.1,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf110",
+    "name": "Chocolate Marshmallow Fudge",
+    "kcal": 453,
+    "protein": 2.5,
+    "fat": 17.4,
+    "carbs": 71.2,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 20.1
+  },
+  {
+    "id": "jf111",
+    "name": "Chocolate Marshmallow Fudge with Nuts",
+    "kcal": 473,
+    "protein": 3.2,
+    "fat": 21.2,
+    "carbs": 67.7,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf112",
+    "name": "Mixed Fruit Gummy Bears",
+    "kcal": 344,
+    "protein": 6.3,
+    "fat": 0,
+    "carbs": 84.4,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf113",
+    "name": "Butterscotch Candy",
+    "kcal": 392,
+    "protein": 0.4,
+    "fat": 3.2,
+    "carbs": 90.3,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf114",
+    "name": "Fondant Candy",
+    "kcal": 374,
+    "protein": 0,
+    "fat": 0.4,
+    "carbs": 93.1,
+    "allergens": [
+      "egg"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf115",
+    "name": "Peanut Brittle",
+    "kcal": 487,
+    "protein": 7.4,
+    "fat": 19,
+    "carbs": 71.3,
+    "allergens": [
+      "milk",
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf116",
+    "name": "Paçoca Peanut Candy",
+    "kcal": 487,
+    "protein": 16,
+    "fat": 26.1,
+    "carbs": 52.4,
+    "allergens": [
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf117",
+    "name": "Halva",
+    "kcal": 469,
+    "protein": 12.3,
+    "fat": 21.5,
+    "carbs": 60.3,
+    "allergens": [
+      "nuts"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf118",
+    "name": "Häagen-Dazs Vanilla Ice Cream",
+    "kcal": 250,
+    "protein": 4.3,
+    "fat": 16.9,
+    "carbs": 19.9,
+    "allergens": [
+      "milk",
+      "egg"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 87
+  },
+  {
+    "id": "jf119",
+    "name": "Bulla Vanilla Ice Cream",
+    "kcal": 208,
+    "protein": 0,
+    "fat": 10,
+    "carbs": 26,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf120",
+    "name": "Frozen Yogurt · Non-Chocolate",
+    "kcal": 127,
+    "protein": 3,
+    "fat": 3.6,
+    "carbs": 22,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf121",
+    "name": "Frozen Yogurt with Granola · Nut & Gummy Toppings",
+    "kcal": 209,
+    "protein": 4,
+    "fat": 5.8,
+    "carbs": 34.9,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "nuts"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 215
+  },
+  {
+    "id": "jf122",
+    "name": "Potato Chips · Plain Salted",
+    "kcal": 532,
+    "protein": 6.4,
+    "fat": 34,
+    "carbs": 53.8,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf123",
+    "name": "Potato Chips · Barbecue",
+    "kcal": 487,
+    "protein": 6.5,
+    "fat": 31.1,
+    "carbs": 55.9,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf124",
+    "name": "Potato Chips · Sour Cream and Onion",
+    "kcal": 531,
+    "protein": 8.1,
+    "fat": 33.9,
+    "carbs": 51.5,
+    "allergens": [
+      "milk",
+      "wheat",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf125",
+    "name": "Potato Chips · Reduced Fat",
+    "kcal": 471,
+    "protein": 7.1,
+    "fat": 20.8,
+    "carbs": 66.9,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf126",
+    "name": "Potato Chips · Baked Restructured",
+    "kcal": 469,
+    "protein": 5,
+    "fat": 18.2,
+    "carbs": 71.4,
+    "allergens": [
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 12
+  },
+  {
+    "id": "jf127",
+    "name": "Potato Chips · Fat-Free Olestra",
+    "kcal": 274,
+    "protein": 7.7,
+    "fat": 0.7,
+    "carbs": 65,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf128",
+    "name": "Tortilla Chips · Plain White Corn Salted",
+    "kcal": 472,
+    "protein": 7.1,
+    "fat": 20.7,
+    "carbs": 67.8,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf129",
+    "name": "Tortilla Chips · Nacho Cheese",
+    "kcal": 519,
+    "protein": 7.4,
+    "fat": 27.4,
+    "carbs": 60.8,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf130",
+    "name": "Tortilla Chips · Baked",
+    "kcal": 465,
+    "protein": 8.7,
+    "fat": 15.2,
+    "carbs": 73.4,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 16
+  },
+  {
+    "id": "jf131",
+    "name": "Tortilla Chips · Low-Fat Baked",
+    "kcal": 447,
+    "protein": 11,
+    "fat": 5.7,
+    "carbs": 80.2,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf132",
+    "name": "Banana Chips",
+    "kcal": 519,
+    "protein": 2.5,
+    "fat": 33.5,
+    "carbs": 58.6,
+    "allergens": [],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28.4
+  },
+  {
+    "id": "jf133",
+    "name": "Cheese Puffs · Marks & Spencer Made Without Wheat",
+    "kcal": 445,
+    "protein": 17,
+    "fat": 15.3,
+    "carbs": 58.7,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf134",
+    "name": "Soft Pretzel",
+    "kcal": 338,
+    "protein": 8.2,
+    "fat": 3.1,
+    "carbs": 69.4,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 115
+  },
+  {
+    "id": "jf135",
+    "name": "Chocolate Coated Hard Pretzels",
+    "kcal": 467,
+    "protein": 7.1,
+    "fat": 17.6,
+    "carbs": 70.1,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 28
+  },
+  {
+    "id": "jf136",
+    "name": "Saltine Crackers · Low Sodium",
+    "kcal": 421,
+    "protein": 9.5,
+    "fat": 8.9,
+    "carbs": 74.3,
+    "allergens": [
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": true,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 45
+  },
+  {
+    "id": "jf137",
+    "name": "McDonald's Chicken McNuggets",
+    "kcal": 302,
+    "protein": 15.3,
+    "fat": 20.4,
+    "carbs": 14.7,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 94.2
+  },
+  {
+    "id": "jf138",
+    "name": "McDonald's Big Mac",
+    "kcal": 252,
+    "protein": 11.7,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 214
+  },
+  {
+    "id": "jf139",
+    "name": "McDonald's Quarter Pounder with Cheese",
+    "kcal": 258,
+    "protein": 15.2,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 198
+  },
+  {
+    "id": "jf140",
+    "name": "Burger King Whopper",
+    "kcal": 233,
+    "protein": 10.7,
+    "fat": 12.8,
+    "carbs": 18.6,
+    "allergens": [
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 291
+  },
+  {
+    "id": "jf141",
+    "name": "Burger King Double Whopper with Cheese",
+    "kcal": 266,
+    "protein": 14.5,
+    "fat": 0,
+    "carbs": 13.5,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf142",
+    "name": "Burger King Onion Rings",
+    "kcal": 417,
+    "protein": 3.9,
+    "fat": 25.2,
+    "carbs": 43.6,
+    "allergens": [
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 117
+  },
+  {
+    "id": "jf143",
+    "name": "Burger King Premium Fish Sandwich",
+    "kcal": 260,
+    "protein": 10.3,
+    "fat": 12.5,
+    "carbs": 26.7,
+    "allergens": [
+      "milk",
+      "egg",
+      "fish",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf144",
+    "name": "Burger King Original Chicken Sandwich",
+    "kcal": 286,
+    "protein": 12.1,
+    "fat": 14.7,
+    "carbs": 26.2,
+    "allergens": [
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf145",
+    "name": "Burger King Chicken Strips",
+    "kcal": 292,
+    "protein": 18.2,
+    "fat": 15.3,
+    "carbs": 20.5,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf146",
+    "name": "Burger King French Toast Sticks",
+    "kcal": 349,
+    "protein": 6,
+    "fat": 17.7,
+    "carbs": 41.2,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf147",
+    "name": "Burger King Croissan'wich with Egg and Cheese",
+    "kcal": 283,
+    "protein": 10.4,
+    "fat": 15.8,
+    "carbs": 24.8,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf148",
+    "name": "Burger King Croissan'wich with Sausage · Egg and Cheese",
+    "kcal": 308,
+    "protein": 12.1,
+    "fat": 21.8,
+    "carbs": 15.9,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf149",
+    "name": "Domino's Ultimate Pepperoni Pizza · Hand Tossed",
+    "kcal": 278,
+    "protein": 11.3,
+    "fat": 13.5,
+    "carbs": 25.6,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 133
+  },
+  {
+    "id": "jf150",
+    "name": "Domino's Wisconsin 6 Cheese Pizza · Hand Tossed",
+    "kcal": 273,
+    "protein": 11.7,
+    "fat": 10.9,
+    "carbs": 30.5,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 128
+  },
+  {
+    "id": "jf151",
+    "name": "Domino's MeatZZa Pizza · Hand Tossed",
+    "kcal": 237,
+    "protein": 9.2,
+    "fat": 9.9,
+    "carbs": 26.7,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 131
+  },
+  {
+    "id": "jf152",
+    "name": "Domino's Memphis BBQ Chicken Pizza · Hand Tossed",
+    "kcal": 263,
+    "protein": 11,
+    "fat": 11,
+    "carbs": 28,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 118
+  },
+  {
+    "id": "jf153",
+    "name": "Domino's Pacific Veggie Pizza · Hand Tossed",
+    "kcal": 304,
+    "protein": 11.9,
+    "fat": 16.3,
+    "carbs": 25.2,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 135
+  },
+  {
+    "id": "jf154",
+    "name": "Domino's Philly Cheese Steak Pizza · Hand Tossed",
+    "kcal": 278,
+    "protein": 11.3,
+    "fat": 13,
+    "carbs": 28.7,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 115
+  },
+  {
+    "id": "jf155",
+    "name": "Domino's Spicy Chicken Bacon Ranch Pizza · Hand Tossed",
+    "kcal": 288,
+    "protein": 12,
+    "fat": 14.4,
+    "carbs": 27.2,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 125
+  },
+  {
+    "id": "jf156",
+    "name": "Domino's Spinach & Feta Pizza · Hand Tossed",
+    "kcal": 270,
+    "protein": 11.5,
+    "fat": 12.3,
+    "carbs": 28.7,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 122
+  },
+  {
+    "id": "jf157",
+    "name": "Domino's Classic Hoagie",
+    "kcal": 239,
+    "protein": 11.7,
+    "fat": 11.1,
+    "carbs": 22.2,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 180
+  },
+  {
+    "id": "jf158",
+    "name": "Domino's Bacon Cheddar Hoagie",
+    "kcal": 273,
+    "protein": 12.3,
+    "fat": 12.8,
+    "carbs": 25.7,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 187
+  },
+  {
+    "id": "jf159",
+    "name": "Domino's Buffalo Ranch Hoagie",
+    "kcal": 273,
+    "protein": 11.9,
+    "fat": 15.5,
+    "carbs": 20.1,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 194
+  },
+  {
+    "id": "jf160",
+    "name": "Domino's Mushroom Delight Hoagie",
+    "kcal": 230,
+    "protein": 11.2,
+    "fat": 11.2,
+    "carbs": 20.9,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 187
+  },
+  {
+    "id": "jf161",
+    "name": "Domino's Zesty Hoagie",
+    "kcal": 240,
+    "protein": 11.5,
+    "fat": 12,
+    "carbs": 20.8,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "Processed food · typical nutrition (estimated)",
+    "portion_grams": 192
+  },
+  {
+    "id": "jf162",
+    "name": "Simba NikNaks Cheese Flavour",
+    "kcal": 564,
+    "protein": 6.2,
+    "fat": 36,
+    "carbs": 53,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 55
+  },
+  {
+    "id": "jf163",
+    "name": "Simba NikNaks Spicy Beef",
+    "kcal": 564,
+    "protein": 6.2,
+    "fat": 36,
+    "carbs": 53,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 54
+  },
+  {
+    "id": "jf164",
+    "name": "Simba NikNaks Fruit Chutney",
+    "kcal": 559,
+    "protein": 6.2,
+    "fat": 36,
+    "carbs": 53,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 55
+  },
+  {
+    "id": "jf165",
+    "name": "Simba Ghost Pops",
+    "kcal": 537,
+    "protein": 5.4,
+    "fat": 33.8,
+    "carbs": 53,
+    "allergens": [
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf166",
+    "name": "Simba Chipniks Original",
+    "kcal": 558,
+    "protein": 1.5,
+    "fat": 33,
+    "carbs": 64,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 36
+  },
+  {
+    "id": "jf167",
+    "name": "Simba Potato Chips Creamy Cheddar",
+    "kcal": 527,
+    "protein": 7.4,
+    "fat": 35,
+    "carbs": 46,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 36
+  },
+  {
+    "id": "jf168",
+    "name": "Simba Potato Chips Cheese & Onion",
+    "kcal": 527,
+    "protein": 7.4,
+    "fat": 35,
+    "carbs": 46,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 36
+  },
+  {
+    "id": "jf169",
+    "name": "Simba Potato Chips Smoked Beef",
+    "kcal": 527,
+    "protein": 7.4,
+    "fat": 0,
+    "carbs": 46,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 36
+  },
+  {
+    "id": "jf170",
+    "name": "Simba Potato Chips Mrs Ball's Chutney",
+    "kcal": 527,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 36
+  },
+  {
+    "id": "jf171",
+    "name": "Doritos Grilled BBQ Corn Chips",
+    "kcal": 481,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 45
+  },
+  {
+    "id": "jf172",
+    "name": "Doritos Corn Chips",
+    "kcal": 471,
+    "protein": 0,
+    "fat": 20,
+    "carbs": 64,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf173",
+    "name": "Cheetos Puffs Chicken Flavoured",
+    "kcal": 519,
+    "protein": 5.6,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf174",
+    "name": "Truda Sweet Chilli Spookies",
+    "kcal": 517,
+    "protein": 6.1,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf175",
+    "name": "Cadbury Dairy Milk Chocolate",
+    "kcal": 526,
+    "protein": 7.2,
+    "fat": 28,
+    "carbs": 60,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 25
+  },
+  {
+    "id": "jf176",
+    "name": "Cadbury Dairy Milk Mint Crisp",
+    "kcal": 475,
+    "protein": 5.5,
+    "fat": 21.6,
+    "carbs": 63.4,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 25
+  },
+  {
+    "id": "jf177",
+    "name": "Cadbury Dairy Milk Caramel",
+    "kcal": 479,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 39
+  },
+  {
+    "id": "jf178",
+    "name": "Cadbury Lunch Bar",
+    "kcal": 502,
+    "protein": 6.4,
+    "fat": 25.5,
+    "carbs": 60.5,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 31
+  },
+  {
+    "id": "jf179",
+    "name": "Cadbury Lunch Bar Dream",
+    "kcal": 505,
+    "protein": 6.7,
+    "fat": 0,
+    "carbs": 59.5,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 48
+  },
+  {
+    "id": "jf180",
+    "name": "Cadbury Astros",
+    "kcal": 491,
+    "protein": 4.9,
+    "fat": 21.5,
+    "carbs": 68,
+    "allergens": [
+      "milk",
+      "wheat",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf181",
+    "name": "Cadbury Tumbles Shortcake",
+    "kcal": 504,
+    "protein": 7.3,
+    "fat": 0,
+    "carbs": 62,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf182",
+    "name": "Nestlé Bar One",
+    "kcal": 464,
+    "protein": 4.5,
+    "fat": 0,
+    "carbs": 67,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 52
+  },
+  {
+    "id": "jf183",
+    "name": "Nestlé Bar One Dessert Topping",
+    "kcal": 560,
+    "protein": 5,
+    "fat": 36.9,
+    "carbs": 54,
+    "allergens": [
+      "milk",
+      "gluten",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 20
+  },
+  {
+    "id": "jf184",
+    "name": "Nestlé Tex Large",
+    "kcal": 497,
+    "protein": 6.2,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf185",
+    "name": "Nestlé Peppermint Crisp",
+    "kcal": 478,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 63.3,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 49
+  },
+  {
+    "id": "jf186",
+    "name": "Nestlé Aero Peppermint",
+    "kcal": 535,
+    "protein": 7.2,
+    "fat": 0,
+    "carbs": 0,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 20
+  },
+  {
+    "id": "jf187",
+    "name": "Beacon Jelly Tots Original",
+    "kcal": 269,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 67,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf188",
+    "name": "Swizzels Fizzers",
+    "kcal": 379,
+    "protein": 0,
+    "fat": 2.8,
+    "carbs": 87.2,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf189",
+    "name": "Bakers Eet-Sum-Mor Biscuits",
+    "kcal": 527,
+    "protein": 5.8,
+    "fat": 0,
+    "carbs": 57,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 27
+  },
+  {
+    "id": "jf190",
+    "name": "Bakers Classic Choc Romany Creams",
+    "kcal": 503,
+    "protein": 6.7,
+    "fat": 23.2,
+    "carbs": 65,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 29
+  },
+  {
+    "id": "jf191",
+    "name": "Alette's Buttermilk Rusks",
+    "kcal": 479,
+    "protein": 9.6,
+    "fat": 19,
+    "carbs": 65,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 21
+  },
+  {
+    "id": "jf192",
+    "name": "Malva Milktart",
+    "kcal": 369,
+    "protein": 4.3,
+    "fat": 22.2,
+    "carbs": 37.1,
+    "allergens": [
+      "milk",
+      "egg",
+      "wheat",
+      "gluten"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 190
+  },
+  {
+    "id": "jf193",
+    "name": "South African Style Bunny Chow",
+    "kcal": 220,
+    "protein": 10,
+    "fat": 8,
+    "carbs": 28,
+    "allergens": [
+      "wheat",
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf194",
+    "name": "Vegetable Bunny Chow",
+    "kcal": 247,
+    "protein": 7.1,
+    "fat": 5,
+    "carbs": 43.5,
+    "allergens": [
+      "wheat",
+      "gluten"
+    ],
+    "vegetarian": true,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf195",
+    "name": "South African Tripe · Mogodu",
+    "kcal": 153,
+    "protein": 7,
+    "fat": 6.3,
+    "carbs": 17,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf196",
+    "name": "Potato Chips · Crinkle-Cut Fried",
+    "kcal": 290,
+    "protein": 3.6,
+    "fat": 17,
+    "carbs": 33,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf197",
+    "name": "Fruit Mince Pie · Shop-Bought",
+    "kcal": 377,
+    "protein": 3.8,
+    "fat": 14.9,
+    "carbs": 60.7,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf198",
+    "name": "Nando's Hot PERi-Naise",
+    "kcal": 213,
+    "protein": 0,
+    "fat": 16,
+    "carbs": 20,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 15
+  },
+  {
+    "id": "jf199",
+    "name": "Nando's half chicken",
+    "kcal": 155,
+    "protein": 23.5,
+    "fat": 6.7,
+    "carbs": 0.2,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 460
+  },
+  {
+    "id": "jf200",
+    "name": "Nando's Whole Chicken",
+    "kcal": 155,
+    "protein": 23.4,
+    "fat": 6.7,
+    "carbs": 0.2,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African food · typical nutrition (estimated)",
+    "portion_grams": 889
+  }
 ]
