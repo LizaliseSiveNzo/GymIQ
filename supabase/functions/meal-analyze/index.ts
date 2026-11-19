@@ -78,21 +78,23 @@ Deno.serve(async (req) => {
     const user = await authenticate(req);
     if (!user) return json({ error: 'Sign in to analyse a meal.' });
 
-    const { image } = await req.json();
-    if (typeof image !== 'string' || !image) return json({ error: 'Choose a photo first.' });
-    if (image.length > MAX_BYTES) return json({ error: 'That photo is too large. Use a smaller one.' });
+    const { image, images } = await req.json();
+    const imgs: string[] = Array.isArray(images) && images.length ? images : image ? [image] : [];
+    if (!imgs.length) return json({ error: 'Choose a photo first.' });
+    if (imgs.length > 3) return json({ error: 'You can upload up to 3 photos.' });
+    if (imgs.some((img) => typeof img !== 'string' || !img || img.length > MAX_BYTES)) return json({ error: 'One of those photos is too large. Use smaller ones.' });
 
-    const prompt = 'Identify each distinct food on this plate separately (for example: chicken breast, white rice, broccoli, beef mince).'
+    const prompt = 'These are photos of the same meal (from different angles). Identify each distinct food across all photos, once each.'
       + ' For each, estimate the portion as "small", "medium", or "large".'
       + ' Return ONLY compact JSON with no extra spaces or line breaks, shaped exactly like {"foods":[{"name":"chicken breast","portion":"medium"}]}.'
       + ' Use singular, specific food names ("carrot" not "carrots", "beef mince" not "mince meat").'
-      + ' Ignore plates, cutlery, packaging, hands and background. Do not invent foods.';
+      + ' Ignore plates, cutlery, packaging, hands and background. Do not invent foods or repeat the same food twice.';
 
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ inlineData: { mimeType: 'image/jpeg', data: image } }, { text: prompt }] }],
+        contents: [{ parts: [...imgs.map((img) => ({ inlineData: { mimeType: 'image/jpeg', data: img } })), { text: prompt }] }],
         generationConfig: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: 'application/json' },
       }),
     });

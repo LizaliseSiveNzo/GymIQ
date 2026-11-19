@@ -2,9 +2,10 @@ import { supabase } from './supabaseClient.js';
 
 // Downscale a photo to ~1024px JPEG (keeps the vision call cheap and private),
 // then ask the meal-analyze edge function to identify foods and portions.
-export async function analyzeMealPhoto(file) {
-  const base64 = await downscaleImage(file);
-  const { data, error } = await supabase.functions.invoke('meal-analyze', { body: { image: base64 } });
+export async function analyzeMealPhoto(files) {
+  const list = Array.isArray(files) ? files : [files];
+  const images = await Promise.all(list.map(downscaleImage));
+  const { data, error } = await supabase.functions.invoke('meal-analyze', { body: { images } });
   if (error) throw Error(error?.message || 'Could not analyse the photo.');
   if (data?.error) throw Error(data.detail ? `${data.error} — ${data.detail}` : data.error);
   return data;
