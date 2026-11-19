@@ -33,7 +33,7 @@ export default function PersonalCoach(){
  const [turns,setTurns]=useState([]),[proposals,setProposals]=useState([]),[message,setMessage]=useState('');
  const [listening,setListening]=useState(false),[readingId,setReadingId]=useState(null);
  const [voices,setVoices]=useState([]),[voiceUri,setVoiceUri]=useState('');
- const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[settingsOpen,setSettingsOpen]=useState(false);
+ const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[settingsOpen,setSettingsOpen]=useState(false),[loadingSpeech,setLoadingSpeech]=useState(null);
  const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),settingsDialog=useRef(null);
  const cloudAudio=useRef(null),readingVersion=useRef(0);
  const selectedVoice=chooseCoachVoice(voices);
@@ -46,7 +46,7 @@ export default function PersonalCoach(){
  },[profile.id]);
  useEffect(()=>{if(settingsOpen&&settingsDialog.current&&!settingsDialog.current.open)settingsDialog.current.showModal();else if(!settingsOpen&&settingsDialog.current?.open)settingsDialog.current.close();},[settingsOpen]);
  useEffect(()=>{if(voiceUri==='gemini')cloudAudio.current ||= createCoachAudio({load:loadSpeech});},[voiceUri,profile.id]);
- useEffect(()=>{const last=turns.filter(t=>t.status==='done'&&t.reply).slice(-1)[0];if(last&&voiceUri==='gemini')cloudAudio.current?.prefetch?.(last.id);},[turns,voiceUri]);
+ useEffect(()=>{if(voiceUri!=='gemini'){setLoadingSpeech(null);return;}const last=turns.filter(t=>t.status==='done'&&t.reply).slice(-1)[0];if(!last){setLoadingSpeech(null);return;}setLoadingSpeech(last.id);cloudAudio.current?.prefetch?.(last.id,()=>setLoadingSpeech(cur=>cur===last.id?null:cur));},[turns,voiceUri]);
  async function refresh(){
   const results=await Promise.all([
    supabase.from('coach_turns').select('id,prompt,reply,status,created_at').eq('user_id',profile.id).order('created_at',{ascending:false}).limit(20),
@@ -124,7 +124,7 @@ export default function PersonalCoach(){
      {turns.map(turn=><article className="coach-turn" key={turn.id}>
       <div className="coach-user-message"><span className="coach-visually-hidden">You</span><p className="coach-text">{turn.prompt}</p></div>
       <div className="coach-assistant-message"><div className="coach-assistant-label"><span aria-hidden="true">✦</span> Coach</div>
-       {turn.reply?<><p className="coach-text">{turn.reply}</p>{(globalThis.Audio||globalThis.speechSynthesis)&&<button type="button" className="coach-read" aria-label={readingId===turn.id?'Stop reading reply':'Read reply aloud'} onClick={()=>readingId===turn.id?stopReading():readReply(turn.id,turn.reply)}>{readingId===turn.id?'■ Stop reading':'◖ Read aloud'}</button>}</>:<p className="subtle">{turn.status==='error'?'Couldn’t complete this request. Please try again.':'Preparing your reply…'}</p>}
+       {turn.reply?<><p className="coach-text">{turn.reply}</p>{(globalThis.Audio||globalThis.speechSynthesis)&&<button type="button" className="coach-read" disabled={voiceUri==='gemini'&&loadingSpeech===turn.id} aria-label={readingId===turn.id?'Stop reading reply':'Read reply aloud'} onClick={()=>readingId===turn.id?stopReading():readReply(turn.id,turn.reply)}>{readingId===turn.id?'■ Stop reading':'◖ Read aloud'}</button>}</>:<p className="subtle">{turn.status==='error'?'Couldn’t complete this request. Please try again.':'Preparing your reply…'}</p>}
        {proposals.filter(p=>p.turn_id===turn.id).map(p=><Proposal key={p.id} action={p} busy={!!busy} onAction={apply}/>)}
       </div>
      </article>)}

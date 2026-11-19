@@ -4,7 +4,7 @@ export function createCoachAudio({load,AudioClass=globalThis.Audio,now=Date.now}
  let revision=0,controller,player;const cache=new Map();
  function stop(){revision++;controller?.abort();controller=null;if(player){player.onended=null;player.onerror=null;player.pause();player.removeAttribute?.('src');player.load?.();player=null;}}
  function ttl(result){return now()+Math.max(0,Math.min(Number(result?.expires_in)||0,900)-30)*1000;}
- async function prefetch(id){
+ async function prefetch(id,onReady){
   const version=revision;
   try{
    if(cache.has(id)&&cache.get(id).expires>now())return;
@@ -14,6 +14,7 @@ export function createCoachAudio({load,AudioClass=globalThis.Audio,now=Date.now}
    cache.set(id,{url:result.url,expires:ttl(result)});
    if(cache.size>20)cache.delete(cache.keys().next().value);
   }catch{/* background prefetch failures are silent */}
+  finally{onReady?.();}
  }
  async function read(id,onEnd){
   stop();const version=revision,activeController=new AbortController();controller=activeController;let timer;
