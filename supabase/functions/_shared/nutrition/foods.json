@@ -2164,4 +2164,579 @@
     "source_description": "Fast food / treat · typical nutrition (estimated)",
     "portion_grams": 40
   }
+,
+  {
+    "id": "jf043",
+    "name": "Nando's peri-peri chicken",
+    "kcal": 200,
+    "protein": 22,
+    "fat": 11,
+    "carbs": 5,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "jf044",
+    "name": "Steers flame-grilled burger",
+    "kcal": 250,
+    "protein": 13,
+    "fat": 12,
+    "carbs": 22,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "jf045",
+    "name": "Steers chips · slap chips",
+    "kcal": 250,
+    "protein": 3,
+    "fat": 9,
+    "carbs": 40,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf046",
+    "name": "Chicken Licken hot wings",
+    "kcal": 260,
+    "protein": 18,
+    "fat": 16,
+    "carbs": 10,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf047",
+    "name": "Chicken Licken soul food · pap & chicken",
+    "kcal": 180,
+    "protein": 12,
+    "fat": 6,
+    "carbs": 22,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 400
+  },
+  {
+    "id": "jf048",
+    "name": "Debonairs pizza slice",
+    "kcal": 270,
+    "protein": 12,
+    "fat": 11,
+    "carbs": 30,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 120
+  },
+  {
+    "id": "jf049",
+    "name": "Roman's pizza slice",
+    "kcal": 260,
+    "protein": 11,
+    "fat": 11,
+    "carbs": 30,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 120
+  },
+  {
+    "id": "jf050",
+    "name": "Wimpy burger",
+    "kcal": 250,
+    "protein": 13,
+    "fat": 12,
+    "carbs": 22,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 200
+  },
+  {
+    "id": "jf051",
+    "name": "Spur basted ribs",
+    "kcal": 290,
+    "protein": 20,
+    "fat": 20,
+    "carbs": 8,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 250
+  },
+  {
+    "id": "jf052",
+    "name": "Fishaways fish & chips",
+    "kcal": 230,
+    "protein": 12,
+    "fat": 9,
+    "carbs": 28,
+    "allergens": [
+      "gluten",
+      "fish"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 300
+  },
+  {
+    "id": "jf053",
+    "name": "Gatsby · filled roll",
+    "kcal": 250,
+    "protein": 12,
+    "fat": 12,
+    "carbs": 25,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 400
+  },
+  {
+    "id": "jf054",
+    "name": "Bunny chow · curry in bread",
+    "kcal": 220,
+    "protein": 10,
+    "fat": 8,
+    "carbs": 30,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 400
+  },
+  {
+    "id": "jf055",
+    "name": "Boerewors roll",
+    "kcal": 280,
+    "protein": 10,
+    "fat": 15,
+    "carbs": 25,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf056",
+    "name": "Kota · quarter loaf",
+    "kcal": 260,
+    "protein": 12,
+    "fat": 12,
+    "carbs": 30,
+    "allergens": [
+      "gluten",
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 350
+  },
+  {
+    "id": "jf057",
+    "name": "Slap chips · thick fries",
+    "kcal": 230,
+    "protein": 3,
+    "fat": 9,
+    "carbs": 35,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 150
+  },
+  {
+    "id": "jf058",
+    "name": "NikNaks",
+    "kcal": 500,
+    "protein": 7,
+    "fat": 30,
+    "carbs": 55,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf059",
+    "name": "Simba chips",
+    "kcal": 530,
+    "protein": 7,
+    "fat": 35,
+    "carbs": 53,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf060",
+    "name": "Ghost Pops",
+    "kcal": 470,
+    "protein": 6,
+    "fat": 24,
+    "carbs": 60,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf061",
+    "name": "Flings cheese puffs",
+    "kcal": 540,
+    "protein": 7,
+    "fat": 34,
+    "carbs": 54,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf062",
+    "name": "Biltong · beef",
+    "kcal": 290,
+    "protein": 55,
+    "fat": 5,
+    "carbs": 1,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf063",
+    "name": "Droëwors · dried sausage",
+    "kcal": 350,
+    "protein": 30,
+    "fat": 24,
+    "carbs": 2,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf064",
+    "name": "Chappies bubble gum",
+    "kcal": 320,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 80,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 5
+  },
+  {
+    "id": "jf065",
+    "name": "Bar One chocolate",
+    "kcal": 490,
+    "protein": 7,
+    "fat": 24,
+    "carbs": 65,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 55
+  },
+  {
+    "id": "jf066",
+    "name": "Lunch Bar chocolate",
+    "kcal": 500,
+    "protein": 8,
+    "fat": 25,
+    "carbs": 60,
+    "allergens": [
+      "milk",
+      "soy",
+      "nuts"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 55
+  },
+  {
+    "id": "jf067",
+    "name": "PS chocolate",
+    "kcal": 530,
+    "protein": 8,
+    "fat": 30,
+    "carbs": 59,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf068",
+    "name": "Tex chocolate",
+    "kcal": 500,
+    "protein": 6,
+    "fat": 26,
+    "carbs": 62,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 50
+  },
+  {
+    "id": "jf069",
+    "name": "Peppermint Crisp chocolate",
+    "kcal": 500,
+    "protein": 5,
+    "fat": 25,
+    "carbs": 65,
+    "allergens": [
+      "milk",
+      "soy"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 49
+  },
+  {
+    "id": "jf070",
+    "name": "Fizzers",
+    "kcal": 380,
+    "protein": 0,
+    "fat": 0,
+    "carbs": 95,
+    "allergens": [],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 20
+  },
+  {
+    "id": "jf071",
+    "name": "Wilson's toffees",
+    "kcal": 420,
+    "protein": 3,
+    "fat": 15,
+    "carbs": 70,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 30
+  },
+  {
+    "id": "jf072",
+    "name": "Koeksister",
+    "kcal": 440,
+    "protein": 5,
+    "fat": 20,
+    "carbs": 60,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 60
+  },
+  {
+    "id": "jf073",
+    "name": "Milk tart · melktert",
+    "kcal": 280,
+    "protein": 6,
+    "fat": 15,
+    "carbs": 30,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf074",
+    "name": "Malva pudding",
+    "kcal": 330,
+    "protein": 5,
+    "fat": 11,
+    "carbs": 55,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf075",
+    "name": "Peppermint crisp tart",
+    "kcal": 350,
+    "protein": 5,
+    "fat": 21,
+    "carbs": 35,
+    "allergens": [
+      "milk"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 100
+  },
+  {
+    "id": "jf076",
+    "name": "Hertzoggies · jam & coconut tart",
+    "kcal": 420,
+    "protein": 4,
+    "fat": 20,
+    "carbs": 55,
+    "allergens": [
+      "gluten",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 40
+  },
+  {
+    "id": "jf077",
+    "name": "Buttermilk rusks",
+    "kcal": 430,
+    "protein": 10,
+    "fat": 17,
+    "carbs": 60,
+    "allergens": [
+      "gluten",
+      "milk",
+      "egg"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 25
+  },
+  {
+    "id": "jf078",
+    "name": "Vetkoek · plain",
+    "kcal": 320,
+    "protein": 6,
+    "fat": 13,
+    "carbs": 45,
+    "allergens": [
+      "gluten"
+    ],
+    "vegetarian": false,
+    "vegan": false,
+    "category": "junk",
+    "source_description": "South African fast food / treat · typical nutrition (estimated)",
+    "portion_grams": 80
+  }
 ]
