@@ -24,14 +24,17 @@ function Proposal({action,busy,onAction}){
   {action.status==='applied'&&<Link className="btn btn-secondary" to={kind==='workout'?'/workout':`/bank?section=${kind==='meal_plan'?'plan':'builder'}`}>{kind==='workout'?'Open training':'Open Calorie Bank'} ↗</Link>}
  </article>;
 }
+const gearIcon=<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>;
+const micIcon=<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
+const sendIcon=<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>;
 export default function PersonalCoach(){
  const {profile}=useAuth();
  const [access,setAccess]=useState(null);
  const [turns,setTurns]=useState([]),[proposals,setProposals]=useState([]),[message,setMessage]=useState('');
  const [listening,setListening]=useState(false),[readingId,setReadingId]=useState(null);
  const [voices,setVoices]=useState([]),[voiceUri,setVoiceUri]=useState('');
- const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null);
+ const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[settingsOpen,setSettingsOpen]=useState(false);
+ const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),settingsDialog=useRef(null);
  const cloudAudio=useRef(null),readingVersion=useRef(0);
  const selectedVoice=chooseCoachVoice(voices);
  useEffect(()=>{
@@ -41,6 +44,7 @@ export default function PersonalCoach(){
   update();synthesis?.addEventListener?.('voiceschanged',update);
   return()=>synthesis?.removeEventListener?.('voiceschanged',update);
  },[profile.id]);
+ useEffect(()=>{if(settingsOpen&&settingsDialog.current&&!settingsDialog.current.open)settingsDialog.current.showModal();else if(!settingsOpen&&settingsDialog.current?.open)settingsDialog.current.close();},[settingsOpen]);
  useEffect(()=>{if(voiceUri==='gemini')cloudAudio.current ||= createCoachAudio({load:loadSpeech});},[voiceUri,profile.id]);
  useEffect(()=>{const last=turns.filter(t=>t.status==='done'&&t.reply).slice(-1)[0];if(last&&voiceUri==='gemini')cloudAudio.current?.prefetch?.(last.id);},[turns,voiceUri]);
  async function refresh(){
@@ -111,7 +115,7 @@ export default function PersonalCoach(){
  useEffect(()=>{const panel=conversation.current;if(panel)panel.scrollTop=panel.scrollHeight;},[turns,busy]);
  function fillPrompt(text){setMessage(text);request.current=null;document.getElementById('coach-message')?.focus();}
 
- return <TabShell title="AI coach" showKicker={false} showCoachFab={false}><div className="coach-page">
+ return <TabShell title="AI coach" showKicker={false} showCoachFab={false} headerAction={<button type="button" className="coach-settings-btn" onClick={()=>setSettingsOpen(true)} aria-label="Coach settings">{gearIcon}</button>}><div className="coach-page">
   {!access?<p role="status">Opening your coach…</p>:!access.enabled?<p className="mf-card">Your personal coach isn’t available for this account.</p>:<>
    {readingId&&<button type="button" className="btn btn-secondary coach-stop" onClick={stopReading}>■ Stop reading</button>}
    <div className="coach-workspace">
@@ -131,11 +135,12 @@ export default function PersonalCoach(){
     {!access.configured&&<p className="inline-error coach-feedback">Your coach is unavailable right now.</p>}
     <form className="coach-composer" onSubmit={send}>
      <label className="coach-visually-hidden" htmlFor="coach-message">Message your coach</label>
-     <textarea id="coach-message" maxLength={2000} rows={1} value={message} disabled={!!busy} placeholder="Message your coach…" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
-     <div className="coach-composer-actions"><span className="coach-composer-hint">{listening?'Listening…':''}</span><div>{speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{listening?'■ Stop':'🎙 Speak'}</button>}<button type="submit" className="coach-send" aria-label="Send message" disabled={!!busy||!message.trim()||!access.configured}>{busy==='chat'?'…':'↑'}</button></div></div>
+     <textarea id="coach-message" maxLength={2000} rows={1} value={message} disabled={!!busy} placeholder="Message your coach" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
+     {speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{micIcon}</button>}
+     <button type="submit" className="coach-send" aria-label="Send message" disabled={!!busy||!message.trim()||!access.configured}>{sendIcon}</button>
     </form>
-    <div className="coach-voice-setting"><label htmlFor="coach-voice">Voice</label><select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select><Link to="/privacy" className="coach-privacy">Privacy</Link></div>
    </div>
+   <dialog ref={settingsDialog} className="coach-settings-sheet" aria-label="Coach settings" onCancel={()=>setSettingsOpen(false)}><div className="coach-settings-head"><h2>Coach settings</h2><button type="button" className="btn btn-ghost" onClick={()=>setSettingsOpen(false)} aria-label="Close">✕</button></div><label className="coach-settings-row" htmlFor="coach-voice">Reading voice<select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></label><Link to="/privacy" className="coach-settings-link">Privacy</Link></dialog>
   </>}
  </div></TabShell>;
 }
