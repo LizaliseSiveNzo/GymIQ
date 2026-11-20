@@ -68,24 +68,39 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
       if (!stopped) setTimeout(ocrLoop, 1500);
     }
     async function start() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError('The camera needs a secure (HTTPS) connection. Enter the barcode digits below.');
+        setPhase('error'); return;
+      }
+      const attempts = [
+        { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
+        { video: { facingMode: 'environment' }, audio: false },
+        { video: true, audio: false },
+      ];
+      let lastErr = null;
+      for (const constraints of attempts) {
+        try { stream = await navigator.mediaDevices.getUserMedia(constraints); lastErr = null; break; }
+        catch (e) { lastErr = e; }
+      }
+      if (!stream) {
+        const name = lastErr?.name || '';
+        if (name === 'NotAllowedError' || name === 'PermissionDeniedError') setError('Camera permission was denied. Allow camera access in your browser, or enter the barcode digits below.');
+        else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') setError('No camera was found on this device. Enter the barcode digits below.');
+        else setError('Camera could not open. Enter the barcode digits below.');
+        setPhase('error'); return;
+      }
+      if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
+      try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch { /* autofocus unsupported */ }
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-          audio: false,
-        });
-        if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
-        try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch { /* autofocus unsupported */ }
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-
         const { BrowserMultiFormatReader } = await import('@zxing/browser');
         const reader = new BrowserMultiFormatReader();
         controls = await reader.decodeFromVideoElement(videoRef.current, (result) => {
           if (result) found(result.getText());
         });
-
-        setTimeout(ocrLoop, 800);
-      } catch { setError('Camera could not open. Enter the barcode digits below.'); setPhase('error'); }
+      } catch { /* OCR still runs as a fallback */ }
+      setTimeout(ocrLoop, 800);
     }
     start();
     return () => { stopped = true; try { controls?.stop(); } catch { /* ok */ } stream?.getTracks().forEach((t) => t.stop()); };
