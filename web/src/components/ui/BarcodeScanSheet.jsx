@@ -50,6 +50,11 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
   const [manual, setManual] = useState('');
   const [saving, setSaving] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [notfoundBarcode, setNotfoundBarcode] = useState('');
+  const [manualName, setManualName] = useState('');
+  const [manualKcal, setManualKcal] = useState('');
+  const [manualAmount, setManualAmount] = useState('100');
+  const [manualUnit, setManualUnit] = useState('g');
 
   useEffect(() => {
     let stopped = false;
@@ -119,9 +124,21 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
       setAmount('100');
       setPhase('found');
     } catch (e) {
-      setError(e.message || 'Lookup failed.');
-      setPhase('error');
+      const msg = e.message || 'Lookup failed.';
+      if (/not found|no usable calorie/i.test(msg)) { setNotfoundBarcode(barcode); setError(''); setPhase('notfound'); }
+      else { setError(msg); setPhase('error'); }
     }
+  }
+
+  function logManual() {
+    const per100 = Number(manualKcal);
+    const amt = Number(manualAmount);
+    if (!manualName.trim()) { setError('Enter the product name.'); return; }
+    if (!Number.isFinite(per100) || per100 <= 0 || per100 > 1000) { setError('Enter the calories per 100 g/ml from the label.'); return; }
+    const kcal = Math.round(per100 * amt / 100);
+    if (kcal < 1 || kcal > 10000) { setError('Check the amount.'); return; }
+    setSaving(true);
+    onLog({ name: `${manualName.trim()} (${amt} ${manualUnit})`.slice(0, 100), kcal }).catch((err) => { setError(err.message); setSaving(false); });
   }
 
   let kcal = null;
@@ -170,6 +187,22 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
           <div className="barcode-actions">
             <button type="button" className="btn btn-primary" disabled={saving || !confirmed || kcal == null} onClick={log}>{saving ? 'Logging…' : 'Log to diary'}</button>
           </div>
+        </div>
+      )}
+
+      {phase === 'notfound' && (
+        <div className="barcode-sheet">
+          <div className="barcode-sheet-handle" aria-hidden="true" />
+          <h2>Not in the food database</h2>
+          <p className="subtle">Barcode {notfoundBarcode} isn't listed. Log it from the package label instead.</p>
+          <div className="barcode-fields"><label>Product name<input value={manualName} onChange={(e) => setManualName(e.target.value)} maxLength={100} placeholder="e.g. Albany white bread" /></label></div>
+          <div className="barcode-fields">
+            <label>Calories per 100 g/ml<input type="number" inputMode="decimal" min="0" max="1000" step="1" value={manualKcal} onChange={(e) => setManualKcal(e.target.value)} placeholder="kcal" /></label>
+            <label>Amount<input type="number" inputMode="decimal" min="0.1" max="3000" step="0.1" value={manualAmount} onChange={(e) => setManualAmount(e.target.value)} /></label>
+            <label>Unit<select value={manualUnit} onChange={(e) => setManualUnit(e.target.value)}><option value="g">g</option><option value="ml">ml</option></select></label>
+          </div>
+          {error && <p className="inline-error" role="alert">{error}</p>}
+          <div className="barcode-actions"><button type="button" className="btn btn-primary" disabled={saving} onClick={logManual}>{saving ? 'Logging…' : 'Log to diary'}</button></div>
         </div>
       )}
 
