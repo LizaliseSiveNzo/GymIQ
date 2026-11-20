@@ -16,28 +16,34 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
 
   useEffect(() => {
     let stopped = false;
+    let stream = null;
     let controls = null;
     async function start() {
       try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
+        if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
+        try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch { /* autofocus unsupported */ }
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+
         const { BrowserMultiFormatReader } = await import('@zxing/browser');
         const reader = new BrowserMultiFormatReader();
-        controls = await reader.decodeFromConstraints(
-          { video: { facingMode: 'environment' } },
-          videoRef.current,
-          (result, error, ctrl) => {
-            if (stopped || !result) return;
-            const text = result.getText();
-            if (validBarcode(text)) {
-              stopped = true;
-              try { ctrl.stop(); } catch { /* ok */ }
-              lookup(text);
-            }
+        controls = await reader.decodeFromVideoElement(videoRef.current, (result, error, ctrl) => {
+          if (stopped || !result) return;
+          const text = result.getText();
+          if (validBarcode(text)) {
+            stopped = true;
+            try { ctrl.stop(); } catch { /* ok */ }
+            lookup(text);
           }
-        );
+        });
       } catch { setError('Camera could not open. Enter the barcode digits below.'); setPhase('error'); }
     }
     start();
-    return () => { stopped = true; try { controls?.stop(); } catch { /* ok */ } };
+    return () => { stopped = true; try { controls?.stop(); } catch { /* ok */ } stream?.getTracks().forEach((t) => t.stop()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
