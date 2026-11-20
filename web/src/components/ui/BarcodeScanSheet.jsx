@@ -49,6 +49,7 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
   const [error, setError] = useState('');
   const [manual, setManual] = useState('');
   const [saving, setSaving] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let stopped = false;
@@ -105,7 +106,7 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
     start();
     return () => { stopped = true; try { controls?.stop(); } catch { /* ok */ } stream?.getTracks().forEach((t) => t.stop()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [retryCount]);
 
   async function lookup(barcode) {
     setPhase('looking');
@@ -176,6 +177,8 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
         <div className="barcode-error">
           <h2>Couldn't scan that barcode</h2>
           <p>{error}</p>
+          {error.toLowerCase().includes('permission') && <p className="subtle">To allow it: tap the lock icon in the address bar → Permissions → Camera → Allow, then tap Retry.</p>}
+          <button type="button" className="btn btn-secondary" onClick={() => { setError(''); setPhase('scanning'); setRetryCount((n) => n + 1); }}>Retry camera</button>
           <form onSubmit={(e) => { e.preventDefault(); if (validBarcode(manual)) lookup(manual); else setError('Enter a valid 8, 12, 13 or 14-digit barcode.'); }}>
             <input inputMode="numeric" maxLength="14" value={manual} onChange={(e) => setManual(e.target.value.replace(/\D/g, ''))} placeholder="Barcode digits" aria-label="Barcode digits" />
             <button type="submit" className="btn btn-secondary">Look up</button>
