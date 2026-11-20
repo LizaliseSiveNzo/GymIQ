@@ -25,6 +25,22 @@ export function validateMeal(input,context) {
   if(totals.kcal<50||totals.kcal>2200)throw Error('Please choose realistic meal portions.');
   return {name:title(input.name),slot:input.slot,items,...totals,recipe_id:'coach-custom',preparation:title(input.preparation,800)};
 }
+export function validateLoggedFood(input,context) {
+  const {foods,kitchen}=context;
+  if(!SLOTS.includes(input?.slot))throw Error('Choose breakfast, lunch, snack or dinner.');
+  if(!Array.isArray(input.items)||input.items.length<1||input.items.length>12)throw Error('Use between one and twelve ingredients.');
+  const seen=new Set();
+  const items=input.items.map(i=>{
+    const food=foods.find(f=>f.id===i.food_id);
+    if(!food||!kitchen.pantry.includes(food.id)||seen.has(food.id))throw Error('Use each available catalogue ingredient once per meal.');
+    seen.add(food.id);
+    if(typeof i.grams!=='number'||!Number.isFinite(i.grams)||i.grams<1||i.grams>1500)throw Error('Use ingredient portions from 1 to 1,500 grams.');
+    return {food_id:food.id,grams:Math.round(i.grams*10)/10};
+  });
+  const totals=mealTotals(items,foods);
+  if(totals.kcal<1||totals.kcal>10000)throw Error('Please choose realistic meal portions.');
+  return {name:title(input.name),slot:input.slot,items,...totals};
+}
 export function validateMealPlan(input,context) {
   const target=Number(context.target);
   if(!int(target,1500,6000))throw Error('Save an eligible Monthly goal before creating a daily plan.');
@@ -58,13 +74,16 @@ export function validateWorkout(input,context) {
 const object=properties=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
 const string={type:'string'},integer={type:'integer'};
 const meal=object({name:string,slot:{type:'string',enum:SLOTS},preparation:{type:'string',description:'Short preparation instructions. Honour raw/cooked food states. No added unlisted ingredients.'},items:{type:'array',items:object({food_id:string,grams:{type:'number'}})}});
+const loggedFood=object({name:string,slot:{type:'string',enum:SLOTS},items:{type:'array',items:object({food_id:string,grams:{type:'number'}})}});
 export const COACH_TOOLS=[
   {type:'function',function:{name:'draft_meal',description:'Prepare one custom meal from the saved available ingredients, for review and saving to Meal builder. Never logs intake.',parameters:meal}},
+  {type:'function',function:{name:'log_food',description:'Log a food or meal the user has already eaten into their food diary for today. Use the saved available ingredients and a realistic portion.',parameters:loggedFood}},
   {type:'function',function:{name:'draft_meal_plan',description:'Prepare four custom meals for today. GymIQ balances portions to the saved calorie guide. Needs a saved goal.',parameters:object({meals:{type:'array',items:meal}})}},
   {type:'function',function:{name:'draft_workout',description:'Prepare a replacement training programme using only library exercises and available equipment. User reviews and applies; keeps completed history.',parameters:object({name:string,goal:{type:'string',enum:['hypertrophy','strength','both','fat_loss','calisthenics']},session_minutes:integer,days:{type:'array',items:object({name:string,exercises:{type:'array',items:object({exercise_id:string,sets:integer,rep_min:integer,rep_max:integer,rest_seconds:integer})}})}})}},
 ];
 export function validateTool(name,args,context) {
   if(name==='draft_meal')return {kind:'meal',payload:validateMeal(args,context)};
+  if(name==='log_food')return {kind:'log_food',payload:{day:context.day,...validateLoggedFood(args,context)}};
   if(name==='draft_meal_plan')return {kind:'meal_plan',payload:validateMealPlan(args,context)};
   if(name==='draft_workout')return {kind:'workout',payload:validateWorkout(args,context)};
   throw Error('This action is not supported.');
