@@ -7,20 +7,27 @@ export function validBarcode(value){
 export function normalizeBarcodeProduct(data,barcode){
  const p=data?.product;if(!p)return null;
  const aggregate=p.nutrition?.aggregated_set;
- let kcal,unit=null;
+ const num=(v)=>{const n=Number(v);return Number.isFinite(n)&&n>=0?Math.round(n*10)/10:null;};
+ let kcal=null,unit=null,protein=null,carbs=null,fat=null;
  if(aggregate){
   if(!['100g','100ml'].includes(aggregate.per)||aggregate.preparation!=='as_sold')return null;
   const energy=aggregate.nutrients?.['energy-kcal'],kj=aggregate.nutrients?.['energy-kj']||aggregate.nutrients?.energy;
   if(energy?.modifier||kj?.modifier)return null;
   if(energy?.value!=null&&String(energy.unit).toLowerCase()==='kcal')kcal=energy.value;
   else if(kj?.value!=null&&String(kj.unit).toLowerCase()==='kj')kcal=Number(kj.value)/4.184;
+  protein=num(aggregate.nutrients?.proteins?.value);
+  carbs=num(aggregate.nutrients?.carbohydrates?.value);
+  fat=num(aggregate.nutrients?.fat?.value);
   unit=aggregate.per==='100ml'?'ml':'g';
  }else{
   const n=p.nutriments;if(!n)return null;kcal=n['energy-kcal_100g'];
   if(kcal==null&&n.energy_100g!=null&&String(n.energy_unit).toLowerCase()==='kj')kcal=Number(n.energy_100g)/4.184;
+  protein=num(n.proteins_100g);
+  carbs=num(n.carbohydrates_100g);
+  fat=num(n.fat_100g);
  }
  if(kcal==null||kcal===''||!Number.isFinite(Number(kcal))||Number(kcal)<0||Number(kcal)>1000)return null;
- return {barcode,unit,name:String(p.product_name||p.product_name_en||'Packaged food').slice(0,100),brand:String(p.brands||'').slice(0,100),kcal_per_100:Math.round(Number(kcal)*100)/100,serving:String(p.serving_size||'').slice(0,80),source_url:`https://world.openfoodfacts.org/product/${barcode}`,source:'Open Food Facts'};
+ return {barcode,unit,name:String(p.product_name||p.product_name_en||'Packaged food').slice(0,100),brand:String(p.brands||'').slice(0,100),kcal_per_100:Math.round(Number(kcal)*100)/100,protein_per_100:protein,carbs_per_100:carbs,fat_per_100:fat,serving:String(p.serving_size||'').slice(0,80),source_url:`https://world.openfoodfacts.org/product/${barcode}`,source:'Open Food Facts'};
 }
 export function barcodePortion(product,amount){
  const quantity=Number(amount),per100=Number(product?.kcal_per_100);

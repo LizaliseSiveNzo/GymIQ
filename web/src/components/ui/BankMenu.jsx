@@ -3,7 +3,7 @@ import {Link} from 'react-router-dom';
 import {BANK_SECTIONS} from '../../lib/bankSection.js';
 import './bankMenu.css';
 
-const groups=[{label:'Food & logging',keys:['home','plan','builder','diary','barcode']},{label:'Goals & progress',keys:['goals','weight','insights']},{label:'About the numbers',keys:['sources']}];
+const groups=[{label:'Food & logging',keys:['home','plan','builder','diary']},{label:'Goals & progress',keys:['goals','weight','insights']},{label:'About the numbers',keys:['sources']}];
 export default function BankMenu({section}){
  const details=useRef(null),menuId=useId();
  useEffect(()=>{
