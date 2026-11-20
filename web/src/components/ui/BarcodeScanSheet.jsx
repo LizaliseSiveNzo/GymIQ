@@ -130,7 +130,7 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
     }
   }
 
-  function logManual() {
+  async function logManual() {
     const per100 = Number(manualKcal);
     const amt = Number(manualAmount);
     if (!manualName.trim()) { setError('Enter the product name.'); return; }
@@ -138,7 +138,10 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
     const kcal = Math.round(per100 * amt / 100);
     if (kcal < 1 || kcal > 10000) { setError('Check the amount.'); return; }
     setSaving(true);
-    onLog({ name: `${manualName.trim()} (${amt} ${manualUnit})`.slice(0, 100), kcal }).catch((err) => { setError(err.message); setSaving(false); });
+    try {
+      await supabase.functions.invoke('gymiq-barcode', { body: { action: 'save', barcode: notfoundBarcode, name: manualName.trim(), kcal_per_100: per100, unit: manualUnit } });
+      await onLog({ name: `${manualName.trim()} (${amt} ${manualUnit})`.slice(0, 100), kcal });
+    } catch (err) { setError(err?.message || 'Could not save.'); setSaving(false); }
   }
 
   let kcal = null;
