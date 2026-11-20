@@ -3,6 +3,42 @@ import { supabase } from '../../lib/supabaseClient.js';
 import { validBarcode, barcodePortion } from '../../../../supabase/functions/_shared/nutrition/barcode.js';
 import './barcodeScanSheet.css';
 
+let tesseractWorker = null;
+function getWorker() {
+  if (!tesseractWorker) {
+    tesseractWorker = (async () => {
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('eng', 1, { logger: () => {} });
+      await worker.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '11' });
+      return worker;
+    })();
+  }
+  return tesseractWorker;
+}
+async function readBarcodeDigits(video) {
+  const w = video.videoWidth, h = video.videoHeight;
+  if (!w || !h) return null;
+  const canvas = document.createElement('canvas');
+  const scale = Math.min(1, 720 / w);
+  canvas.width = Math.round(w * scale);
+  canvas.height = Math.round(h * scale);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  try {
+    const worker = await getWorker();
+    const { data } = await worker.recognize(canvas);
+    const digits = (data?.text || '').replace(/\D/g, '');
+    for (const len of [13, 12, 8, 14]) {
+      for (let i = 0; i + len <= digits.length; i++) {
+        const candidate = digits.slice(i, i + len);
+        if (validBarcode(candidate)) return candidate;
+      }
+    }
+    return null;
+  } catch { return null; }
+}
+
 export default function BarcodeScanSheet({ onClose, onLog }) {
   const videoRef = useRef(null);
   const [phase, setPhase] = useState('scanning'); // scanning | looking | found | error
@@ -18,6 +54,19 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
     let stopped = false;
     let stream = null;
     let controls = null;
+    function found(text) {
+      if (stopped || !validBarcode(text)) return;
+      stopped = true;
+      try { controls?.stop(); } catch { /* ok */ }
+      stream?.getTracks().forEach((t) => t.stop());
+      lookup(text);
+    }
+    async function ocrLoop() {
+      if (stopped) return;
+      const digits = await readBarcodeDigits(videoRef.current);
+      if (digits && validBarcode(digits)) { found(digits); return; }
+      if (!stopped) setTimeout(ocrLoop, 1500);
+    }
     async function start() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -31,15 +80,11 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
 
         const { BrowserMultiFormatReader } = await import('@zxing/browser');
         const reader = new BrowserMultiFormatReader();
-        controls = await reader.decodeFromVideoElement(videoRef.current, (result, error, ctrl) => {
-          if (stopped || !result) return;
-          const text = result.getText();
-          if (validBarcode(text)) {
-            stopped = true;
-            try { ctrl.stop(); } catch { /* ok */ }
-            lookup(text);
-          }
+        controls = await reader.decodeFromVideoElement(videoRef.current, (result) => {
+          if (result) found(result.getText());
         });
+
+        setTimeout(ocrLoop, 800);
       } catch { setError('Camera could not open. Enter the barcode digits below.'); setPhase('error'); }
     }
     start();
