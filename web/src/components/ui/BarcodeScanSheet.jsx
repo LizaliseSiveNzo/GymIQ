@@ -16,32 +16,28 @@ export default function BarcodeScanSheet({ onClose, onLog }) {
 
   useEffect(() => {
     let stopped = false;
-    let stream = null;
-    let detector = null;
+    let controls = null;
     async function start() {
-      if (!('BarcodeDetector' in window)) { setError('Camera scanning is unavailable in this browser. Enter the barcode digits below.'); setPhase('error'); return; }
       try {
-        const formats = (await window.BarcodeDetector.getSupportedFormats()).filter((f) => ['ean_13', 'ean_8', 'upc_a', 'itf'].includes(f));
-        if (!formats.length) throw Error('no-format');
-        detector = new window.BarcodeDetector({ formats });
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        const loop = async () => {
-          if (stopped) return;
-          try {
-            const values = await detector.detect(videoRef.current);
-            const match = values.find((v) => validBarcode(v.rawValue));
-            if (match) { stopped = true; stream.getTracks().forEach((t) => t.stop()); lookup(match.rawValue); return; }
-          } catch { /* keep scanning */ }
-          requestAnimationFrame(loop);
-        };
-        requestAnimationFrame(loop);
+        const { BrowserMultiFormatReader } = await import('@zxing/browser');
+        const reader = new BrowserMultiFormatReader();
+        controls = await reader.decodeFromConstraints(
+          { video: { facingMode: 'environment' } },
+          videoRef.current,
+          (result, error, ctrl) => {
+            if (stopped || !result) return;
+            const text = result.getText();
+            if (validBarcode(text)) {
+              stopped = true;
+              try { ctrl.stop(); } catch { /* ok */ }
+              lookup(text);
+            }
+          }
+        );
       } catch { setError('Camera could not open. Enter the barcode digits below.'); setPhase('error'); }
     }
     start();
-    return () => { stopped = true; stream?.getTracks().forEach((t) => t.stop()); };
+    return () => { stopped = true; try { controls?.stop(); } catch { /* ok */ } };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
