@@ -11,6 +11,7 @@ const TABS = [
 ];
 export default function TabShell({ title, showKicker = true, showCoachFab = true, headerAction, children }) {
   const [timerOpen, setTimerOpen] = useState(false);
+  const [timerRunning, setTimerRunning] = useState(false);
   return <div className="mf-app">
     <header className="mf-header" style={{ position: 'relative' }}>
       <Link className="app-wordmark" to="/workout">GYM<span>IQ</span></Link>
@@ -23,8 +24,8 @@ export default function TabShell({ title, showKicker = true, showCoachFab = true
         <span className="ic" aria-hidden="true">{t.icon}</span>{t.label}
       </NavLink>)}
     </nav>
-    {showCoachFab && <button type="button" className="timer-fab" onClick={() => setTimerOpen(true)} aria-label="Open timer" title="Timer">⏱</button>}
+    {showCoachFab && <button type="button" className={`timer-fab${timerRunning ? ' is-running' : ''}`} onClick={() => setTimerOpen(true)} aria-label="Open timer" title="Timer">⏱</button>}
     {showCoachFab && <Link className="coach-fab" to="/coach" aria-label="Open your AI coach" title="AI coach">✦</Link>}
-    {timerOpen && <Timer onClose={() => setTimerOpen(false)} />}
+    <Timer open={timerOpen} onClose={() => setTimerOpen(false)} onRunningChange={setTimerRunning} />
   </div>;
 }

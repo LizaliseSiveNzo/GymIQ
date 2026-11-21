@@ -76,7 +76,7 @@ function playAlarm() {
   } catch { /* audio unavailable */ }
 }
 
-export default function Timer({ onClose }) {
+export default function Timer({ onClose, open = true, onRunningChange }) {
   const [mode, setMode] = useState('timer');
   // stopwatch
   const [swRunning, setSwRunning] = useState(false);
@@ -118,6 +118,7 @@ export default function Timer({ onClose }) {
   }, [mode, swRunning, swAccum, laps, totalMs, tRunning]);
 
   const running = mode === 'stopwatch' ? swRunning : tRunning;
+  useEffect(() => { onRunningChange?.(running); }, [running, onRunningChange]);
 
   // Accurate timestamp-based clock.
   useEffect(() => {
@@ -240,6 +241,7 @@ export default function Timer({ onClose }) {
   const fastest = laps.length > 1 ? Math.min(...laps.map((l) => l.lapMs)) : null;
   const slowest = laps.length > 1 ? Math.max(...laps.map((l) => l.lapMs)) : null;
 
+  if (!open) return null;
   return (
     <div className="timer-screen" role="dialog" aria-modal="true" aria-label="Timer and stopwatch">
       <div className="timer-glow" aria-hidden="true" />

@@ -19,4 +19,5 @@
   transition:transform .12s ease;
 }
 .timer-fab:active{transform:scale(.92)}
+.timer-fab.is-running{background:#3b82f6;color:#fff;box-shadow:0 8px 24px rgba(59,130,246,.45)}
 @media(min-width:800px){.timer-fab{left:calc(50vw - 360px)}}
