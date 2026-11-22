@@ -95,11 +95,7 @@ Deno.serve(async (req) => {
     if (imgs.length > 3) return json({ error: 'You can upload up to 3 photos.' });
     if (imgs.some((img) => typeof img !== 'string' || !img || img.length > MAX_BYTES)) return json({ error: 'One of those photos is too large. Use smaller ones.' });
 
-    const prompt = 'These are photos of the same meal (from different angles). Identify each distinct food across all photos, once each.'
-      + ' For each food, estimate its portion weight in grams as accurately as you can (a typical serving amount).'
-      + ' Return ONLY compact JSON with no extra spaces or line breaks, shaped exactly like {"foods":[{"name":"chicken breast","grams":150}]}.'
-      + ' Use singular, specific food names ("carrot" not "carrots", "beef mince" not "mince meat").'
-      + ' Ignore plates, cutlery, packaging, hands and background. Do not invent foods or repeat the same food twice.';
+    const prompt = 'Look at the photo(s). If they show a packaged food product (a box, bag, can, bottle or wrapper with a readable brand), return ONLY compact JSON shaped exactly like {"kind":"product","name":"Oreo cookies","brand":"Nabisco","kcal_per_100g":480,"protein_per_100g":5,"carbs_per_100g":70,"fat_per_100g":20,"serving_g":34}, using the product name and brand you can read plus typical per-100g nutrition. If they show a plated or home-cooked meal instead, return {"kind":"meal","foods":[{"name":"chicken breast","grams":150}]}, identifying each food once with an estimated weight in grams. Use singular food names for meals. Do not invent a brand or product you cannot read.';
 
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
       method: 'POST',
@@ -120,6 +116,16 @@ Deno.serve(async (req) => {
     catch {
       const start = raw.search(/[{[]/);
       if (start >= 0) { try { parsed = JSON.parse(raw.slice(start)); } catch { parsed = {}; } }
+    }
+
+    if (parsed?.kind === 'product') {
+      const pname = String(parsed.name || '').trim().slice(0, 100);
+      const kcal = Number(parsed.kcal_per_100g);
+      if (pname && Number.isFinite(kcal) && kcal >= 0 && kcal <= 1000) {
+        const num = (v: any) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.round(n * 10) / 10 : null; };
+        if (!isPremium) await scoped.from('photo_scan_log').insert({ user_id: user.id });
+        return json({ kind: 'product', product: { name: pname, brand: String(parsed.brand || '').trim().slice(0, 100), kcal_per_100g: Math.round(kcal * 10) / 10, protein_per_100g: num(parsed.protein_per_100g), carbs_per_100g: num(parsed.carbs_per_100g), fat_per_100g: num(parsed.fat_per_100g), serving_g: num(parsed.serving_g), source: 'Gemini estimate — check the label' } });
+      }
     }
 
     const detected: any[] = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.foods) ? parsed.foods : Array.isArray(parsed?.items) ? parsed.items : [];

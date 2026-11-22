@@ -7,11 +7,11 @@ import './nutrition.css';
 import {useLogSync} from '../context/LogSyncContext.jsx';
 import {subscribeSynced} from '../lib/logQueue.js';
 import QuickMeals,{foodAsMeal,mealPayload} from './ui/QuickMeals.jsx';
-import BarcodeScanSheet from './ui/BarcodeScanSheet.jsx';
 import FoodImage from './ui/FoodImage.jsx';
 import FoodPicker from './ui/FoodPicker.jsx';
 import MealPicker from './ui/MealPicker.jsx';
 import MealScanSheet from './ui/MealScanSheet.jsx';
+import ProductScanSheet from './ui/ProductScanSheet.jsx';
 import {analyzeMealPhoto} from '../lib/mealVision.js';
 const AiReviewCard=lazy(()=>import('./ui/AiReviewCard.jsx'));
 
@@ -36,12 +36,11 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   const [cards,setCards]=useState(()=>SLOTS.map(slot=>({...blankMeal(),slot}))),[editingId,setEditingId]=useState(null),[correcting,setCorrecting]=useState(null),[period,setPeriod]=useState('day');
   const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [weights,setWeights]=useState([]),[weighIn,setWeighIn]=useState('');
-  const [photoBusy,setPhotoBusy]=useState(false),[photoResult,setPhotoResult]=useState(null),[photoError,setPhotoError]=useState(''),[photoPreview,setPhotoPreview]=useState(null),[photoItems,setPhotoItems]=useState(null);
+  const [photoBusy,setPhotoBusy]=useState(false),[photoResult,setPhotoResult]=useState(null),[photoError,setPhotoError]=useState(''),[photoPreview,setPhotoPreview]=useState(null),[photoItems,setPhotoItems]=useState(null),[photoProduct,setPhotoProduct]=useState(null);
   const photoInput=useRef(null),galleryInput=useRef(null);
   const today=localDay();
   const goalDialog=useRef(null);
   const [goalDismissed,setGoalDismissed]=useState(false);
-  const [barcodeOpen,setBarcodeOpen]=useState(false);
   useEffect(()=>{let active=true;setLoading(true);setError('');
     const saved=readView(userId,`nutrition:${day}`);
     function show(values){
@@ -132,17 +131,22 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
     else if(!Number.isInteger(Number(value.kcal))||Number(value.kcal)<1||Number(value.kcal)>10000)throw Error('Enter 1–10,000 whole calories.');
     await sync.enqueue('food',mealPayload(value,day),id);
   }
-  async function logBarcodeFood(value){
-    await enqueueFood({name:value.name,slot:'snack',items:null,kcal:value.kcal},crypto.randomUUID());
-    setBarcodeOpen(false);setNotice('Scanned food logged to your diary.');
-  }
   async function onPhotoFile(e){
     const files=Array.from(e.target.files||[]).slice(0,3);e.target.value='';
     if(!files.length)return;
-    setPhotoBusy(true);setPhotoError('');setPhotoResult(null);setPhotoPreview(URL.createObjectURL(files[0]));
-    try{const result=await analyzeMealPhoto(files);setPhotoResult(result);setPhotoItems(result.foods||[]);}
+    setPhotoBusy(true);setPhotoError('');setPhotoResult(null);setPhotoProduct(null);setPhotoPreview(URL.createObjectURL(files[0]));
+    try{
+      const result=await analyzeMealPhoto(files);setPhotoResult(result);
+      if(result.kind==='product')setPhotoProduct(result.product);
+      else setPhotoItems(result.foods||[]);
+    }
     catch(err){setPhotoError(err.message||'Could not analyse that photo.');}
     finally{setPhotoBusy(false);}
+  }
+  async function logPhotoProduct(value){
+    await enqueueFood({name:value.name,slot:'snack',items:null,kcal:value.kcal},crypto.randomUUID());
+    setPhotoProduct(null);setPhotoResult(null);setPhotoPreview(null);
+    setNotice('Product logged to your diary.');
   }
   function patchPhotoItem(i,patch){setPhotoItems(prev=>prev.map((f,n)=>n===i?{...f,...patch}:f));}
   function addPhotoItem(foodId){const food=foods.find(f=>f.id===foodId);if(food)setPhotoItems(prev=>[...(prev||[]),{name:food.name,food_id:food.id,grams:food.portion_grams||100,estimated:false}]);}
@@ -249,7 +253,7 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
       </div>
       {guideKcal > 0 && <p className="subtle" style={{ fontSize: 11, marginTop: 8 }}>Suggested split: 25% protein · 45% carbs · 30% fat of your daily guide.</p>}
     </section>}
-    {section==='home'&&<div style={{marginBottom:16,display:'flex',flexDirection:'column',gap:10}}><button type="button" className="btn btn-block" onClick={()=>setBarcodeOpen(true)} style={{minHeight:64,fontSize:16,fontWeight:800,borderRadius:18,background:'linear-gradient(135deg,#c6ff3a,#a4e024)',color:'#10130a',border:0,display:'flex',alignItems:'center',justifyContent:'center',gap:12,boxShadow:'0 8px 24px rgba(198,255,58,.28)'}}><span style={{fontSize:24}} aria-hidden="true">🔍</span><span style={{display:'flex',flexDirection:'column',alignItems:'flex-start',lineHeight:1.2}}><b style={{fontSize:16}}>Scan barcode</b><i style={{fontStyle:'normal',fontSize:12,fontWeight:600,opacity:.7}}>Any SA packaged food</i></span></button><button type="button" className="btn btn-block" disabled={photoBusy} onClick={()=>photoInput.current?.click()} style={{minHeight:64,fontSize:16,fontWeight:800,borderRadius:18,background:'linear-gradient(135deg,#c6ff3a,#a4e024)',color:'#10130a',border:0,display:'flex',alignItems:'center',justifyContent:'center',gap:12,boxShadow:'0 8px 24px rgba(198,255,58,.28)'}}><span style={{fontSize:24}} aria-hidden="true">📷</span><span style={{display:'flex',flexDirection:'column',alignItems:'flex-start',lineHeight:1.2}}><b style={{fontSize:16}}>Snap your meal</b><i style={{fontStyle:'normal',fontSize:12,fontWeight:600,opacity:.7}}>Opens the camera</i></span></button><button type="button" className="btn btn-ghost btn-block" disabled={photoBusy} onClick={()=>galleryInput.current?.click()}>🖼 Choose from gallery</button></div>}
+    {section==='home'&&<div style={{marginBottom:16,display:'flex',flexDirection:'column',gap:10}}><button type="button" className="btn btn-block" disabled={photoBusy} onClick={()=>photoInput.current?.click()} style={{minHeight:64,fontSize:16,fontWeight:800,borderRadius:18,background:'linear-gradient(135deg,#c6ff3a,#a4e024)',color:'#10130a',border:0,display:'flex',alignItems:'center',justifyContent:'center',gap:12,boxShadow:'0 8px 24px rgba(198,255,58,.28)'}}><span style={{fontSize:24}} aria-hidden="true">📷</span><span style={{display:'flex',flexDirection:'column',alignItems:'flex-start',lineHeight:1.2}}><b style={{fontSize:16}}>Snap your meal</b><i style={{fontStyle:'normal',fontSize:12,fontWeight:600,opacity:.7}}>Opens the camera</i></span></button><button type="button" className="btn btn-ghost btn-block" disabled={photoBusy} onClick={()=>galleryInput.current?.click()}>🖼 Choose from gallery</button></div>}
     {section==='goals'&&<section className="mf-card"><h2>Your monthly goal</h2><p className="subtle">For general adult planning. Use 0 kg for maintenance. This tool does not provide a weight-gain plan. Limits may reduce the requested pace.</p><form onSubmit={saveGoal} className="nutrition-form">
       <div className="nutrition-fields"><label>Sex used for energy estimate<select value={settings.sex} onChange={e=>update('sex',e.target.value)}><option value="female">Female</option><option value="male">Male</option></select></label>
       {[['age','Age · years',18,85,1],['height_cm','Height · cm',130,230,.1],['weight_kg','Current weight · kg',35,300,.1],['goal_weight_kg','Goal weight · kg',35,300,.1],['monthly_loss_kg','Wanted loss · kg / 30 days',0,4,.1]].map(([key,label,min,max,step])=><label key={key}>{label}<input required type="number" inputMode="decimal" min={min} max={max} step={step} value={settings[key]} onChange={e=>update(key,e.target.value)}/></label>)}
@@ -273,8 +277,8 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
       {!plan&&!goal&&<p className="subtle">Save your goal above to generate a plan. The meal builder below works without a goal.</p>}
     </section>}
     {false && <QuickMeals recent={recent} favourites={favourites} day={day} busy={busy} onUse={useQuick} onLog={value=>action(()=>enqueueFood(value))} onRemove={entry=>action(async()=>{const {error}=await supabase.from('food_favourites').delete().eq('user_id',userId).eq('id',entry.id);if(error)throw Error('Could not remove favourite. Connect and try again.');setFavourites(v=>v.filter(f=>f.id!==entry.id));})}/>}
-    {barcodeOpen&&<BarcodeScanSheet onClose={()=>setBarcodeOpen(false)} onLog={logBarcodeFood} />}
-    {(photoBusy||photoResult||photoError)&&photoPreview&&<MealScanSheet preview={photoPreview} busy={photoBusy} error={photoError} items={photoItems||[]} foods={foods} defaultDay={today} onClose={()=>{setPhotoResult(null);setPhotoPreview(null);setPhotoItems(null);setPhotoError('');}} onPatch={patchPhotoItem} onAdd={addPhotoItem} onRemove={removePhotoItem} onSave={savePhotoMeal} />}
+    {photoProduct&&photoPreview&&<ProductScanSheet preview={photoPreview} product={photoProduct} onClose={()=>{setPhotoProduct(null);setPhotoResult(null);setPhotoPreview(null);}} onLog={logPhotoProduct} />}
+    {(photoBusy||photoResult||photoError)&&photoPreview&&!photoProduct&&<MealScanSheet preview={photoPreview} busy={photoBusy} error={photoError} items={photoItems||[]} foods={foods} defaultDay={today} onClose={()=>{setPhotoResult(null);setPhotoPreview(null);setPhotoItems(null);setPhotoError('');}} onPatch={patchPhotoItem} onAdd={addPhotoItem} onRemove={removePhotoItem} onSave={savePhotoMeal} />}
     {show('builder')&&<section className="mf-card" id="meal-builder">
       {correcting?<><h2>Correct food entry</h2><form onSubmit={saveCorrection} className="nutrition-form"><div className="nutrition-fields"><label>Meal or food name<input required maxLength="100" value={correcting.name} onChange={e=>setCorrecting(c=>({...c,name:e.target.value}))}/></label><label>Meal time<select value={correcting.slot} onChange={e=>setCorrecting(c=>({...c,slot:e.target.value}))}>{SLOTS.map(s=><option value={s} key={s}>{s}</option>)}</select></label></div>{correcting.manual?<label>Calories eaten · kcal<input type="number" min="1" max="10000" required step="1" value={correcting.kcal} onChange={e=>setCorrecting(c=>({...c,kcal:e.target.value}))}/></label>:<p className="subtle">Ingredients are kept from the original entry.</p>}<div className="launch-actions"><button type="submit" className="btn btn-primary" disabled={busy}>{busy?'Saving…':'Save correction'}</button><button type="button" className="btn btn-ghost" disabled={busy} onClick={()=>setCorrecting(null)}>Cancel</button></div></form></>
       :editingId&&cardById(editingId)?<><h2>Edit meal</h2><form onSubmit={e=>{e.preventDefault();saveCard();}} className="nutrition-form"><div className="nutrition-fields"><label>Meal name<input required maxLength="100" value={cardById(editingId).name} onChange={e=>patchCard(editingId,{name:e.target.value})}/></label><label>Meal time<select value={cardById(editingId).slot} onChange={e=>patchCard(editingId,{slot:e.target.value})}>{SLOTS.map(s=><option value={s} key={s}>{s}</option>)}</select></label></div><MealPicker meals={[...presets,...saved]} onPick={id=>{const m=[...presets,...saved].find(x=>x.id===id);if(m)patchCard(editingId,{name:m.name,items:m.items.map(i=>({...i})),manual:false,kcal:''});}} /><label className="nutrition-check"><input type="checkbox" checked={cardById(editingId).manual} onChange={e=>patchCard(editingId,{manual:e.target.checked})}/>Enter calories from a food label instead</label>{cardById(editingId).manual?<label>Calories eaten · kcal<input type="number" min="1" max="10000" step="1" value={cardById(editingId).kcal} onChange={e=>patchCard(editingId,{kcal:e.target.value})}/></label>:<><div className="nutrition-ingredients">{cardById(editingId).items.map((i,n)=><div className="nutrition-ingredient" key={n}><FoodImage foodId={i.food_id}/><label>Ingredient {n+1}<FoodPicker foods={buildFoods} value={i.food_id} onChange={foodId=>patchCardItem(editingId,n,'food_id',foodId)} /></label><label>Grams<input type="number" inputMode="decimal" step="0.1" min="1" max="1500" value={i.grams} onChange={e=>patchCardItem(editingId,n,'grams',e.target.value)}/></label><button type="button" className="btn btn-ghost" aria-label={`Remove ingredient ${n+1}`} disabled={cardById(editingId).items.length===1} onClick={()=>patchCard(editingId,{items:cardById(editingId).items.filter((_,j)=>j!==n)})}>×</button></div>)}</div><button type="button" className="btn btn-ghost" disabled={cardById(editingId).items.length>=30} onClick={()=>patchCard(editingId,{items:[...cardById(editingId).items,{food_id:buildFoods[0].id,grams:50}]})}>+ Add ingredient</button></>}<div className="launch-actions"><button type="submit" className="btn btn-primary" disabled={busy}>Save meal</button><button type="button" className="btn btn-secondary" disabled={busy||!sync.online} onClick={saveFavourite}>★ Save favourite</button>{!cardById(editingId).manual&&<button type="button" className="btn btn-secondary" disabled={busy} onClick={saveMeal}>Save as template</button>}<button type="button" className="btn btn-ghost" disabled={busy} onClick={()=>setEditingId(null)}>Cancel</button></div></form></>
