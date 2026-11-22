@@ -8,6 +8,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 import { authenticate, cors, json } from '../_shared/launch.ts';
 import foods from '../_shared/nutrition/foods.json' with { type: 'json' };
 import { mealTotals } from '../_shared/nutrition/planner.js';
+import saFoods from '../_shared/nutrition/saFoods.json' with { type: 'json' };
 
 const MAX_BYTES = 4_000_000; // ~3MB base64 cap; frontend downscales to ~200KB anyway.
 
@@ -53,6 +54,30 @@ function matchFood(name: string) {
     const fn = normalizeName(f.name);
     const score = words.filter((w) => fn.includes(w)).length;
     if (score > bestScore) { bestScore = score; bestWord = f; }
+  }
+  return bestScore >= 1 ? bestWord : null;
+}
+
+function matchSaProduct(name: string) {
+  const n = normalizeName(name);
+  if (!n) return null;
+  const exact = saFoods.find((p) => normalizeName(p.name) === n);
+  if (exact) return exact;
+  let best = null as (typeof saFoods)[number] | null, bestLen = 0;
+  for (const p of saFoods) {
+    const pn = normalizeName(p.name);
+    if (pn.includes(n) || n.includes(pn)) {
+      const len = Math.min(pn.length, n.length);
+      if (len > bestLen) { best = p; bestLen = len; }
+    }
+  }
+  if (best) return best;
+  const words = n.split(' ').filter((w) => w.length > 2);
+  let bestScore = 0, bestWord = null as (typeof saFoods)[number] | null;
+  for (const p of saFoods) {
+    const pn = normalizeName(p.name);
+    const score = words.filter((w) => pn.includes(w)).length;
+    if (score > bestScore) { bestScore = score; bestWord = p; }
   }
   return bestScore >= 1 ? bestWord : null;
 }
@@ -120,11 +145,21 @@ Deno.serve(async (req) => {
 
     if (parsed?.kind === 'product') {
       const pname = String(parsed.name || '').trim().slice(0, 100);
-      const kcal = Number(parsed.kcal_per_100g);
+      const match = pname ? matchSaProduct(pname) : null;
+      const kcal = match ? Number(match.kcal_per_100g) : Number(parsed.kcal_per_100g);
       if (pname && Number.isFinite(kcal) && kcal >= 0 && kcal <= 1000) {
         const num = (v: any) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.round(n * 10) / 10 : null; };
         if (!isPremium) await scoped.from('photo_scan_log').insert({ user_id: user.id });
-        return json({ kind: 'product', product: { name: pname, brand: String(parsed.brand || '').trim().slice(0, 100), kcal_per_100g: Math.round(kcal * 10) / 10, protein_per_100g: num(parsed.protein_per_100g), carbs_per_100g: num(parsed.carbs_per_100g), fat_per_100g: num(parsed.fat_per_100g), serving_g: num(parsed.serving_g), source: 'Gemini estimate — check the label' } });
+        return json({ kind: 'product', product: {
+          name: match?.name || pname,
+          brand: match?.brand || String(parsed.brand || '').trim().slice(0, 100),
+          kcal_per_100g: match ? Number(match.kcal_per_100g) : Math.round(kcal * 10) / 10,
+          protein_per_100g: match ? num(match.protein_per_100g) : num(parsed.protein_per_100g),
+          carbs_per_100g: match ? num(match.carbs_per_100g) : num(parsed.carbs_per_100g),
+          fat_per_100g: match ? num(match.fat_per_100g) : num(parsed.fat_per_100g),
+          serving_g: match ? num(match.serving_g) : num(parsed.serving_g),
+          source: match ? 'SA food database' : 'Gemini estimate — check the label',
+        } });
       }
     }
 
