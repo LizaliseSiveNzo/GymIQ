@@ -18,14 +18,28 @@ function buildWav(data, sampleRate, channels, bits) {
   const out = new Uint8Array(44 + data.byteLength); out.set(new Uint8Array(header), 0); out.set(data, 44);
   return out;
 }
-// Gemini appends a C2PA/JUMBF provenance chunk after the audio `data` chunk.
-// Some mobile browsers reject that trailing chunk, so rebuild a clean WAV from
-// just the fmt + data chunks. Raw PCM is wrapped in a header when needed.
+function resamplePcm(bytes, fromRate, toRate) {
+  if (fromRate === toRate || !bytes.byteLength) return bytes;
+  const samples = new Int16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
+  const ratio = fromRate / toRate;
+  const outLen = Math.max(1, Math.round(samples.length / ratio));
+  const out = new Int16Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    const pos = i * ratio, idx = Math.floor(pos), frac = pos - idx;
+    const a = samples[idx], b = samples[Math.min(idx + 1, samples.length - 1)];
+    out[i] = Math.round(a + (b - a) * frac);
+  }
+  return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+}
+// Gemini appends a C2PA/JUMBF provenance chunk after the audio `data` chunk and
+// emits 24 kHz PCM, which some browsers mark "unsupported". Rebuild a clean WAV
+// from just the fmt + data chunks, resampled to 48 kHz (a universally supported
+// rate). Raw PCM is wrapped in a header when needed.
 function cleanAudio(bytes, mimeType) {
   const mime = (mimeType || 'audio/wav').toLowerCase();
   if (mime.includes('pcm') || mime.includes('l16')) {
     const rate = Number((mime.match(/rate=(\d+)/) || [])[1]) || 24000;
-    return buildWav(bytes, rate, 1, 16);
+    return buildWav(resamplePcm(bytes, rate, 48000), 48000, 1, 16);
   }
   if (bytes.byteLength >= 12 && str4(bytes, 0) === 'RIFF' && str4(bytes, 8) === 'WAVE') {
     let offset = 12, sampleRate = 24000, channels = 1, bits = 16, data = null;
@@ -39,7 +53,10 @@ function cleanAudio(bytes, mimeType) {
       }
       offset += 8 + size + (size & 1);
     }
-    if (data) return buildWav(data, sampleRate, channels, bits);
+    if (data) {
+      if (bits === 16) data = resamplePcm(data, sampleRate, 48000);
+      return buildWav(data, bits === 16 ? 48000 : sampleRate, channels, bits);
+    }
   }
   return bytes;
 }
