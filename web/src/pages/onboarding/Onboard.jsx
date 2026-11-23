@@ -142,9 +142,21 @@ export default function Onboard() {
     if (error) throw error;
   }
 
+  function chooseLocation(loc) {
+    set('gym_location', loc);
+    const selectAll = loc === 'commercial';
+    setForm((f) => {
+      const equipment = {};
+      equipmentItems.forEach((it) => {
+        equipment[it.id] = { selected: selectAll, denoms: it.default_denominations_kg || [] };
+      });
+      return { ...f, equipment };
+    });
+  }
+
   /* ------------------------------ step definitions ------------------------------ */
   const S = [];
-  const add = (o) => S.push(o);
+  const add = (o) => { if (o.firstOnly && rebuilding) return; S.push(o); };
 
   // ---- PHASE: PROGRAM ----
   add({ key: 'goal', phase: 'program', title: 'Primary goal?',
@@ -212,24 +224,24 @@ export default function Onboard() {
     ) });
 
   // ---- PHASE: GYM ----
-  add({ key: 'where', phase: 'gym', title: 'Where will you train?',
+  add({ key: 'where', phase: 'gym', firstOnly: true, title: 'Where will you train?',
     valid: (f) => !!f.gym_location,
     node: (f, st) => (
       <div className="ob-options">
-        <OptionCard icon="🏠" title="Home gym" desc="Own equipment, train at home" selected={f.gym_location === 'home'} onClick={() => st('gym_location', 'home')} />
-        <OptionCard icon="🏟️" title="Commercial gym" desc="Full equipment selection" selected={f.gym_location === 'commercial'} onClick={() => st('gym_location', 'commercial')} />
-        <OptionCard icon="🧳" title="Mixed / travel" desc="Varies week to week" selected={f.gym_location === 'mixed'} onClick={() => st('gym_location', 'mixed')} />
+        <OptionCard icon="🏠" title="Home gym" desc="Own equipment, train at home" selected={f.gym_location === 'home'} onClick={() => chooseLocation('home')} />
+        <OptionCard icon="🏟️" title="Commercial gym" desc="Full equipment selection" selected={f.gym_location === 'commercial'} onClick={() => chooseLocation('commercial')} />
+        <OptionCard icon="🧳" title="Mixed / travel" desc="Varies week to week" selected={f.gym_location === 'mixed'} onClick={() => chooseLocation('mixed')} />
       </div>
     ) });
 
-  add({ key: 'equipment', phase: 'gym', title: 'Pick your equipment',
+  add({ key: 'equipment', phase: 'gym', firstOnly: true, title: 'Pick your equipment',
     sub: 'Tap everything you can use — we’ll only programme what you have.',
     valid: (f) => Object.values(f.equipment).some((e) => e.selected),
     node: (f, st) => <EquipmentPicker items={equipmentItems} value={f.equipment} onChange={(v) => st('equipment', v)} />,
     save: () => persist({}).then(saveGymProfile) });
 
   // ---- PHASE: BASICS ----
-  add({ key: 'about', phase: 'basics', title: 'About you',
+  add({ key: 'about', phase: 'basics', firstOnly: true, title: 'About you',
     sub: 'Used for energy maths and sensible starting loads.',
     valid: (f) => !!f.sex && dobValid(f.dob),
     node: (f, st) => (
@@ -246,7 +258,7 @@ export default function Onboard() {
     ),
     save: () => persist({ sex: form.sex, dob: form.dob }) });
 
-  add({ key: 'body', phase: 'basics', title: 'Body stats',
+  add({ key: 'body', phase: 'basics', firstOnly: true, title: 'Body stats',
     sub: 'Your starting measurements for your training profile.',
     valid: (f) => Number(f.height_cm) > 80 && Number(f.height_cm) < 260 && Number(f.weight_now) > 25,
     node: (f, st) => (
@@ -372,6 +384,9 @@ function EquipmentPicker({ items, value, onChange }) {
     return g;
   }, [items]);
 
+  const selectedCount = items.filter((it) => value[it.id]?.selected).length;
+  const allSelected = items.length > 0 && selectedCount === items.length;
+
   function toggleItem(it) {
     const cur = value[it.id] || {};
     const turningOn = !cur.selected;
@@ -384,8 +399,19 @@ function EquipmentPicker({ items, value, onChange }) {
     });
   }
 
+  function toggleAll() {
+    const next = {};
+    items.forEach((it) => {
+      next[it.id] = { selected: !allSelected, denoms: it.default_denominations_kg || [] };
+    });
+    onChange(next);
+  }
+
   return (
     <>
+      <button type="button" className="eq-select-all" onClick={toggleAll}>
+        {allSelected ? 'Clear all' : 'Select all'}
+      </button>
       {Object.entries(byCat).map(([cat, list]) => (
         <div key={cat}>
           <div className="eq-cat">{cat}</div>
