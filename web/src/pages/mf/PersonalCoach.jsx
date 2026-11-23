@@ -93,7 +93,8 @@ export default function PersonalCoach(){
  function dictate(){
   if(listening){voice.current?.stop();return;}
   stopReading();
-  try{voice.current=startCoachDictation({onText:text=>{setMessage(previous=>((previous?previous+' ':'')+text).slice(0,2000));request.current=null;},onError:setError,onEnd:()=>{setListening(false);voice.current=null;}});setListening(true);}catch(e){setError(e.message);}
+  const base=message;
+  try{voice.current=startCoachDictation({onText:live=>{setMessage(((base?base+' ':'')+live).slice(0,2000));request.current=null;},onError:setError,onEnd:()=>{setListening(false);voice.current=null;}});setListening(true);}catch(e){setError(e.message);}
  }
  function stopReading(){readingVersion.current++;cloudAudio.current?.stop();speech.current=null;globalThis.speechSynthesis?.cancel();setReadingId(null);}
  async function loadSpeech(turnId,signal){
@@ -144,6 +145,7 @@ export default function PersonalCoach(){
      {busy==='chat'&&<div className="coach-thinking" role="status"><span aria-hidden="true">✦</span> Thinking…</div>}
     </section>
     {error&&<p className="inline-error coach-feedback" role="alert">{error}</p>}{notice&&<p className="coach-notice coach-feedback" role="status">{notice}</p>}
+    {listening&&<p className="coach-listening" role="status">Listening… speak now · tap the mic to stop.</p>}
     {!access.configured&&<p className="inline-error coach-feedback">Your coach is unavailable right now.</p>}
     <form className="coach-composer" onSubmit={send}>
      <label className="coach-visually-hidden" htmlFor="coach-message">Message your coach</label>
