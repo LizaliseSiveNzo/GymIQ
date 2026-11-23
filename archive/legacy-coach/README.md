@@ -3,7 +3,7 @@
 Archived 2026-11-23 to remove unreachable code and dormant schema from the live app.
 
 ## What's here
-- `web/` — the removed **coach/trainer + intermediate** pages and components (31 files), moved verbatim from `web/src/`. These were no longer reachable via any route after GymIQ pivoted to an individual fitness product.
+- `web/` — the removed **coach/trainer + intermediate** pages and components (31 files) plus their now-orphaned helper libraries and tests (5 files), moved verbatim from `web/src/`. These were no longer reachable via any route after GymIQ pivoted to an individual fitness product.
 - `migrations/` — the **legacy SQL migrations (0001–0081)** that defined the dropped schema, copied from `supabase/migrations/` (the originals are still there and in git history).
 
 ## Dropped database tables
