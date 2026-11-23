@@ -23,13 +23,15 @@ function useCountUp(target, duration = 1100) {
 
 export default function ProductScanSheet({ preview, product, onClose, onLog }) {
   const [servings, setServings] = useState(1);
+  const [customAmount, setCustomAmount] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const per100 = Number(product?.kcal_per_100g) || 0;
   const servingG = Number(product?.serving_g) > 0 ? Number(product.serving_g) : 100;
   const unit = product?.unit || 'g';
-  const grams = servingG * servings;
+  const usingCustom = customAmount.trim() !== '';
+  const grams = usingCustom ? (Number(customAmount) || 0) : servingG * servings;
   const kcal = Math.round(per100 * grams / 100);
   const shownKcal = useCountUp(kcal);
   const macro = (v) => (v != null ? Math.round(v * grams / 100) : null);
@@ -65,6 +67,11 @@ export default function ProductScanSheet({ preview, product, onClose, onLog }) {
             <span aria-live="polite">{servings}</span>
             <button type="button" aria-label="More servings" onClick={() => setServings((s) => Math.min(20, s + 1))}>+</button>
           </div>
+        </div>
+        <div className="product-custom">
+          <label>Exact amount ({unit})
+            <input type="number" inputMode="decimal" min="0.1" max="3000" step="0.1" value={customAmount} placeholder={`${servingG * servings}`} onChange={(e) => setCustomAmount(e.target.value)} />
+          </label>
         </div>
         {error && <p className="inline-error" role="alert">{error}</p>}
         <div className="product-actions">
