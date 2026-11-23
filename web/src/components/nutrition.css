@@ -10,3 +10,13 @@
 
 .photo-spinner{width:52px;height:52px;border:5px solid rgba(255,255,255,.25);border-top-color:#10b981;border-radius:50%;animation:photo-spin .8s linear infinite;}
 @keyframes photo-spin{to{transform:rotate(360deg);}}
+.diary-entry{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;background:var(--surface)}
+.diary-entry-media{flex:none;width:86px;display:flex;align-items:stretch;background:var(--surface-2)}
+.diary-entry-media .food-image{width:86px;height:100%;min-height:104px;object-fit:cover;border-radius:0}
+.diary-entry-placeholder{flex:1;display:flex;align-items:center;justify-content:center;font-size:28px;min-height:104px}
+.diary-entry-body{flex:1;min-width:0;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.diary-entry-body strong{overflow-wrap:anywhere;font-size:.95rem}
+.diary-entry-body .subtle{margin:0}
+.diary-entry-actions{flex:none;display:flex;flex-direction:column;gap:4px;justify-content:center;padding:12px}
+.diary-entry-actions .btn{min-height:36px;padding:6px 10px;font-size:12px}
+@media(max-width:420px){.diary-entry-media,.diary-entry-media .food-image{width:72px}.diary-entry-actions{flex-direction:row;align-self:flex-end;padding:8px 10px}}
