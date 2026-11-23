@@ -29,7 +29,16 @@ export function createCoachAudio({load,AudioClass=globalThis.Audio,now=Date.now}
     if(cache.size>20)cache.delete(cache.keys().next().value);
    }
    if(version!==revision)return false;
-   player=new AudioClass(saved.url);const active=player;
+   let playUrl=saved.blobUrl;
+   if(!playUrl){
+    const resp=await fetch(saved.url,{signal:activeController.signal});
+    if(!resp.ok)throw Error('Audio could not be fetched.');
+    const buf=await resp.arrayBuffer();
+    playUrl=URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+    saved.blobUrl=playUrl;cache.set(id,saved);
+    if(version!==revision)return false;
+   }
+   player=new AudioClass(playUrl);const active=player;
    player.onended=()=>{if(version===revision)onEnd();};
    player.onerror=()=>{cache.delete(id);if(version===revision){const labels={1:'aborted',2:'network',3:'decode',4:'unsupported'};const c=player?.error?.code;onEnd(Error(`Could not play audio — ${labels[c]||'error '+(c??'?')}. Please retry.`));}};
    await active.play();return version===revision;
