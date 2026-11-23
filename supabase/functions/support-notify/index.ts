@@ -4,6 +4,8 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   const user = await authenticate(req);
   if (!user) return json({ error: 'Sign in first.' }, 401);
+  const rate = await admin().rpc('consume_edge_rate', { p_user: user.id, p_kind: 'support', p_limit: 5, p_window_seconds: 60 });
+  if (rate.error || rate.data !== true) return json({ error: 'Too many requests. Try again shortly.' }, 429);
   try {
     const { ticketId } = await req.json();
     const { data: ticket, error } = await admin().from('support_requests').select('id,subject,message').eq('id', ticketId).eq('user_id', user.id).single();

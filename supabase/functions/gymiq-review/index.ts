@@ -6,6 +6,8 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' },405);
   const user=await authenticate(req);
   if(!user)return json({error:'Sign in to review your records.'},401);
+  const rate=await admin().rpc('consume_edge_rate',{p_user:user.id,p_kind:'review',p_limit:20,p_window_seconds:60});
+  if(rate.error||rate.data!==true)return json({error:'Too many review requests. Try again shortly.'},429);
   try {
     const text=await req.text();
     if(text.length>2048)return json({error:'Review request is too large.'},400);

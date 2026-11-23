@@ -5,6 +5,8 @@ Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return json({});
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
  const user=await authenticate(req);if(!user)return json({error:'Sign in to view your training week.'},401);
+ const rate=await admin().rpc('consume_edge_rate',{p_user:user.id,p_kind:'workout_week',p_limit:30,p_window_seconds:60});
+ if(rate.error||rate.data!==true)return json({error:'Too many requests. Try again shortly.'},429);
  try{
   const raw=await req.text();if(raw.length>2048)return json({error:'Request too large'},400);
   const body=JSON.parse(raw),offset=body.offset;

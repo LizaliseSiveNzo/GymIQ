@@ -5,7 +5,7 @@
 // Requires secret GEMINI_API_KEY. Nothing personalized is cached.
 
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
-import { authenticate, cors, json } from '../_shared/launch.ts';
+import { admin, authenticate, cors, json } from '../_shared/launch.ts';
 import foods from '../_shared/nutrition/foods.json' with { type: 'json' };
 import { mealTotals } from '../_shared/nutrition/planner.js';
 import saFoods from '../_shared/nutrition/saFoods.json' with { type: 'json' };
@@ -103,6 +103,9 @@ Deno.serve(async (req) => {
     if (!key) return json({ error: 'Photo analysis is not configured yet.' });
     const user = await authenticate(req);
     if (!user) return json({ error: 'Sign in to analyse a meal.' });
+
+    const rate = await admin().rpc('consume_edge_rate', { p_user: user.id, p_kind: 'photo_scan', p_limit: 10, p_window_seconds: 60 });
+    if (rate.error || rate.data !== true) return json({ error: 'Too many scans. Try again shortly.' }, 429);
 
     const scoped = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization')! } }, auth: { persistSession: false } });
     const membership = await scoped.rpc('has_active_membership');

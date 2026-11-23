@@ -1,14 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
-
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
-const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
-const admin = () => createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
-async function authenticate(req) {
-  const token = req.headers.get('Authorization')?.replace(/^Bearer /i, '');
-  if (!token) return null;
-  const { data, error } = await admin().auth.getUser(token);
-  return error ? null : data.user;
-}
+import { admin, authenticate, json } from '../_shared/launch.ts';
 
 const TTS_MODEL = 'gemini-3.8-flash-tts';
 const TTS_VOICE = 'Kore';
