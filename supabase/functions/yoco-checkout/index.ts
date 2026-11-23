@@ -28,8 +28,13 @@ Deno.serve(async (req: Request) => {
     if (!response.ok) {
       const rejection = await response.json().catch(() => ({}));
       const scrub = (value: unknown) => typeof value === 'string' ? value.split(key).join('[redacted]').slice(0, 350) : undefined;
-      const reason = scrub(rejection.reason) || scrub(rejection.errorCode) || scrub(rejection.code);
-      console.error('Yoco checkout rejected', { status: response.status, reason, message: scrub(rejection.message) || scrub(rejection.description) });
+      let reason = scrub(rejection.reason) || scrub(rejection.errorCode) || scrub(rejection.code) || scrub(rejection.message) || scrub(rejection.description);
+      if (!reason && Array.isArray(rejection.errors) && rejection.errors.length) {
+        const e = rejection.errors[0];
+        reason = scrub(e.message) || scrub(e.reason) || scrub(e.code) || scrub(e.field);
+      }
+      if (!reason) reason = scrub(JSON.stringify(rejection));
+      console.error('Yoco checkout rejected', { status: response.status, reason });
       return json({ error: `Yoco could not open checkout (${response.status}${reason ? ' · ' + reason : ''}). Please try again.`, providerStatus: response.status,
         providerReason: reason,
       }, 502);
