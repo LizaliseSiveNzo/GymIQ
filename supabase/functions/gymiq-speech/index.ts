@@ -5,15 +5,43 @@ const TTS_MODEL = 'gemini-3.8-flash-tts';
 const TTS_VOICE = 'Kore';
 
 function ascii(view, off, str) { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); }
-function wrapPcmInWav(pcm, sampleRate, channels = 1) {
+function u16(b, o) { return b[o] | (b[o + 1] << 8); }
+function u32(b, o) { return (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0; }
+function str4(b, o) { return String.fromCharCode(b[o], b[o + 1], b[o + 2], b[o + 3]); }
+function buildWav(data, sampleRate, channels, bits) {
   const header = new ArrayBuffer(44), view = new DataView(header);
-  ascii(view, 0, 'RIFF'); view.setUint32(4, 36 + pcm.byteLength, true); ascii(view, 8, 'WAVE');
+  ascii(view, 0, 'RIFF'); view.setUint32(4, 36 + data.byteLength, true); ascii(view, 8, 'WAVE');
   ascii(view, 12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
   view.setUint16(22, channels, true); view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * channels * 2, true); view.setUint16(32, channels * 2, true); view.setUint16(34, 16, true);
-  ascii(view, 36, 'data'); view.setUint32(40, pcm.byteLength, true);
-  const out = new Uint8Array(44 + pcm.byteLength); out.set(new Uint8Array(header), 0); out.set(pcm, 44);
+  view.setUint32(28, sampleRate * channels * (bits / 8), true); view.setUint16(32, channels * (bits / 8), true); view.setUint16(34, bits, true);
+  ascii(view, 36, 'data'); view.setUint32(40, data.byteLength, true);
+  const out = new Uint8Array(44 + data.byteLength); out.set(new Uint8Array(header), 0); out.set(data, 44);
   return out;
+}
+// Gemini appends a C2PA/JUMBF provenance chunk after the audio `data` chunk.
+// Some mobile browsers reject that trailing chunk, so rebuild a clean WAV from
+// just the fmt + data chunks. Raw PCM is wrapped in a header when needed.
+function cleanAudio(bytes, mimeType) {
+  const mime = (mimeType || 'audio/wav').toLowerCase();
+  if (mime.includes('pcm') || mime.includes('l16')) {
+    const rate = Number((mime.match(/rate=(\d+)/) || [])[1]) || 24000;
+    return buildWav(bytes, rate, 1, 16);
+  }
+  if (bytes.byteLength >= 12 && str4(bytes, 0) === 'RIFF' && str4(bytes, 8) === 'WAVE') {
+    let offset = 12, sampleRate = 24000, channels = 1, bits = 16, data = null;
+    while (offset + 8 <= bytes.byteLength) {
+      const id = str4(bytes, offset), size = u32(bytes, offset + 4);
+      if (id === 'fmt ' && size >= 16 && u16(bytes, offset + 8) === 1) {
+        channels = u16(bytes, offset + 10); sampleRate = u32(bytes, offset + 12); bits = u16(bytes, offset + 22);
+      } else if (id === 'data') {
+        data = bytes.slice(offset + 8, offset + 8 + size);
+        break;
+      }
+      offset += 8 + size + (size & 1);
+    }
+    if (data) return buildWav(data, sampleRate, channels, bits);
+  }
+  return bytes;
 }
 async function geminiSpeech({ text, key, signal }) {
   if (!key) throw Error('Gemini voice is not configured');
@@ -37,11 +65,7 @@ async function geminiSpeech({ text, key, signal }) {
   if (!base64) throw Error('Gemini returned no audio');
   let bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
   if (!bytes.byteLength || bytes.byteLength > 8000000) throw Error('Invalid speech size');
-  const mime = (part.inlineData.mimeType || 'audio/wav').toLowerCase();
-  if (mime.includes('pcm') || mime.includes('l16')) {
-    const rate = Number((mime.match(/rate=(\d+)/) || [])[1]) || 24000;
-    bytes = wrapPcmInWav(bytes, rate);
-  }
+  bytes = cleanAudio(bytes, part.inlineData.mimeType);
   return { bytes };
 }
 
