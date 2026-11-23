@@ -13,6 +13,7 @@ import MealPicker from './ui/MealPicker.jsx';
 import MealScanSheet from './ui/MealScanSheet.jsx';
 import ProductScanSheet from './ui/ProductScanSheet.jsx';
 import {analyzeMealPhoto} from '../lib/mealVision.js';
+import {getAiConsent} from '../lib/aiConsent.js';
 const AiReviewCard=lazy(()=>import('./ui/AiReviewCard.jsx'));
 
 const initial={sex:'female',age:'',height_cm:'',weight_kg:'',goal_weight_kg:'',monthly_loss_kg:1,activity_level:'sedentary',gym_days:3,gym_minutes:45,gym_basis:'planned',diet:'regular',excludes:[],general_plan:false};
@@ -134,6 +135,7 @@ export default function NutritionHub({userId,section='home',onSectionChange=()=>
   async function onPhotoFile(e){
     const files=Array.from(e.target.files||[]).slice(0,3);e.target.value='';
     if(!files.length)return;
+    if(!getAiConsent()){setPhotoError('AI photo analysis is turned off. Enable "Share with AI assistants" in Coach settings.');return;}
     setPhotoBusy(true);setPhotoError('');setPhotoResult(null);setPhotoProduct(null);setPhotoPreview(URL.createObjectURL(files[0]));
     try{
       const result=await analyzeMealPhoto(files);setPhotoResult(result);

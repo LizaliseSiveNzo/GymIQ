@@ -7,6 +7,7 @@ import foods from '../../../../supabase/functions/_shared/nutrition/foods.json';
 import {speechRecognitionClass,startCoachDictation,coachVoices,chooseCoachVoice} from '../../lib/coachVoice.js';
 import {createCoachAudio} from '../../lib/coachAudio.js';
 import {readView,saveView} from '../../lib/deviceCache.js';
+import {getAiConsent,setAiConsent} from '../../lib/aiConsent.js';
 import './personalCoach.css';
 
 async function invoke(body){
@@ -75,10 +76,11 @@ export default function PersonalCoach(){
  },[]);
  async function run(key,fn){if(busy)return;setBusy(key);setError('');setNotice('');try{await fn();}catch(e){setError(e.message);}finally{setBusy('');}}
  async function send(event){event.preventDefault();if(busy||!message.trim()||!access?.configured)return;
+  if(!getAiConsent()){setError('AI sharing is turned off. Enable it in Coach settings (⚙).');return;}
   await run('chat',async()=>{
    voice.current?.abort();voice.current=null;setListening(false);stopReading();
    request.current ||= crypto.randomUUID();
-   try{await invoke({action:'chat',message:message.trim(),consent:true,request_id:request.current,offset:new Date().getTimezoneOffset()});}catch(e){request.current=null;throw e;}
+   try{await invoke({action:'chat',message:message.trim(),consent:getAiConsent(),request_id:request.current,offset:new Date().getTimezoneOffset()});}catch(e){request.current=null;throw e;}
    setMessage('');request.current=null;await refresh();
   });
  }
@@ -146,7 +148,7 @@ export default function PersonalCoach(){
      <button type="submit" className="coach-send" aria-label="Send message" disabled={!!busy||!message.trim()||!access.configured}>{sendIcon}</button>
     </form>
    </div>
-   <dialog ref={settingsDialog} className="coach-settings-sheet" aria-label="Coach settings" onCancel={()=>setSettingsOpen(false)}><div className="coach-settings-head"><h2>Coach settings</h2><button type="button" className="btn btn-ghost" onClick={()=>setSettingsOpen(false)} aria-label="Close">✕</button></div><label className="coach-settings-row" htmlFor="coach-voice">Reading voice<select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></label><Link to="/privacy" className="coach-settings-link">Privacy</Link></dialog>
+   <dialog ref={settingsDialog} className="coach-settings-sheet" aria-label="Coach settings" onCancel={()=>setSettingsOpen(false)}><div className="coach-settings-head"><h2>Coach settings</h2><button type="button" className="btn btn-ghost" onClick={()=>setSettingsOpen(false)} aria-label="Close">✕</button></div><label className="coach-settings-row" htmlFor="coach-voice">Reading voice<select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></label><label className="coach-settings-row" style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}><input type="checkbox" defaultChecked={getAiConsent()} onChange={e=>setAiConsent(e.target.checked)} />Share with AI assistants (DeepSeek & Gemini)</label><Link to="/privacy" className="coach-settings-link">Privacy</Link></dialog>
   </>}
  </div></TabShell>;
 }

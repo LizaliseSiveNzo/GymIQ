@@ -10,14 +10,19 @@ export default function Login() {
  const [name,setName] = useState(''), [email,setEmail] = useState(''), [password,setPassword] = useState('');
  const [consent,setConsent] = useState(false), [remember,setRememberMe] = useState(true);
  const [busy,setBusy] = useState(false), [error,setError] = useState(''), [notice,setNotice] = useState('');
+ const [lockUntil,setLockUntil] = useState(()=>{try{const v=Number(sessionStorage.getItem('gymiq_auth_lock')||0);return Date.now()<v?v:0;}catch{return 0;}});
+ const [attempts,setAttempts] = useState(0);
  const { signIn,signUp } = useAuth();
  const navigate = useNavigate();
  useEffect(() => {
    const { data } = supabase.auth.onAuthStateChange(event => { if(event==='PASSWORD_RECOVERY') setMode('update'); });
    return () => data.subscription.unsubscribe();
  }, []);
+ const locked = mode==='login' && lockUntil > Date.now();
  async function submit(e) {
-   e.preventDefault(); setBusy(true); setError(''); setNotice('');
+   e.preventDefault();
+   if (locked) { setError(`Too many attempts. Try again in ${Math.ceil((lockUntil - Date.now()) / 1000)}s.`); return; }
+   setBusy(true); setError(''); setNotice('');
    try {
      if(mode==='reset') {
        const result=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:window.location.origin+'/login?recovery=1'});
@@ -37,9 +42,20 @@ export default function Login() {
        setRemember(remember);
        const result=await signIn({email:email.trim(),password});
        if(result.error) throw new Error(result.error);
+       setAttempts(0); setLockUntil(0); try{sessionStorage.removeItem('gymiq_auth_lock');}catch{}
        navigate('/workout',{replace:true});
      }
-   } catch(e) {setError(e.message||'Something went wrong. Please try again.');}
+   } catch(e) {
+     setError(e.message||'Something went wrong. Please try again.');
+     if (mode==='login') {
+       const next=attempts+1;
+       if (next>=5) {
+         const until=Date.now()+30000; setLockUntil(until); setAttempts(0);
+         try{sessionStorage.setItem('gymiq_auth_lock',String(until));}catch{}
+         setError('Too many failed attempts. Try again in 30 seconds.');
+       } else setAttempts(next);
+     }
+   }
    finally {setBusy(false);}
  }
  const titles={login:'Welcome back.',register:'Make your next move.',reset:'Reset your password.',update:'Choose a new password.'};
@@ -58,7 +74,7 @@ export default function Login() {
        {mode==='register' && <label className="auth-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I am 18 or older and accept the <Link to="/privacy" target="_blank" rel="noopener noreferrer">privacy policy</Link> and <Link to="/terms" target="_blank" rel="noopener noreferrer">terms and conditions</Link>.</span></label>}
        {error && <p className="inline-error" role="alert">{error}</p>}
        {notice && <p className="mf-card" role="status">{notice}</p>}
-       <button className="btn btn-primary btn-lg btn-block" disabled={busy||(mode==='register'&&!consent)}>{busy?'Please wait…':mode==='reset'?'Send reset link':mode==='update'?'Save password':mode==='register'?'Create my account ↗':'Sign in ↗'}</button>
+       <button className="btn btn-primary btn-lg btn-block" disabled={busy||(mode==='register'&&!consent)||locked}>{busy?'Please wait…':locked?'Try again in a moment…':mode==='reset'?'Send reset link':mode==='update'?'Save password':mode==='register'?'Create my account ↗':'Sign in ↗'}</button>
      </form>
      {mode==='reset' && <button className="btn btn-ghost btn-block" onClick={()=>setMode('login')}>Back to sign in</button>}
      <p className="launch-caption" style={{textAlign:'center',marginTop:24}}><Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link> · GymIQ</p>
