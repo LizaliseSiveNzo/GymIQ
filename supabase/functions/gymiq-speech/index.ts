@@ -4,6 +4,17 @@ import { admin, authenticate, json } from '../_shared/launch.ts';
 const TTS_MODEL = 'gemini-3.8-flash-tts';
 const TTS_VOICE = 'Kore';
 
+function ascii(view, off, str) { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); }
+function wrapPcmInWav(pcm, sampleRate, channels = 1) {
+  const header = new ArrayBuffer(44), view = new DataView(header);
+  ascii(view, 0, 'RIFF'); view.setUint32(4, 36 + pcm.byteLength, true); ascii(view, 8, 'WAVE');
+  ascii(view, 12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true); view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * channels * 2, true); view.setUint16(32, channels * 2, true); view.setUint16(34, 16, true);
+  ascii(view, 36, 'data'); view.setUint32(40, pcm.byteLength, true);
+  const out = new Uint8Array(44 + pcm.byteLength); out.set(new Uint8Array(header), 0); out.set(pcm, 44);
+  return out;
+}
 async function geminiSpeech({ text, key, signal }) {
   if (!key) throw Error('Gemini voice is not configured');
   if (typeof text !== 'string' || !text.trim()) throw Error('Reply unavailable for speech');
@@ -24,9 +35,14 @@ async function geminiSpeech({ text, key, signal }) {
   const part = j?.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data);
   const base64 = part?.inlineData?.data;
   if (!base64) throw Error('Gemini returned no audio');
-  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  let bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
   if (!bytes.byteLength || bytes.byteLength > 8000000) throw Error('Invalid speech size');
-  return { bytes, mimeType: part.inlineData.mimeType || 'audio/wav' };
+  const mime = (part.inlineData.mimeType || 'audio/wav').toLowerCase();
+  if (mime.includes('pcm') || mime.includes('l16')) {
+    const rate = Number((mime.match(/rate=(\d+)/) || [])[1]) || 24000;
+    bytes = wrapPcmInWav(bytes, rate);
+  }
+  return { bytes };
 }
 
 Deno.serve(async (req) => {
@@ -57,7 +73,7 @@ Deno.serve(async (req) => {
     const bucket = db.storage.from('coach-speech'), path = `${user.id}/${turnId}-${TTS_VOICE}.wav`;
     if (status === 'generate') {
       reserved = true;
-      const { bytes, mimeType } = await geminiSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(120000) });
+      const { bytes } = await geminiSpeech({ text: turn.data.reply, key, signal: AbortSignal.timeout(120000) });
       const upload = await bucket.upload(path, bytes, { contentType: 'audio/wav', upsert: true, cacheControl: '3600' }); if (upload.error) throw Error('Could not cache speech: ' + (upload.error.message || String(upload.error)));
       const saved = await db.from('coach_speech_jobs').update({ state: 'ready', updated_at: new Date().toISOString() }).eq('turn_id', turnId).eq('voice', TTS_VOICE).eq('user_id', user.id); if (saved.error) throw Error('Could not confirm speech');
       reserved = false;
