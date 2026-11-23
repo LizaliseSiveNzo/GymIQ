@@ -1,0 +1,1 @@
+-- Deleting a training session also clears its scheduling notification (ref_type='practice'). Applied via MCP.

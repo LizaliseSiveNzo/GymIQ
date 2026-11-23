@@ -1,0 +1,1 @@
+-- Cancelling (deleting) a match or practice notifies the team's players. Bodies applied via MCP 0042_cancel_notifications.

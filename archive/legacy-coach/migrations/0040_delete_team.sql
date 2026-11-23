@@ -1,0 +1,1 @@
+-- Admin deletes a team: players are unassigned (kept), all team-scoped data removed. Body applied via MCP 0039_delete_team.

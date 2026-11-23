@@ -1,0 +1,4 @@
+-- Supabase forbids direct DELETE on storage.objects inside SQL functions.
+-- delete_team() and delete_announcement() recreated without the storage.objects deletion
+-- (attachment DB rows are removed; the underlying files are left as harmless orphans).
+-- Full bodies applied via MCP migration 0040_fix_storage_delete.

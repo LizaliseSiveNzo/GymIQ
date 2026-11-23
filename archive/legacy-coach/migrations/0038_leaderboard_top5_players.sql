@@ -1,0 +1,2 @@
+-- Players only ever see the top 5 (anti-bullying); coaches & admins see the whole board.
+-- team_leaderboard() recreated with a per-role limit (players -> 5). Body applied via MCP.

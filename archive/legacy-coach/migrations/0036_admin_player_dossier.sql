@@ -1,0 +1,3 @@
+-- Admin: full read-only dossier RPCs for any player (metadata, stats, notes, files, medical).
+-- Bodies applied via MCP migration 0035_admin_player_dossier:
+--   admin_player_dossier(uuid) json, admin_player_notes(uuid), admin_player_files(uuid), admin_player_medical(uuid).
