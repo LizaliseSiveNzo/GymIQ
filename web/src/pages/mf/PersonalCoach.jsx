@@ -8,6 +8,7 @@ import {speechRecognitionClass,startCoachDictation,coachVoices,chooseCoachVoice}
 import {createCoachAudio} from '../../lib/coachAudio.js';
 import {readView,saveView} from '../../lib/deviceCache.js';
 import {getAiConsent,setAiConsent} from '../../lib/aiConsent.js';
+import {reportClientIssue} from '../../lib/clientIssues.js';
 import './personalCoach.css';
 
 async function invoke(body){
@@ -99,26 +100,29 @@ export default function PersonalCoach(){
   const {data,error}=await supabase.functions.invoke('gymiq-speech',{body:{turn_id:turnId},signal});
   if(error)throw Error('Gemini voice is unavailable.');if(data?.error)throw Error(data.detail?`${data.error} — ${data.detail}`:data.error);return data;
  }
- async function readReply(id,text){
-  stopReading();const version=readingVersion.current;
-  if(voiceUri==='gemini'&&navigator.onLine){
-   setReadingId(id);
-   cloudAudio.current ||= createCoachAudio({load:loadSpeech});
-   try{await cloudAudio.current.read(id,error=>{if(readingVersion.current===version){stopReading();if(error)setError(error.message);}});return;}
-   catch(error){
-    if(readingVersion.current!==version)return;
-    if(error.name==='NotAllowedError'){setReadingId(null);setNotice('Audio ready. Tap Read aloud again to play.');return;}
-    setError(error.message||'Gemini voice is unavailable. Using your device voice.');
-   }
-  }
+ function speakDevice(text,version,id){
   if(readingVersion.current!==version)return;
   if(!globalThis.speechSynthesis||!globalThis.SpeechSynthesisUtterance){setReadingId(null);setError('Audio is unavailable. Please try again online.');return;}
-
   const utterance=new SpeechSynthesisUtterance(text),chosen=chooseCoachVoice(coachVoices(),voiceUri);
   if(chosen)utterance.voice=chosen;utterance.lang=chosen?.lang||'en-ZA';speech.current=utterance;
   const ended=()=>{if(speech.current===utterance){speech.current=null;setReadingId(null);}};
   utterance.onend=ended;utterance.onerror=ended;setReadingId(id);
   try{globalThis.speechSynthesis.speak(utterance);}catch{ended();setError('Read aloud is unavailable. Please try again.');}
+ }
+ async function readReply(id,text){
+  stopReading();const version=readingVersion.current;
+  const fallback=(error)=>{if(readingVersion.current!==version)return;if(error)reportClientIssue(profile.id,'speech_failed');speakDevice(text,version,id);};
+  if(voiceUri==='gemini'&&navigator.onLine){
+   setReadingId(id);
+   cloudAudio.current ||= createCoachAudio({load:loadSpeech});
+   try{await cloudAudio.current.read(id,error=>{if(readingVersion.current===version){if(error)fallback(error);else setReadingId(null);}});return;}
+   catch(error){
+    if(readingVersion.current!==version)return;
+    if(error.name==='NotAllowedError'){setReadingId(null);setNotice('Audio ready. Tap Read aloud again to play.');return;}
+    fallback(error);
+   }
+  }
+  speakDevice(text,version,id);
  }
  useEffect(()=>{const panel=conversation.current;if(panel)panel.scrollTop=panel.scrollHeight;},[turns,busy]);
  function fillPrompt(text){setMessage(text);request.current=null;document.getElementById('coach-message')?.focus();}
