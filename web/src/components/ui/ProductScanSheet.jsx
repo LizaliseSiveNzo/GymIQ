@@ -22,19 +22,20 @@ function useCountUp(target, duration = 1100) {
 }
 
 export default function ProductScanSheet({ preview, product, onClose, onLog }) {
-  const [amount, setAmount] = useState(product?.serving_g ? String(Math.round(product.serving_g)) : '100');
-  const [unit, setUnit] = useState('g');
+  const [servings, setServings] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const per100 = Number(product?.kcal_per_100g) || 0;
-  const grams = Number(amount) || 0;
+  const servingG = Number(product?.serving_g) > 0 ? Number(product.serving_g) : 100;
+  const unit = product?.unit || 'g';
+  const grams = servingG * servings;
   const kcal = Math.round(per100 * grams / 100);
   const shownKcal = useCountUp(kcal);
   const macro = (v) => (v != null ? Math.round(v * grams / 100) : null);
 
   async function log() {
-    if (kcal < 1 || kcal > 10000) { setError('Check the amount.'); return; }
+    if (kcal < 1 || kcal > 10000) { setError('Check the servings.'); return; }
     setSaving(true);
     try { await onLog({ name: `${product.name} (${grams} ${unit})`.slice(0, 100), kcal }); }
     catch (e) { setError(e.message); setSaving(false); }
@@ -54,9 +55,16 @@ export default function ProductScanSheet({ preview, product, onClose, onLog }) {
           {macro(product.fat_per_100g) != null && <span><b>{macro(product.fat_per_100g)}g</b><i>fat</i></span>}
         </div>
         <p className="subtle">{product.kcal_per_100g} kcal per 100 {unit} · {product.source}</p>
-        <div className="product-fields">
-          <label>Amount<input type="number" inputMode="decimal" min="0.1" max="3000" step="0.1" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
-          <label>Unit<select value={unit} onChange={(e) => setUnit(e.target.value)}><option value="g">g</option><option value="ml">ml</option></select></label>
+        <div className="product-servings">
+          <div className="product-serving-info">
+            <strong>{product.serving_desc || '1 serving'}</strong>
+            <span>≈ {servingG} {unit}</span>
+          </div>
+          <div className="product-stepper">
+            <button type="button" aria-label="Fewer servings" onClick={() => setServings((s) => Math.max(1, s - 1))} disabled={servings <= 1}>−</button>
+            <span aria-live="polite">{servings}</span>
+            <button type="button" aria-label="More servings" onClick={() => setServings((s) => Math.min(20, s + 1))}>+</button>
+          </div>
         </div>
         {error && <p className="inline-error" role="alert">{error}</p>}
         <div className="product-actions">
