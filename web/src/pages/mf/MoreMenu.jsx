@@ -85,7 +85,7 @@ export default function MoreMenu() {
   }
   const active = hasPremium(member);
   async function checkout(planId) {
-    checkoutId.current ||= crypto.randomUUID();
+    checkoutId.current = crypto.randomUUID();
     const { data, error } = await supabase.functions.invoke('yoco-checkout', { body: { requestId: checkoutId.current, plan: planId } });
     if (error) throw new Error(await functionError(error, 'Checkout is unavailable. Please try again.'));
     const url = new URL(data.redirectUrl);
