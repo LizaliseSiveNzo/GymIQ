@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
       const scrub = (value: unknown) => typeof value === 'string' ? value.split(key).join('[redacted]').slice(0, 350) : undefined;
       const reason = scrub(rejection.reason) || scrub(rejection.errorCode) || scrub(rejection.code);
       console.error('Yoco checkout rejected', { status: response.status, reason, message: scrub(rejection.message) || scrub(rejection.description) });
-      return json({ error: 'Yoco could not open checkout. Please try again.', providerStatus: response.status,
+      return json({ error: `Yoco could not open checkout (${response.status}${reason ? ' · ' + reason : ''}). Please try again.`, providerStatus: response.status,
         providerReason: reason,
       }, 502);
     }
