@@ -11,8 +11,15 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json();
     if (!/^[0-9a-f-]{36}$/i.test(body.requestId || '')) return json({ error: 'Invalid checkout request.' }, 400);
+    const PLANS: Record<string, { amount: number; product: string; duration_days: number }> = {
+      monthly: { amount: 10000, product: 'gymiq_30_days', duration_days: 30 },
+      quarterly: { amount: 30000, product: 'gymiq_90_days', duration_days: 90 },
+      biannual: { amount: 60000, product: 'gymiq_180_days', duration_days: 180 },
+      yearly: { amount: 120000, product: 'gymiq_365_days', duration_days: 365 },
+    };
+    const plan = PLANS[body.plan] || PLANS.monthly;
     let payload;
-    try { payload = buildCheckoutPayload(appUrl, user.id); }
+    try { payload = buildCheckoutPayload(appUrl, user.id, plan); }
     catch { return json({ error: 'The website payment return address needs attention. Please contact support.' }, 503); }
     const response = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'Idempotency-Key': `${user.id}-${body.requestId}` },
@@ -29,7 +36,7 @@ Deno.serve(async (req: Request) => {
     }
     const checkout = await response.json();
     const { error } = await admin().from('membership_payments').upsert({ checkout_id: checkout.id,
-      user_id: user.id, amount: 10000, currency: 'ZAR', mode: checkout.processingMode,
+      user_id: user.id, amount: plan.amount, currency: 'ZAR', mode: checkout.processingMode, duration_days: plan.duration_days,
     }, { onConflict: 'checkout_id', ignoreDuplicates: true });
     if (error) throw error;
     return json({ redirectUrl: checkout.redirectUrl });

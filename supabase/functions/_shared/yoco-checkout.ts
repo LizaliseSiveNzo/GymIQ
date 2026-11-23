@@ -12,13 +12,13 @@ export function normalizeAppOrigin(value: string): string {
   return url.origin;
 }
 
-export function buildCheckoutPayload(appOrigin: string, userId: string) {
+export function buildCheckoutPayload(appOrigin: string, userId: string, plan: { amount: number; product: string }) {
   const origin = normalizeAppOrigin(appOrigin);
   return {
-    amount: 10000, currency: 'ZAR', clientReferenceId: userId,
+    amount: plan.amount, currency: 'ZAR', clientReferenceId: userId,
     successUrl: `${origin}/more?payment=processing`,
     cancelUrl: `${origin}/more?payment=cancelled`,
     failureUrl: `${origin}/more?payment=failed`,
-    metadata: { userId, product: 'gymiq_30_days' },
+    metadata: { userId, product: plan.product },
   };
 }

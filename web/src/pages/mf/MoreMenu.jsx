@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabaseClient.js';
 import {loadMembership,savedMembership} from '../../lib/membership.js';
 import {hasPremium} from '../../lib/premium.js';
 import {RedeemAccessCode} from '../../components/ui/PremiumPaywall.jsx';
+import PricingPlans,{planById} from '../../components/ui/PricingPlans.jsx';
 import {useLogSync} from '../../context/LogSyncContext.jsx';
 import {rebuildProgramWithGoal} from '../../lib/rebuildProgram.js';
 
@@ -32,6 +33,7 @@ export default function MoreMenu() {
   const ticketId = useRef(null);
   const [activeGoal, setActiveGoal] = useState(null);
   const [goalBusy, setGoalBusy] = useState(false);
+  const [plan, setPlan] = useState('monthly');
 
   async function loadMember() {
     if(!online)throw Error('Connect to refresh your membership.');
@@ -82,9 +84,9 @@ export default function MoreMenu() {
     }
   }
   const active = hasPremium(member);
-  async function checkout() {
+  async function checkout(planId) {
     checkoutId.current ||= crypto.randomUUID();
-    const { data, error } = await supabase.functions.invoke('yoco-checkout', { body: { requestId: checkoutId.current } });
+    const { data, error } = await supabase.functions.invoke('yoco-checkout', { body: { requestId: checkoutId.current, plan: planId } });
     if (error) throw new Error(await functionError(error, 'Checkout is unavailable. Please try again.'));
     const url = new URL(data.redirectUrl);
     if (url.protocol !== 'https:' || !(url.hostname === 'yoco.com' || url.hostname.endsWith('.yoco.com'))) throw new Error('Invalid checkout address.');
@@ -130,9 +132,9 @@ export default function MoreMenu() {
       <h2>{member?.kind==='owner'?'Owner access is active.':!member ? online?'Checking membership…':'Connect to check membership' : active ? member.kind === 'invite' ? 'Your invited premium access is active.' : member.kind === 'paid' ? 'Premium is active.' : 'Your premium trial is active.' : 'You’re on GymIQ Free.'}</h2>
       {member?.kind==='owner'?<p>Full access to Workouts and Calorie Bank for your owner account.</p>:member && <p>{active ? 'Access until' : 'Access ended'} {new Date(member.expires_at).toLocaleDateString('en-ZA', { day:'numeric', month:'long', year:'numeric' })}.</p>}
       {member?.kind!=='owner'&&<>
-      <div className="membership-price">R100 <small>/ 30 days</small></div>
-      <p>Personalised programmes, daily meal plans, advanced reports and AI insights. Freestyle workouts and manual food logging stay free. Renew manually through Yoco. No automatic debit. Early renewals add 30 days to your remaining access.</p>
-      <button className="btn btn-primary btn-block" disabled={!!busy||!online} onClick={() => run('checkout', checkout)}>{busy === 'checkout' ? 'Opening Yoco…' : active && member?.kind === 'paid' ? 'Add 30 days with Yoco ↗' : 'Get 30 days with Yoco ↗'}</button>
+      <p>Personalised programmes, daily meal plans, advanced reports and AI insights. Freestyle workouts and manual food logging stay free. Renew manually through Yoco — no automatic debit. Longer plans extend your remaining access.</p>
+      <PricingPlans selected={plan} busy={!!busy} onSelect={setPlan} />
+      <button className="btn btn-primary btn-block" disabled={!!busy||!online} onClick={() => run('checkout', () => checkout(plan))}>{busy === 'checkout' ? 'Opening Yoco…' : `${active && member?.kind === 'paid' ? 'Add' : 'Get'} ${planById(plan).name.toLowerCase()} with Yoco ↗`}</button>
       </>}
       <button className="btn btn-ghost" disabled={!!busy||!online} onClick={() => run('refresh', loadMember)}>Refresh status</button>
       {!active && member && <Link to="/workout/history" className="btn btn-ghost">View workout history</Link>}
