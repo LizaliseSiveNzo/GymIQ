@@ -18,12 +18,9 @@ const COLORS = ['#C6FF3A', '#FF6A3D', '#60A5FA', '#C084FC', '#F472B6', '#2DD4BF'
 const ICONS = ['💪', '🏋️', '⚡', '🔥', '🦁', '🐺', '🚀', '🎯', '🏆', '🥊'];
 
 const EMPTY = {
-  // basics
   health_link_consent: false, sex: '', dob: '', height_cm: '', body_fat_pct: '',
   training_experience: '', cardio_experience: '',
-  // gym
   gym_location: '', gym_name: '', equipment: {}, // {itemId: {selected, denoms:[num]}}
-  // program (consumed by the Phase 3 generator)
   goal: '', skills: [], focus: [], deprioritized: [], days_per_week: 4, session_minutes: 60,
   split: 'auto', deload: 'auto', programme_name: '', color: COLORS[0], icon: ICONS[0],
 };
@@ -53,7 +50,7 @@ export default function Onboard() {
     if (profile.onboarded_at && !rebuilding) { navigate('/workout', { replace: true }); return; }
     if (rebuilding) {
       requestIdRef.current = crypto.randomUUID();
-      setStep(11); // skip basics + gym; start at the goal step
+      setStep(0); // start at the goal step
       (async () => {
         try {
           const { data: gym } = await supabase.from('gym_profiles').select('id').eq('user_id', profile.id).eq('is_default', true).limit(1).maybeSingle();
@@ -149,125 +146,9 @@ export default function Onboard() {
   const S = [];
   const add = (o) => S.push(o);
 
-  // ---- PHASE: BASICS ----
-  add({ key: 'health', phase: 'basics', title: 'Let’s build your training plan.',
-    sub: 'A few details. A programme that fits your life.', valid: () => true,
-    node: () => <div className="prev-card"><h4>Made around you</h4><p>Tell us your training experience, equipment and schedule. We’ll use them to build your workout programme.</p><p>Calorie Bank is ready to set up separately whenever you want to bring nutrition into focus.</p></div>,
-    save: () => persist({ health_link_consent: false }) });
-
-  add({ key: 'sex', phase: 'basics', title: 'What is your sex?',
-    sub: 'Used for energy maths and sensible starting loads.',
-    valid: (f) => !!f.sex,
-    node: (f, st) => (
-      <div className="ob-options">
-        <OptionCard icon="♀" title="Female" selected={f.sex === 'female'} onClick={() => st('sex', 'female')} />
-        <OptionCard icon="♂" title="Male" selected={f.sex === 'male'} onClick={() => st('sex', 'male')} />
-      </div>
-    ),
-    save: () => persist({ sex: form.sex }) });
-
-  add({ key: 'dob', phase: 'basics', title: 'When were you born?',
-    sub: 'GymIQ is for adults aged 18 and over. Age helps calibrate your starting estimates.',
-    valid: (f) => { const d = new Date(f.dob); const cutoff = new Date(); cutoff.setFullYear(cutoff.getFullYear() - 18); return Number.isFinite(d.getTime()) && d <= cutoff && d.getFullYear() > 1900; },
-    node: (f, st) => (
-      <div className="ob-field">
-        <label className="ob-label" htmlFor="dob">Date of birth</label>
-        <input id="dob" type="date" className="ob-date" value={f.dob} onChange={(e) => st('dob', e.target.value)} />
-      </div>
-    ),
-    save: () => persist({ dob: form.dob }) });
-
-  add({ key: 'height', phase: 'basics', title: 'How tall are you?',
-    valid: (f) => Number(f.height_cm) > 80 && Number(f.height_cm) < 260,
-    node: (f, st) => (
-      <div className="ob-field ob-suffix">
-        <label className="ob-label" htmlFor="h">Height</label>
-        <input id="h" type="number" inputMode="decimal" className="ob-input" style={{ paddingRight: 44 }}
-          placeholder="175" value={f.height_cm} onChange={(e) => st('height_cm', e.target.value)} />
-        <em>cm</em>
-      </div>
-    ),
-    save: () => persist({ height_cm: Number(form.height_cm) }) });
-
-  add({ key: 'weight', phase: 'basics', title: 'How much do you weigh?',
-    sub: 'Your starting weight for your training profile.',
-    valid: (f) => Number(f.weight_now) > 25,
-    node: (f, st) => (
-      <div className="ob-field ob-suffix">
-        <label className="ob-label" htmlFor="w">Current weight</label>
-        <input id="w" type="number" inputMode="decimal" className="ob-input" style={{ paddingRight: 44 }}
-          placeholder="80.0" value={f.weight_now || ''} onChange={(e) => st('weight_now', e.target.value)} />
-        <em>kg</em>
-      </div>
-    ) });
-
-  add({ key: 'bf', phase: 'basics', title: 'Estimated body fat?',
-    sub: 'A rough visual estimate is fine — this is optional.',
-    valid: () => true, skipLabel: 'Skip',
-    onSkip: () => set('body_fat_pct', ''),
-    node: (f, st) => (
-      <div className="ob-field ob-suffix">
-        <label className="ob-label" htmlFor="bf">Body fat %</label>
-        <input id="bf" type="number" inputMode="decimal" className="ob-input" style={{ paddingRight: 44 }}
-          placeholder="20" value={f.body_fat_pct} onChange={(e) => st('body_fat_pct', e.target.value)} />
-        <em>%</em>
-      </div>
-    ),
-    save: () => persist({ body_fat_pct: form.body_fat_pct === '' ? null : Number(form.body_fat_pct) }) });
-
-  add({ key: 'exp', phase: 'basics', title: 'Training experience?',
-    valid: (f) => !!f.training_experience,
-    node: (f, st) => (
-      <div className="ob-options">
-        <OptionCard icon="🌱" title="Novice" desc="Under ~1 year of consistent lifting" selected={f.training_experience === 'novice'} onClick={() => st('training_experience', 'novice')} />
-        <OptionCard icon="🌿" title="Intermediate" desc="1–3 years, know most movements" selected={f.training_experience === 'intermediate'} onClick={() => st('training_experience', 'intermediate')} />
-        <OptionCard icon="🌳" title="Advanced" desc="3+ years, close to your ceiling" selected={f.training_experience === 'advanced'} onClick={() => st('training_experience', 'advanced')} />
-      </div>
-    ),
-    save: () => persist({ training_experience: form.training_experience }) });
-
-  add({ key: 'cardio', phase: 'basics', title: 'Cardio conditioning?',
-    sub: 'Affects rest periods and work capacity assumptions.', skipLabel: 'Skip', valid: () => true,
-    onSkip: () => set('cardio_experience', ''),
-    node: (f, st) => (
-      <div className="ob-options">
-        <OptionCard icon="🚶" title="Low" desc="Little regular cardio" selected={f.cardio_experience === 'low'} onClick={() => st('cardio_experience', 'low')} />
-        <OptionCard icon="🏃" title="Moderate" desc="Some cardio most weeks" selected={f.cardio_experience === 'moderate'} onClick={() => st('cardio_experience', 'moderate')} />
-        <OptionCard icon="🏃‍♂️💨" title="High" desc="Trained endurance athlete" selected={f.cardio_experience === 'high'} onClick={() => st('cardio_experience', 'high')} />
-      </div>
-    ),
-    save: () => persist({ cardio_experience: form.cardio_experience }) });
-
-  // ---- PHASE: GYM ----
-  add({ key: 'where', phase: 'gym', title: 'Where will you train?',
-    valid: (f) => !!f.gym_location,
-    node: (f, st) => (
-      <div className="ob-options">
-        <OptionCard icon="🏠" title="Home gym" desc="Own equipment, train at home" selected={f.gym_location === 'home'} onClick={() => st('gym_location', 'home')} />
-        <OptionCard icon="🏟️" title="Commercial gym" desc="Full equipment selection" selected={f.gym_location === 'commercial'} onClick={() => st('gym_location', 'commercial')} />
-        <OptionCard icon="🧳" title="Mixed / travel" desc="Varies week to week" selected={f.gym_location === 'mixed'} onClick={() => st('gym_location', 'mixed')} />
-      </div>
-    ) });
-
-  add({ key: 'nickname', phase: 'gym', title: 'Name your gym',
-    sub: 'You can add more gyms later — each keeps its own equipment.',
-    valid: () => true,
-    node: (f, st) => (
-      <div className="ob-field">
-        <label className="ob-label" htmlFor="gn">Gym nickname</label>
-        <input id="gn" className="ob-input" placeholder={f.gym_location === 'home' ? 'Home Gym' : 'My Gym'}
-          value={f.gym_name} onChange={(e) => st('gym_name', e.target.value)} />
-      </div>
-    ) });
-
-  add({ key: 'equipment', phase: 'gym', title: 'Pick your equipment',
-    sub: 'Only exercises you can actually load will be programmed.',
-    valid: (f) => Object.values(f.equipment).some((e) => e.selected),
-    node: (f, st) => <EquipmentPicker items={equipmentItems} value={f.equipment} onChange={(v) => st('equipment', v)} />,
-    save: () => persist({}).then(saveGymProfile) });
-
   // ---- PHASE: PROGRAM ----
   add({ key: 'goal', phase: 'program', title: 'Primary goal?',
+    sub: 'This shapes your rep ranges, rest periods and progression.',
     valid: (f) => !!f.goal,
     node: (f, st) => (
       <>
@@ -304,31 +185,16 @@ export default function Onboard() {
       </>
     ) });
 
-  add({ key: 'focus', phase: 'program', title: 'Focus muscles',
-    sub: 'Priority areas get extra weekly volume.',
-    valid: () => true, skipLabel: 'No priority',
-    onSkip: () => set('focus', []),
+  add({ key: 'exp', phase: 'program', title: 'Training experience?',
+    valid: (f) => !!f.training_experience,
     node: (f, st) => (
-      <div className="muscle-grid">
-        {muscles.map((m) => (
-          <button key={m.id} type="button" className={`muscle-chip ${f.focus.includes(m.id) ? 'on' : ''}`}
-            onClick={() => toggleArr('focus', m.id)}>{m.name}</button>
-        ))}
+      <div className="ob-options">
+        <OptionCard icon="🌱" title="Novice" desc="Under ~1 year of consistent lifting" selected={f.training_experience === 'novice'} onClick={() => st('training_experience', 'novice')} />
+        <OptionCard icon="🌿" title="Intermediate" desc="1–3 years, know most movements" selected={f.training_experience === 'intermediate'} onClick={() => st('training_experience', 'intermediate')} />
+        <OptionCard icon="🌳" title="Advanced" desc="3+ years, close to your ceiling" selected={f.training_experience === 'advanced'} onClick={() => st('training_experience', 'advanced')} />
       </div>
-    ) });
-
-  add({ key: 'depri', phase: 'program', title: 'Deprioritize muscles',
-    sub: 'These get minimum effective volume.',
-    valid: () => true, skipLabel: 'None',
-    onSkip: () => set('deprioritized', []),
-    node: (f, st) => (
-      <div className="muscle-grid">
-        {muscles.filter((m) => !f.focus.includes(m.id)).map((m) => (
-          <button key={m.id} type="button" className={`muscle-chip ${f.deprioritized.includes(m.id) ? 'on' : ''}`}
-            onClick={() => toggleArr('deprioritized', m.id)}>{m.name}</button>
-        ))}
-      </div>
-    ) });
+    ),
+    save: () => persist({ training_experience: form.training_experience }) });
 
   add({ key: 'days', phase: 'program', title: 'Days per week?',
     valid: () => true,
@@ -345,60 +211,61 @@ export default function Onboard() {
       </div>
     ) });
 
-  add({ key: 'split', phase: 'program', title: 'Training split',
-    sub: 'Not sure? Auto picks the best fit for your days.',
-    valid: (f) => !!f.split,
+  // ---- PHASE: GYM ----
+  add({ key: 'where', phase: 'gym', title: 'Where will you train?',
+    valid: (f) => !!f.gym_location,
     node: (f, st) => (
       <div className="ob-options">
-        <OptionCard icon="✨" title="Auto" desc="Best split for your availability" selected={f.split === 'auto'} onClick={() => st('split', 'auto')} />
-        <OptionCard icon="🧍" title="Full Body" desc="Every major muscle, each session" selected={f.split === 'full_body'} onClick={() => st('split', 'full_body')} />
-        <OptionCard icon="🔀" title="Upper / Lower" desc="Alternating upper and lower days" selected={f.split === 'upper_lower'} onClick={() => st('split', 'upper_lower')} />
-        <OptionCard icon="🔁" title="Push Pull Legs" desc="Movement-type split" selected={f.split === 'ppl'} onClick={() => st('split', 'ppl')} />
+        <OptionCard icon="🏠" title="Home gym" desc="Own equipment, train at home" selected={f.gym_location === 'home'} onClick={() => st('gym_location', 'home')} />
+        <OptionCard icon="🏟️" title="Commercial gym" desc="Full equipment selection" selected={f.gym_location === 'commercial'} onClick={() => st('gym_location', 'commercial')} />
+        <OptionCard icon="🧳" title="Mixed / travel" desc="Varies week to week" selected={f.gym_location === 'mixed'} onClick={() => st('gym_location', 'mixed')} />
       </div>
     ) });
 
-  add({ key: 'deload', phase: 'program', title: 'Deload weeks?',
-    sub: 'Planned lighter recovery weeks keep progress steady.',
-    valid: (f) => !!f.deload,
-    node: (f, st) => (
-      <div className="ob-options">
-        <OptionCard icon="🤖" title="Auto" desc="A lighter week is planned for week 5" selected={f.deload === 'auto'} onClick={() => st('deload', 'auto')} />
-        <OptionCard icon="4️⃣" title="Every 4 weeks" selected={f.deload === 'every_4w'} onClick={() => st('deload', 'every_4w')} />
-        <OptionCard icon="6️⃣" title="Every 6 weeks" selected={f.deload === 'every_6w'} onClick={() => st('deload', 'every_6w')} />
-        <OptionCard icon="🚫" title="Never" desc="I'll manage recovery myself" selected={f.deload === 'never'} onClick={() => st('deload', 'never')} />
-      </div>
-    ) });
+  add({ key: 'equipment', phase: 'gym', title: 'Pick your equipment',
+    sub: 'Tap everything you can use — we’ll only programme what you have.',
+    valid: (f) => Object.values(f.equipment).some((e) => e.selected),
+    node: (f, st) => <EquipmentPicker items={equipmentItems} value={f.equipment} onChange={(v) => st('equipment', v)} />,
+    save: () => persist({}).then(saveGymProfile) });
 
-  add({ key: 'pname', phase: 'program', title: 'Name your program',
-    valid: () => true,
-    node: (f, st) => (
-      <div className="ob-field">
-        <label className="ob-label" htmlFor="pn">Program name</label>
-        <input id="pn" className="ob-input" placeholder={`${f.training_experience ? f.training_experience[0].toUpperCase() + f.training_experience.slice(1) : 'My'} ${f.split === 'ppl' ? 'PPL' : f.split === 'upper_lower' ? 'Upper/Lower' : f.split === 'full_body' ? 'Full Body' : 'Program'}`}
-          value={f.programme_name} onChange={(e) => st('programme_name', e.target.value)} />
-      </div>
-    ) });
-
-  add({ key: 'theme', phase: 'program', title: 'Make it yours',
-    sub: 'Color and icon for your program card.',
-    valid: () => true,
+  // ---- PHASE: BASICS ----
+  add({ key: 'about', phase: 'basics', title: 'About you',
+    sub: 'Used for energy maths and sensible starting loads.',
+    valid: (f) => !!f.sex && dobValid(f.dob),
     node: (f, st) => (
       <>
-        <div className="swatch-row" style={{ marginBottom: 20 }}>
-          {COLORS.map((c) => (
-            <button key={c} type="button" aria-label={c} className={`swatch ${f.color === c ? 'on' : ''}`}
-              style={{ background: c }} onClick={() => st('color', c)} />
-          ))}
+        <div className="ob-options">
+          <OptionCard icon="♀" title="Female" selected={f.sex === 'female'} onClick={() => st('sex', 'female')} />
+          <OptionCard icon="♂" title="Male" selected={f.sex === 'male'} onClick={() => st('sex', 'male')} />
         </div>
-        <div className="icon-grid">
-          {ICONS.map((i) => (
-            <button key={i} type="button" className={`icon-tile ${f.icon === i ? 'on' : ''}`} onClick={() => st('icon', i)}>{i}</button>
-          ))}
+        <div className="ob-field" style={{ marginTop: 18 }}>
+          <label className="ob-label" htmlFor="dob">Date of birth · adults 18+</label>
+          <input id="dob" type="date" className="ob-date" value={f.dob} onChange={(e) => st('dob', e.target.value)} />
         </div>
       </>
-    ) });
+    ),
+    save: () => persist({ sex: form.sex, dob: form.dob }) });
 
-  // ---- PREVIEW / PAYWALL / LEGAL / FINISH ----
+  add({ key: 'body', phase: 'basics', title: 'Body stats',
+    sub: 'Your starting measurements for your training profile.',
+    valid: (f) => Number(f.height_cm) > 80 && Number(f.height_cm) < 260 && Number(f.weight_now) > 25,
+    node: (f, st) => (
+      <>
+        <div className="ob-field ob-suffix">
+          <label className="ob-label" htmlFor="h">Height</label>
+          <input id="h" type="number" inputMode="decimal" className="ob-input" style={{ paddingRight: 44 }} placeholder="175" value={f.height_cm} onChange={(e) => st('height_cm', e.target.value)} />
+          <em>cm</em>
+        </div>
+        <div className="ob-field ob-suffix" style={{ marginTop: 18 }}>
+          <label className="ob-label" htmlFor="w">Current weight</label>
+          <input id="w" type="number" inputMode="decimal" className="ob-input" style={{ paddingRight: 44 }} placeholder="80.0" value={f.weight_now || ''} onChange={(e) => st('weight_now', e.target.value)} />
+          <em>kg</em>
+        </div>
+      </>
+    ),
+    save: () => persist({ height_cm: Number(form.height_cm) }) });
+
+  // ---- PREVIEW / FINISH ----
   add({ key: 'preview', phase: 'preview', title: 'Your program, generated',
     sub: 'Built by transparent rules from your answers — not AI. Review your plan before saving.',
     valid: () => true, nextLabel: 'Save & continue',
@@ -425,30 +292,18 @@ export default function Onboard() {
       persistedProgramRef.current = id;
     } });
 
-  add({ key: 'paywall', phase: 'preview', title: 'Your premium trial is ready.',
-    sub: 'Try premium for 7 days. Continue for R100 per 30 days, or keep freestyle workouts and manual food logging free. No automatic debit.',
-    valid: () => true,
-    node: () => <div className="prev-card"><h4>Workouts + Calorie Bank</h4><p>Personalised programmes, daily meal planning and advanced progress reports, alongside free logging.</p><p>Manage your membership in Account. Paid access starts only after Yoco confirms your payment.</p></div>,
-  });
-
-  add({ key: 'disclaimer', phase: 'legal', title: 'Health disclaimer',
-    sub: 'Please read before training with GymIQ.',
-    valid: (f) => !!f.disclaimer_agreed,
-    node: (f, st) => <Disclaimer f={f} st={st} />,
-    save: () => persist({ disclaimer_version: DISCLAIMER_VERSION, disclaimer_accepted_at: new Date().toISOString() }) });
-
-  add({ key: 'first30', phase: 'legal', title: 'Your first 30 days',
-    sub: 'Build a consistent habit — here is a simple way to get started.',
-    valid: () => true,
-    node: () => <FirstThirty /> });
-
-  add({ key: 'done', phase: 'done', title: "You're set",
-    sub: 'Your programme is saved. Your next session is ready when you are.',
-    valid: () => true, nextLabel: 'Enter GymIQ',
-    node: () => <div className="check-big">✅</div>,
+  add({ key: 'finish', phase: 'legal', title: 'Ready to start',
+    sub: 'One last thing — please read before training with GymIQ.',
+    valid: (f) => !!f.disclaimer_agreed, nextLabel: 'Enter GymIQ',
+    node: (f, st) => (
+      <>
+        <div className="prev-card" style={{ marginBottom: 16 }}><h4>Your 7-day premium trial is ready</h4><p>Personalised programmes, daily meal plans and progress reports. Manage your membership in Account. No automatic debit.</p></div>
+        <Disclaimer f={f} st={st} />
+      </>
+    ),
     save: async () => {
       if (profile && !profile.demo) {
-        await persist({});
+        await persist({ disclaimer_version: DISCLAIMER_VERSION, disclaimer_accepted_at: new Date().toISOString() });
         const { error } = await supabase.from('users').update({ onboarded_at: new Date().toISOString() }).eq('id', profile.id);
         if (error) throw error;
       }
@@ -499,6 +354,13 @@ export default function Onboard() {
 
 /* --------------------------------- helpers --------------------------------- */
 
+function dobValid(dob) {
+  const d = new Date(dob);
+  const cutoff = new Date();
+  cutoff.setFullYear(cutoff.getFullYear() - 18);
+  return Number.isFinite(d.getTime()) && d <= cutoff && d.getFullYear() > 1900;
+}
+
 function equipmentCount(f) {
   return Object.values(f.equipment).filter((e) => e.selected).length;
 }
@@ -517,16 +379,10 @@ function EquipmentPicker({ items, value, onChange }) {
       ...value,
       [it.id]: {
         selected: turningOn,
-        denoms: turningOn ? (cur.denoms?.length ? cur.denoms : (it.default_denominations_kg || [])) : (cur.denoms || []),
+        denoms: turningOn ? (it.default_denominations_kg || []) : (cur.denoms || []),
       },
     });
   }
-
-  function setDenoms(id, denoms) {
-    onChange({ ...value, [id]: { ...(value[id] || {}), selected: true, denoms } });
-  }
-
-  const weighted = items.filter((it) => value[it.id]?.selected && (it.category === 'barbell' || it.category === 'dumbbell' || it.category === 'kettlebell'));
 
   return (
     <>
@@ -542,43 +398,7 @@ function EquipmentPicker({ items, value, onChange }) {
           </div>
         </div>
       ))}
-
-      {weighted.length > 0 && (
-        <div style={{ marginTop: 18 }}>
-          <div className="eq-cat">Weights available (editable)</div>
-          {weighted.map((it) => (
-            <div key={it.id} className="ob-field" style={{ marginBottom: 12 }}>
-              <span className="ob-label">{it.name}</span>
-              <DenomEditor denoms={value[it.id].denoms || []} onChange={(d) => setDenoms(it.id, d)} />
-            </div>
-          ))}
-        </div>
-      )}
     </>
-  );
-}
-
-function DenomEditor({ denoms, onChange }) {
-  const [adding, setAdding] = useState(false);
-  const [val, setVal] = useState('');
-  const sorted = [...denoms].sort((a, b) => a - b);
-  return (
-    <div className="denoms">
-      {sorted.map((d) => (
-        <span key={d} className="denom-chip">
-          {d}
-          <button aria-label={`Remove ${d}`} onClick={() => onChange(sorted.filter((x) => x !== d))}>✕</button>
-        </span>
-      ))}
-      {adding ? (
-        <input autoFocus className="denom-input" type="number" inputMode="decimal" value={val}
-          onChange={(e) => setVal(e.target.value)}
-          onBlur={() => { const n = parseFloat(val); if (n > 0 && !sorted.includes(n)) onChange([...sorted, n]); setAdding(false); setVal(''); }}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} />
-      ) : (
-        <button className="denom-add" onClick={() => setAdding(true)}>+ add kg</button>
-      )}
-    </div>
   );
 }
 
@@ -627,25 +447,6 @@ function Disclaimer({ f, st }) {
         I have read and accept this disclaimer ({DISCLAIMER_VERSION}).
       </label>
     </>
-  );
-}
-
-function FirstThirty() {
-  const items = [
-    ['Week 1', 'Log workouts honestly — including RIR. The engine baselines every lift.'],
-    ['Weeks 2–3', 'Use your session history to review weights, reps and effort. Adjust loads at your own pace.'],
-    ['Week 4', 'Review your progress and allow time for rest and recovery.'],
-    ['Day 30+', 'Keep food and activity logs alongside your workouts in Calorie Bank.'],
-  ];
-  return (
-    <div className="t30">
-      {items.map(([t, d], i) => (
-        <div className="t30-item" key={t}>
-          <div className="t30-rail"><div className="t30-dot" />{i < items.length - 1 && <div className="t30-line" />}</div>
-          <div className="t30-body"><b>{t}</b><span>{d}</span></div>
-        </div>
-      ))}
-    </div>
   );
 }
 
