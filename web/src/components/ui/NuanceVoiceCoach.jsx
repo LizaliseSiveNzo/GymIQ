@@ -30,9 +30,9 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     if (!open) started.current = false;
   }, [open, start]);
 
-  // Close when the session ends or fails.
+  // Auto-close only when a live session ends; a failed start shows its error instead.
   useEffect(() => {
-    if ((state === 'disconnected' || state === 'failed') && open) onClose();
+    if (state === 'disconnected' && open) onClose();
   }, [state, open, onClose]);
 
   // Run the persona's tool calls (show_note).
@@ -60,14 +60,17 @@ export default function NuanceVoiceCoach({ open, onClose }) {
 
   if (!open) return null;
 
+  const connecting = state === 'idle' || state === 'queued' || state === 'connecting';
+
   return (
     <div className="voice-coach" role="dialog" aria-modal="true" aria-label="Video voice coach">
       <video ref={videoRef} autoPlay playsInline className="voice-coach-avatar" />
       <audio ref={audioRef} autoPlay />
       <div className="voice-coach-bar">
-        <span className="voice-coach-live">● {state === 'connected' ? 'Live' : state}</span>
-        <button type="button" className="btn btn-primary" onClick={() => { end().catch(() => {}); onClose(); }}>End call</button>
+        <span className="voice-coach-live">● {state === 'connected' ? 'Live' : connecting ? 'Connecting…' : state}</span>
+        <button type="button" className="btn btn-primary" onClick={() => { end().catch(() => {}); onClose(); }}>Close</button>
       </div>
+      {connecting && !error && <p className="voice-coach-caption">Connecting to your coach…</p>}
       {caption && <p className="voice-coach-caption" aria-live="polite">{caption}</p>}
       {notes.map((n, i) => (
         <div className="voice-coach-note" key={i}>{n.title && <strong>{n.title}</strong>}<span>{n.text}</span></div>
