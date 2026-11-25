@@ -101,7 +101,19 @@ Deno.serve(async (req) => {
     if (!res.ok) {
       const code = typeof data.code === 'string' ? data.code : '';
       const detail = typeof data.detail === 'string' ? data.detail.slice(0, 200) : '';
-      return json({ error: `Could not start the voice coach (${res.status}${code ? ' · ' + code : ''}). ${detail || 'Please try again.'}` }, 502);
+      let renewHint = '';
+      if (res.status === 429 || res.status === 409) {
+        try {
+          const usageRes = await fetch('https://api.nuancelabs.ai/usage', { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(10000) });
+          if (usageRes.ok) {
+            const usage = await usageRes.json();
+            const remaining = usage.credits?.remaining ?? usage.available_credits;
+            const renewsAt = usage.credits?.renews_at;
+            if (typeof renewsAt === 'string') renewHint = ` · ${remaining ?? 0} credits left · renews ${renewsAt} UTC`;
+          }
+        } catch { /* optional */ }
+      }
+      return json({ error: `Could not start the voice coach (${res.status}${code ? ' · ' + code : ''}). ${detail || 'Please try again.'}${renewHint}` }, 502);
     }
     return json({ token: data.token, expires_at: data.expires_at });
   } catch { return json({ error: 'Could not start the voice coach. Please try again.' }, 500); }
