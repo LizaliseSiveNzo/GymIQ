@@ -9,6 +9,7 @@ import {createCoachAudio} from '../../lib/coachAudio.js';
 import {readView,saveView} from '../../lib/deviceCache.js';
 import {getAiConsent,setAiConsent} from '../../lib/aiConsent.js';
 import {reportClientIssue} from '../../lib/clientIssues.js';
+import NuanceVoiceCoach from '../../components/ui/NuanceVoiceCoach.jsx';
 import './personalCoach.css';
 
 async function invoke(body){
@@ -29,6 +30,7 @@ function Proposal({action,busy,onAction}){
 }
 const gearIcon=<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>;
 const micIcon=<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
+const camIcon=<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>;
 const sendIcon=<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>;
 export default function PersonalCoach(){
  const {profile}=useAuth();
@@ -36,7 +38,7 @@ export default function PersonalCoach(){
  const [turns,setTurns]=useState([]),[proposals,setProposals]=useState([]),[message,setMessage]=useState('');
  const [listening,setListening]=useState(false),[readingId,setReadingId]=useState(null);
  const [voices,setVoices]=useState([]),[voiceUri,setVoiceUri]=useState('');
- const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[settingsOpen,setSettingsOpen]=useState(false),[loadingSpeech,setLoadingSpeech]=useState(null);
+ const [busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[settingsOpen,setSettingsOpen]=useState(false),[loadingSpeech,setLoadingSpeech]=useState(null),[voiceOpen,setVoiceOpen]=useState(false);
  const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),settingsDialog=useRef(null);
  const cloudAudio=useRef(null),readingVersion=useRef(0);
  const selectedVoice=chooseCoachVoice(voices);
@@ -148,6 +150,7 @@ export default function PersonalCoach(){
     {listening&&<p className="coach-listening" role="status">Listening… speak now · tap the mic to stop.</p>}
     {!access.configured&&<p className="inline-error coach-feedback">Your coach is unavailable right now.</p>}
     <form className="coach-composer" onSubmit={send}>
+     <button type="button" className="coach-cam" disabled={!!busy} onClick={()=>setVoiceOpen(true)} aria-label="Start video voice coach">{camIcon}</button>
      <label className="coach-visually-hidden" htmlFor="coach-message">Message your coach</label>
      <textarea id="coach-message" maxLength={2000} rows={1} value={message} disabled={!!busy} placeholder="Message your coach" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
      {speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{micIcon}</button>}
@@ -156,5 +159,5 @@ export default function PersonalCoach(){
    </div>
    <dialog ref={settingsDialog} className="coach-settings-sheet" aria-label="Coach settings" onCancel={()=>setSettingsOpen(false)}><div className="coach-settings-head"><h2>Coach settings</h2><button type="button" className="btn btn-ghost" onClick={()=>setSettingsOpen(false)} aria-label="Close">✕</button></div><label className="coach-settings-row" htmlFor="coach-voice">Reading voice<select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></label><label className="coach-settings-row" style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}><input type="checkbox" defaultChecked={getAiConsent()} onChange={e=>setAiConsent(e.target.checked)} />Share with AI assistants (DeepSeek & Gemini)</label><Link to="/privacy" className="coach-settings-link">Privacy</Link></dialog>
   </>}
- </div></TabShell>;
+ </div><NuanceVoiceCoach open={voiceOpen} onClose={()=>setVoiceOpen(false)} /></TabShell>;
 }
