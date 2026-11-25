@@ -20,20 +20,23 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   const started = useRef(false);
   const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
 
-  // Start once when opened, reset when closed.
+  // Start once when opened.
   useEffect(() => {
     if (open && !started.current) {
       started.current = true;
       setCaption(''); setNotes([]);
-      start().catch(() => {});
+      start().catch((e) => { console.error('Nuance start failed:', e); });
     }
     if (!open) started.current = false;
   }, [open, start]);
 
-  // Auto-close only when a live session ends; a failed start shows its error instead.
+  // Close only when the persona/server ends the session naturally (never on a failed start).
   useEffect(() => {
-    if (state === 'disconnected' && open) onClose();
-  }, [state, open, onClose]);
+    if (!conversation) return;
+    return conversation.onChange((event) => {
+      if (event.type === 'session-ended') onClose();
+    });
+  }, [conversation, onClose]);
 
   // Run the persona's tool calls (show_note).
   useEffect(() => {
