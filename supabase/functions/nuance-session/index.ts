@@ -1,6 +1,6 @@
 // nuance-session: mints a Nuance Live session token for the signed-in user.
 // The API key (nk_…) stays here; the browser only ever sees a short-lived st_… token.
-import { authenticate, json } from '../_shared/launch.ts';
+import { admin, authenticate, json } from '../_shared/launch.ts';
 
 const PERSONA_ID = 'mira';
 
@@ -82,6 +82,8 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   const user = await authenticate(req);
   if (!user) return json({ error: 'Sign in to use the voice coach.' }, 401);
+  const { data: ownerAccess } = await admin().from('owner_dashboard_access').select('enabled').eq('user_id', user.id).maybeSingle();
+  if (!ownerAccess?.enabled) return json({ error: 'The video voice coach is only available to the developer account for now.' }, 403);
   const key = Deno.env.get('NUANCE_API_KEY')?.trim();
   if (!key) return json({ error: 'Voice coach is not configured yet.', code: 'not_configured' }, 503);
   try {

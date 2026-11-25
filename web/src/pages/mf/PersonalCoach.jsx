@@ -10,6 +10,7 @@ import {readView,saveView} from '../../lib/deviceCache.js';
 import {getAiConsent,setAiConsent} from '../../lib/aiConsent.js';
 import {reportClientIssue} from '../../lib/clientIssues.js';
 import NuanceVoiceCoach from '../../components/ui/NuanceVoiceCoach.jsx';
+import useMembership from '../../hooks/useMembership.js';
 import './personalCoach.css';
 
 async function invoke(body){
@@ -42,6 +43,8 @@ export default function PersonalCoach(){
  const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),settingsDialog=useRef(null);
  const cloudAudio=useRef(null),readingVersion=useRef(0);
  const selectedVoice=chooseCoachVoice(voices);
+ const {member:membership}=useMembership(profile?.id);
+ const isOwner=membership?.kind==='owner';
  useEffect(()=>{
   readingVersion.current++;cloudAudio.current?.stop();cloudAudio.current=null;setReadingId(null);
   try{setVoiceUri(localStorage.getItem(`gymiq_coach_voice_${profile.id}`)??'gemini');}catch{/* Device preference is optional. */}
@@ -150,7 +153,7 @@ export default function PersonalCoach(){
     {listening&&<p className="coach-listening" role="status">Listening… speak now · tap the mic to stop.</p>}
     {!access.configured&&<p className="inline-error coach-feedback">Your coach is unavailable right now.</p>}
     <form className="coach-composer" onSubmit={send}>
-     <button type="button" className="coach-cam" disabled={!!busy} onClick={()=>setVoiceOpen(true)} aria-label="Start video voice coach">{camIcon}</button>
+     {isOwner&&<button type="button" className="coach-cam" disabled={!!busy} onClick={()=>setVoiceOpen(true)} aria-label="Start video voice coach">{camIcon}</button>}
      <label className="coach-visually-hidden" htmlFor="coach-message">Message your coach</label>
      <textarea id="coach-message" maxLength={2000} rows={1} value={message} disabled={!!busy} placeholder="Message your coach" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
      {speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{micIcon}</button>}
