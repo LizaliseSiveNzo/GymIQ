@@ -98,7 +98,11 @@ Deno.serve(async (req) => {
       signal: AbortSignal.timeout(20000),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return json({ error: `Could not start the voice coach (${res.status}). Please try again.` }, 502);
+    if (!res.ok) {
+      const code = typeof data.code === 'string' ? data.code : '';
+      const detail = typeof data.detail === 'string' ? data.detail.slice(0, 200) : '';
+      return json({ error: `Could not start the voice coach (${res.status}${code ? ' · ' + code : ''}). ${detail || 'Please try again.'}` }, 502);
+    }
     return json({ token: data.token, expires_at: data.expires_at });
   } catch { return json({ error: 'Could not start the voice coach. Please try again.' }, 500); }
 });
