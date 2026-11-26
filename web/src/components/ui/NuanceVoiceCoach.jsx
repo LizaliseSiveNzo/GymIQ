@@ -19,6 +19,11 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   const [caption, setCaption] = useState('');
   const [notes, setNotes] = useState([]);
   const started = useRef(false);
+  const [copied, setCopied] = useState(false);
+  function copyError(err) {
+    const text = JSON.stringify({ name: err?.name, message: err?.message, status: err?.status, code: err?.code, state, stack: String(err?.stack || '').slice(0, 800) }, null, 2);
+    try { navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* ignore */ }
+  }
   const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
 
   // Start once when opened.
@@ -79,7 +84,13 @@ export default function NuanceVoiceCoach({ open, onClose }) {
       {notes.map((n, i) => (
         <div className="voice-coach-note" key={i}>{n.title && <strong>{n.title}</strong>}<span>{n.text}</span></div>
       ))}
-      {error && <p className="voice-coach-error" role="alert">{error.message}</p>}
+      {error && (
+        <div className="voice-coach-error" role="alert">
+          <strong>{error.name || 'Error'}{error.status != null ? ` · HTTP ${error.status}${error.code ? ' ' + error.code : ''}` : ''} · state "{state}"</strong>
+          <p>{error.message}</p>
+          <button type="button" className="btn btn-ghost" onClick={() => copyError(error)}>{copied ? 'Copied ✓' : 'Copy error'}</button>
+        </div>
+      )}
     </div>
   );
 }
