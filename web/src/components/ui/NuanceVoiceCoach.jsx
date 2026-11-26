@@ -22,6 +22,7 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   const [audioDevices, setAudioDevices] = useState([]);
   const [sinkId, setSinkId] = useState('');
   const [muted, setMuted] = useState(false);
+  const [avatarReady, setAvatarReady] = useState(false);
   const started = useRef(false);
   const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
 
@@ -52,7 +53,8 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   }
 
   function toggleMute() {
-    const avatar = conversation?.avatar;
+    let avatar;
+    try { avatar = conversation?.avatar; } catch { return; }
     if (!avatar) return;
     const next = !muted;
     setMuted(next);
@@ -79,6 +81,7 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     if (!conversation) return;
     return conversation.onChange((event) => {
       if (event.type === 'session-ended') onClose();
+      if (event.type === 'tracks-changed') setAvatarReady(true);
     });
   }, [conversation, onClose]);
 
@@ -138,7 +141,7 @@ export default function NuanceVoiceCoach({ open, onClose }) {
             {audioDevices.map((d) => <option key={d.deviceId} value={d.deviceId}>{d.label || `Output ${audioDevices.indexOf(d) + 1}`}</option>)}
           </select>
         </label>
-        <button type="button" className="btn btn-secondary" onClick={toggleMute} disabled={!conversation?.avatar}>{muted ? 'Unmute' : 'Mute'}</button>
+        <button type="button" className="btn btn-secondary" onClick={toggleMute} disabled={!avatarReady}>{muted ? 'Unmute' : 'Mute'}</button>
       </div>
     </div>
   );
