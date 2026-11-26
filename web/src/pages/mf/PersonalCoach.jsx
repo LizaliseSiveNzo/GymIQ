@@ -9,7 +9,7 @@ import {createCoachAudio} from '../../lib/coachAudio.js';
 import {readView,saveView} from '../../lib/deviceCache.js';
 import {getAiConsent,setAiConsent} from '../../lib/aiConsent.js';
 import {reportClientIssue} from '../../lib/clientIssues.js';
-import NuanceVoiceCoach from '../../components/ui/NuanceVoiceCoach.jsx';
+import GeminiLiveCoach from '../../components/ui/GeminiLiveCoach.jsx';
 import useMembership from '../../hooks/useMembership.js';
 import './personalCoach.css';
 
@@ -43,7 +43,7 @@ export default function PersonalCoach(){
  const voice=useRef(null),speech=useRef(null),conversation=useRef(null),request=useRef(null),settingsDialog=useRef(null);
  const cloudAudio=useRef(null),readingVersion=useRef(0);
  const selectedVoice=chooseCoachVoice(voices);
- const {member:membership}=useMembership(profile?.id);
+ const {member:membership,premium}=useMembership(profile?.id);
  const isOwner=membership?.kind==='owner';
  useEffect(()=>{
   readingVersion.current++;cloudAudio.current?.stop();cloudAudio.current=null;setReadingId(null);
@@ -153,7 +153,7 @@ export default function PersonalCoach(){
     {listening&&<p className="coach-listening" role="status">Listening… speak now · tap the mic to stop.</p>}
     {!access.configured&&<p className="inline-error coach-feedback">Your coach is unavailable right now.</p>}
     <form className="coach-composer" onSubmit={send}>
-     {isOwner&&<button type="button" className="coach-cam" disabled={!!busy} onClick={()=>setVoiceOpen(true)} aria-label="Start video voice coach">{camIcon}</button>}
+     {premium&&<button type="button" className="coach-cam" disabled={!!busy} onClick={()=>setVoiceOpen(true)} aria-label="Start video voice coach">{camIcon}</button>}
      <label className="coach-visually-hidden" htmlFor="coach-message">Message your coach</label>
      <textarea id="coach-message" maxLength={2000} rows={1} value={message} disabled={!!busy} placeholder="Message your coach" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
      {speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{micIcon}</button>}
@@ -162,5 +162,5 @@ export default function PersonalCoach(){
    </div>
    <dialog ref={settingsDialog} className="coach-settings-sheet" aria-label="Coach settings" onCancel={()=>setSettingsOpen(false)}><div className="coach-settings-head"><h2>Coach settings</h2><button type="button" className="btn btn-ghost" onClick={()=>setSettingsOpen(false)} aria-label="Close">✕</button></div><label className="coach-settings-row" htmlFor="coach-voice">Reading voice<select id="coach-voice" value={['','gemini'].includes(voiceUri)||voices.some(v=>v.voiceURI===voiceUri)?voiceUri:'gemini'} onChange={e=>{stopReading();setVoiceUri(e.target.value);try{localStorage.setItem(`gymiq_coach_voice_${profile.id}`,e.target.value);}catch{/* Optional device preference. */}}}><option value="gemini">Gemini (Read aloud)</option><option value="">Device · {selectedVoice?.name||'default'}</option>{voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang}</option>)}</select></label><label className="coach-settings-row" style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}}><input type="checkbox" defaultChecked={getAiConsent()} onChange={e=>setAiConsent(e.target.checked)} />Share with AI assistants (DeepSeek & Gemini)</label><Link to="/privacy" className="coach-settings-link">Privacy</Link></dialog>
   </>}
- </div><NuanceVoiceCoach open={voiceOpen} onClose={()=>setVoiceOpen(false)} /></TabShell>;
+ </div><GeminiLiveCoach open={voiceOpen} onClose={()=>setVoiceOpen(false)} /></TabShell>;
 }
