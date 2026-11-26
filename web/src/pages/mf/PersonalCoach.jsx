@@ -153,7 +153,7 @@ export default function PersonalCoach(){
     {listening&&<p className="coach-listening" role="status">Listening… speak now · tap the mic to stop.</p>}
     {!access.configured&&<p className="inline-error coach-feedback">Your coach is unavailable right now.</p>}
     <form className="coach-composer" onSubmit={send}>
-     {premium&&<button type="button" className="coach-cam" disabled={!!busy} onClick={()=>setVoiceOpen(true)} aria-label="Start video voice coach">{camIcon}</button>}
+     {premium&&<button type="button" className="coach-cam" disabled={!!busy} onClick={()=>{stopReading();setVoiceOpen(true);}} aria-label="Start video voice coach">{camIcon}</button>}
      <label className="coach-visually-hidden" htmlFor="coach-message">Message your coach</label>
      <textarea id="coach-message" maxLength={2000} rows={1} value={message} disabled={!!busy} placeholder="Message your coach" onChange={e=>{setMessage(e.target.value);request.current=null;}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/>
      {speechRecognitionClass()&&<button type="button" className={`coach-mic ${listening?'is-listening':''}`} disabled={!!busy} onClick={dictate} aria-label={listening?'Stop listening':'Speak your message'}>{micIcon}</button>}

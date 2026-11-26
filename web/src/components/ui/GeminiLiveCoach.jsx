@@ -139,7 +139,7 @@ export default function GeminiLiveCoach({ open, onClose }) {
 
   function startMic(session) {
     (async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
       micStream.current = stream;
       const Ctx = window.AudioContext || window.webkitAudioContext;
       const ctx = new Ctx({ sampleRate: 16000 });
