@@ -43,10 +43,24 @@ function fromBase64(b64) {
   return bytes.buffer;
 }
 
+function proposalLabel(p) {
+  if (p.kind === 'workout') return 'Workout ready to review';
+  if (p.kind === 'meal_plan') return 'Daily meal plan ready';
+  if (p.kind === 'log_food') return 'Meal ready to log';
+  return 'Meal ready to save';
+}
+function proposalSummary(p) {
+  const d = p.payload || {};
+  if (p.kind === 'workout') return `${d.name || 'Programme'} · ${d.generated?.daysPerWeek || ''} training days · ${d.generated?.sessionMinutes || ''} min/session`;
+  if (p.kind === 'meal_plan') return `Today · ~${Math.round(d.target || 0)} kcal across 4 meals`;
+  return `${d.name || 'Meal'} · ${Math.round(d.kcal || 0)} kcal`;
+}
+
 export default function GeminiLiveCoach({ open, onClose }) {
   const [status, setStatus] = useState('idle'); // idle | connecting | live | ended
   const [caption, setCaption] = useState('');
   const [notes, setNotes] = useState([]);
+  const [proposals, setProposals] = useState([]);
   const [muted, setMuted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [error, setError] = useState(null);
@@ -81,7 +95,7 @@ export default function GeminiLiveCoach({ open, onClose }) {
   useEffect(() => {
     if (!open || started.current) return;
     started.current = true;
-    setCaption(''); setNotes([]); setError(null); setMuted(false);
+    setCaption(''); setNotes([]); setProposals([]); setError(null); setMuted(false);
     run().catch((e) => { console.error('Gemini live failed:', e); setError(e); setStatus('ended'); });
     return () => { started.current = false; };
   }, [open]);
@@ -103,7 +117,7 @@ export default function GeminiLiveCoach({ open, onClose }) {
       config: {
         responseModalities: [Modality.AUDIO],
         systemInstruction: { parts: [{ text: data.systemInstruction || SYSTEM_PROMPT }] },
-        tools: TOOLS,
+        tools: data.tools || TOOLS,
         inputAudioTranscription: {},
         outputAudioTranscription: {},
       },
@@ -127,16 +141,32 @@ export default function GeminiLiveCoach({ open, onClose }) {
     }
     if (c?.outputTranscription?.text) setCaption((prev) => (prev + c.outputTranscription.text).slice(-800));
     if (m?.toolCall?.functionCalls) {
-      for (const fc of m.toolCall.functionCalls) {
-        if (fc.name === 'show_note') {
-          const args = fc.args || {};
-          setNotes((n) => [...n, { title: String(args.title || ''), text: String(args.text || '') }]);
-          sessionRef.current?.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { ok: true } }] });
-        } else {
-          sessionRef.current?.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { error: 'Unknown tool' } }] });
-        }
-      }
+      for (const fc of m.toolCall.functionCalls) handleTool(fc);
     }
+  }
+
+  function parseArgs(fc) {
+    if (fc.args == null) return {};
+    if (typeof fc.args === 'string') { try { return JSON.parse(fc.args || '{}'); } catch { return {}; } }
+    return fc.args;
+  }
+
+  async function handleTool(fc) {
+    const { data, error } = await supabase.functions.invoke('gymiq-coach-tool', { body: { name: fc.name, args: parseArgs(fc) } });
+    const msg = (error && error.message) || data?.error;
+    if (msg) {
+      sessionRef.current?.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { error: msg } }] });
+      setError(new Error(msg));
+      return;
+    }
+    setProposals((p) => [...p, { id: data.id, kind: data.kind, payload: data.payload, status: 'draft' }]);
+    sessionRef.current?.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { status: 'draft_prepared_not_applied', kind: data.kind } }] });
+  }
+
+  async function applyProposal(p, discard) {
+    const { error } = await supabase.rpc('apply_coach_action', { p_id: p.id, p_discard: discard });
+    if (error) { setError(new Error(error.message)); return; }
+    setProposals((list) => list.map((x) => x.id === p.id ? { ...x, status: discard ? 'discarded' : 'applied' } : x));
   }
 
   function startMic(session) {
@@ -223,6 +253,20 @@ export default function GeminiLiveCoach({ open, onClose }) {
       {caption && <p className="voice-coach-caption" aria-live="polite">{caption}</p>}
       {notes.map((n, i) => (
         <div className="voice-coach-note" key={i}>{n.title && <strong>{n.title}</strong>}<span>{n.text}</span></div>
+      ))}
+      {proposals.map((p) => (
+        <div className="voice-coach-note" key={p.id}>
+          <strong>{proposalLabel(p)}</strong>
+          <span>{proposalSummary(p)}</span>
+          {p.status === 'draft' && (
+            <div className="voice-coach-actions">
+              <button type="button" className="btn btn-primary" onClick={() => applyProposal(p, false)}>Apply</button>
+              <button type="button" className="btn btn-ghost" onClick={() => applyProposal(p, true)}>Discard</button>
+            </div>
+          )}
+          {p.status === 'applied' && <span className="voice-coach-applied">Applied ✓</span>}
+          {p.status === 'discarded' && <span className="voice-coach-applied">Discarded</span>}
+        </div>
       ))}
       {error && (
         <div className="voice-coach-error" role="alert">

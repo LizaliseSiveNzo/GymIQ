@@ -12,6 +12,9 @@
 .voice-coach-note{flex:none;width:min(92vw,460px);padding:12px 14px;border:1px solid rgba(198,255,58,.32);border-radius:12px;background:rgba(20,23,17,.75);backdrop-filter:blur(10px)}
 .voice-coach-note strong{display:block;font-size:13px;margin-bottom:4px}
 .voice-coach-note span{font-size:13px;line-height:1.5;color:#c9cdc2}
+.voice-coach-actions{display:flex;gap:8px;margin-top:10px}
+.voice-coach-actions .btn{font-size:12px;min-height:32px;margin:0}
+.voice-coach-applied{display:block;margin-top:8px;font-size:12px;font-weight:700;color:#c6ff3a}
 .voice-coach-error{flex:none;width:min(92vw,460px);padding:12px 14px;border:1px solid var(--danger);border-radius:12px;color:var(--danger);font-size:13px;background:rgba(20,17,17,.75)}
 .voice-coach-error strong{display:block;margin-bottom:6px}
 .voice-coach-error p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
