@@ -60,6 +60,7 @@ export default function GeminiLiveCoach({ open, onClose }) {
   const limitTimer = useRef(null);
   const tickRef = useRef(null);
   const masterGain = useRef(null);
+  const nextPlayTime = useRef(0);
   const started = useRef(false);
 
   function endAll() {
@@ -70,6 +71,7 @@ export default function GeminiLiveCoach({ open, onClose }) {
     try { micStream.current?.getTracks().forEach((t) => t.stop()); } catch { /* ignore */ }
     try { selfStream.current?.getTracks().forEach((t) => t.stop()); } catch { /* ignore */ }
     try { sessionRef.current?.close(); } catch { /* ignore */ }
+    nextPlayTime.current = 0;
     cameraTimer.current = null; limitTimer.current = null; micCtx.current = null; micStream.current = null; selfStream.current = null; sessionRef.current = null;
   }
 
@@ -117,10 +119,10 @@ export default function GeminiLiveCoach({ open, onClose }) {
 
   function handleMessage(m) {
     const c = m?.serverContent;
-    if (c?.interrupted) { setCaption(''); }
+    if (c?.interrupted) { setCaption(''); nextPlayTime.current = 0; }
     if (c?.modelTurn?.parts) {
       for (const part of c.modelTurn.parts) {
-        if (part.inlineData?.data) playAudio(part.inlineData.data);
+        if (part.inlineData?.data) playAudio(part.inlineData.data, part.inlineData.mimeType);
       }
     }
     if (c?.outputTranscription?.text) setCaption((prev) => (prev + c.outputTranscription.text).slice(-800));
@@ -177,22 +179,25 @@ export default function GeminiLiveCoach({ open, onClose }) {
     })().catch(() => { /* camera denied — audio-only */ });
   }
 
-  function playAudio(b64) {
+  function playAudio(b64, mimeType) {
     try {
+      const rate = parseInt((/rate=(\d+)/.exec(mimeType || '') || [])[1] || '24000', 10) || 24000;
       const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!playCtxRef.current) playCtxRef.current = new Ctx({ sampleRate: 24000 });
+      if (!playCtxRef.current) playCtxRef.current = new Ctx({ sampleRate: rate });
       const ctx = playCtxRef.current;
       if (ctx.state === 'suspended') { try { ctx.resume(); } catch { /* ignore */ } }
       const buffer = fromBase64(b64);
       const int16 = new Int16Array(buffer);
-      const audioBuffer = ctx.createBuffer(1, int16.length, 24000);
+      const audioBuffer = ctx.createBuffer(1, int16.length, rate);
       const channel = audioBuffer.getChannelData(0);
       for (let i = 0; i < int16.length; i++) channel[i] = int16[i] / 32768;
       if (!masterGain.current) { masterGain.current = ctx.createGain(); masterGain.current.connect(ctx.destination); }
       const src = ctx.createBufferSource();
       src.buffer = audioBuffer;
       src.connect(masterGain.current);
-      src.start();
+      const when = Math.max(ctx.currentTime, nextPlayTime.current);
+      src.start(when);
+      nextPlayTime.current = when + audioBuffer.duration;
     } catch { /* ignore */ }
   }
 
