@@ -22,26 +22,32 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   const [audioDevices, setAudioDevices] = useState([]);
   const [sinkId, setSinkId] = useState('');
   const [muted, setMuted] = useState(false);
-  const audioEl = useRef(null);
   const started = useRef(false);
   const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
 
   // Enumerate audio output devices (speaker, earpiece, Bluetooth).
   useEffect(() => {
-    if (!navigator.mediaDevices?.enumerateDevices) return;
-    const load = () => navigator.mediaDevices.enumerateDevices()
-      .then((devs) => setAudioDevices(devs.filter((d) => d.kind === 'audiooutput')))
-      .catch(() => {});
+    let md;
+    try { md = navigator.mediaDevices; } catch { md = null; }
+    if (!md?.enumerateDevices) return;
+    const load = () => {
+      try {
+        md.enumerateDevices()
+          .then((devs) => setAudioDevices(devs.filter((d) => d.kind === 'audiooutput')))
+          .catch(() => {});
+      } catch { /* ignore */ }
+    };
     load();
-    try { navigator.mediaDevices.addEventListener?.('devicechange', load); } catch { /* older browsers */ }
-    return () => { try { navigator.mediaDevices.removeEventListener?.('devicechange', load); } catch { /* ok */ } };
+    try { md.addEventListener?.('devicechange', load); } catch { /* older browsers */ }
+    return () => { try { md.removeEventListener?.('devicechange', load); } catch { /* ok */ } };
   }, []);
 
   // Route the persona's voice to the chosen output.
   function chooseSink(id) {
     setSinkId(id);
-    if (audioEl.current && typeof audioEl.current.setSinkId === 'function') {
-      audioEl.current.setSinkId(id).catch(() => {});
+    const el = document.getElementById('nuance-audio');
+    if (el && typeof el.setSinkId === 'function') {
+      el.setSinkId(id).catch(() => {});
     }
   }
 
@@ -102,13 +108,12 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   if (!open) return null;
 
   const connecting = state === 'idle' || state === 'queued' || state === 'connecting';
-  const setAudioEl = (el) => { audioEl.current = el; audioRef(el); };
 
   return (
     <div className="voice-coach" role="dialog" aria-modal="true" aria-label="Video voice coach">
       <div className="voice-coach-stage">
         <video ref={videoRef} autoPlay playsInline className="voice-coach-avatar" />
-        <audio ref={setAudioEl} autoPlay />
+        <audio ref={audioRef} id="nuance-audio" autoPlay />
         <div className="voice-coach-bar">
           <span className="voice-coach-live">● {state === 'connected' ? 'Live' : connecting ? 'Connecting…' : state}</span>
           <button type="button" className="voice-coach-close" onClick={() => { end().catch(() => {}); onClose(); }} aria-label="End call">✕</button>
