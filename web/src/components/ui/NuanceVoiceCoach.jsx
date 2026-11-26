@@ -24,9 +24,11 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   const [muted, setMuted] = useState(false);
   const [avatarReady, setAvatarReady] = useState(false);
   const started = useRef(false);
+  const audioCtx = useRef(null);
+  const sourceNode = useRef(null);
   const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
 
-  // Enumerate audio output devices (speaker, earpiece, Bluetooth).
+  // Enumerate audio output devices and auto-route to the loud speaker.
   useEffect(() => {
     let md;
     try { md = navigator.mediaDevices; } catch { md = null; }
@@ -34,7 +36,13 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     const load = () => {
       try {
         md.enumerateDevices()
-          .then((devs) => setAudioDevices(devs.filter((d) => d.kind === 'audiooutput')))
+          .then((devs) => {
+            const outputs = devs.filter((d) => d.kind === 'audiooutput' && d.deviceId);
+            setAudioDevices(outputs);
+            // Prefer the loudspeaker over the earpiece/headset.
+            const speaker = outputs.find((d) => /speaker/i.test(d.label || '') && !/ear|headset/i.test(d.label || '')) || outputs[0];
+            if (speaker) setSinkId(speaker.deviceId);
+          })
           .catch(() => {});
       } catch { /* ignore */ }
     };
@@ -42,6 +50,13 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     try { md.addEventListener?.('devicechange', load); } catch { /* older browsers */ }
     return () => { try { md.removeEventListener?.('devicechange', load); } catch { /* ok */ } };
   }, []);
+
+  // Apply the chosen output to the persona's audio element once it is live.
+  useEffect(() => {
+    if (!open || !sinkId) return;
+    const el = document.getElementById('nuance-audio');
+    if (el && typeof el.setSinkId === 'function') el.setSinkId(sinkId).catch(() => {});
+  }, [open, sinkId, avatarReady]);
 
   // Route the persona's voice to the chosen output.
   function chooseSink(id) {
@@ -76,14 +91,41 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     if (!open) started.current = false;
   }, [open, start]);
 
-  // Close only when the persona/server ends the session naturally.
+  // Close on session end, and route the persona's voice through Web Audio
+  // so it plays on the loud speaker instead of the earpiece.
   useEffect(() => {
     if (!conversation) return;
     return conversation.onChange((event) => {
       if (event.type === 'session-ended') onClose();
-      if (event.type === 'tracks-changed') setAvatarReady(true);
+      if (event.type === 'tracks-changed') {
+        setAvatarReady(true);
+        try {
+          let avatar;
+          try { avatar = conversation.avatar; } catch { return; }
+          const track = avatar?.audioTrack?.mediaStreamTrack;
+          if (!track) return;
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          if (!audioCtx.current) audioCtx.current = new AC();
+          const ctx = audioCtx.current;
+          if (ctx.state === 'suspended') { try { ctx.resume(); } catch { /* ignore */ } }
+          if (sourceNode.current) { try { sourceNode.current.disconnect(); } catch { /* ignore */ } }
+          sourceNode.current = ctx.createMediaStreamSource(new MediaStream([track]));
+          sourceNode.current.connect(ctx.destination);
+          const el = document.getElementById('nuance-audio');
+          if (el) el.muted = true;
+        } catch { /* ignore */ }
+      }
     });
   }, [conversation, onClose]);
+
+  // Tear down the audio graph when the coach screen unmounts.
+  useEffect(() => () => {
+    try { sourceNode.current?.disconnect(); } catch { /* ignore */ }
+    try { audioCtx.current?.close(); } catch { /* ignore */ }
+    sourceNode.current = null;
+    audioCtx.current = null;
+  }, []);
 
   // Run the persona's tool calls (show_note).
   useEffect(() => {
