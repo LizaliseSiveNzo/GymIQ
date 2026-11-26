@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import LogSyncBanner from '../components/ui/LogSyncBanner.jsx';
 import InstallPrompt from '../components/ui/InstallPrompt.jsx';
 import Timer from '../components/ui/Timer.jsx';
+import {APP_VERSION,APP_BUILD} from '../lib/version.js';
 import './coachFab.css';
 const TABS = [
   { label: 'Workouts', icon: '◈', path: '/workout' },
@@ -14,7 +15,7 @@ export default function TabShell({ title, showKicker = true, showCoachFab = true
   const [timerRunning, setTimerRunning] = useState(false);
   return <div className="mf-app">
     <header className="mf-header" style={{ position: 'relative' }}>
-      <Link className="app-wordmark" to="/workout">GYM<span>IQ</span></Link>
+      <div className="mf-header-brand"><Link className="app-wordmark" to="/workout">GYM<span>IQ</span></Link><small className="app-version" title={`Build ${APP_BUILD}`}>v{APP_VERSION}</small></div>
       {showKicker && <div className="mf-kicker">{new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
       <div style={{ position: 'absolute', top: 10, right: 12, display: 'flex', gap: 8, alignItems: 'center' }}>{headerAction}<InstallPrompt/></div>
     </header>
