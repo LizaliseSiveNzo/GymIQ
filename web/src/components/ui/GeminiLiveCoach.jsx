@@ -102,7 +102,7 @@ export default function GeminiLiveCoach({ open, onClose }) {
       },
       config: {
         responseModalities: [Modality.AUDIO],
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        systemInstruction: { parts: [{ text: data.systemInstruction || SYSTEM_PROMPT }] },
         tools: TOOLS,
         inputAudioTranscription: {},
         outputAudioTranscription: {},
