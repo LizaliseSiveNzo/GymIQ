@@ -1,12 +1,17 @@
-.voice-coach{position:fixed;inset:0;z-index:200;background:#0b0b0b;display:flex;flex-direction:column}
-.voice-coach-avatar{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}
-.voice-coach-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
-.voice-coach-live{color:#c6ff3a;font-size:13px;font-weight:700}
-.voice-coach-caption{flex:none;margin:0;padding:0 16px 12px;color:#e6e9e1;font-size:15px;line-height:1.5;min-height:24px}
-.voice-coach-note{flex:none;margin:0 16px 12px;padding:12px 14px;border:1px solid rgba(198,255,58,.32);border-radius:12px;background:#141711}
+.voice-coach{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px;background:rgba(11,11,11,.5);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%)}
+.voice-coach-stage{position:relative;width:min(80vw,340px);aspect-ratio:1;border-radius:24px;overflow:hidden;background:#000;box-shadow:0 30px 90px rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.08)}
+.voice-coach-avatar{width:100%;height:100%;object-fit:cover}
+.voice-coach-bar{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.voice-coach-live{color:#c6ff3a;font-size:12px;font-weight:700;background:rgba(0,0,0,.5);padding:5px 11px;border-radius:99px}
+.voice-coach-close{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:16px;cursor:pointer}
+.voice-coach-caption{flex:none;margin:0;max-width:min(92vw,460px);color:#e6e9e1;font-size:15px;line-height:1.5;text-align:center}
+.voice-coach-note{flex:none;width:min(92vw,460px);padding:12px 14px;border:1px solid rgba(198,255,58,.32);border-radius:12px;background:rgba(20,23,17,.75);backdrop-filter:blur(10px)}
 .voice-coach-note strong{display:block;font-size:13px;margin-bottom:4px}
 .voice-coach-note span{font-size:13px;line-height:1.5;color:#c9cdc2}
-.voice-coach-error{flex:none;margin:0 16px 12px;padding:12px 14px;border:1px solid var(--danger);border-radius:10px;color:var(--danger);font-size:13px}
+.voice-coach-error{flex:none;width:min(92vw,460px);padding:12px 14px;border:1px solid var(--danger);border-radius:12px;color:var(--danger);font-size:13px;background:rgba(20,17,17,.75)}
 .voice-coach-error strong{display:block;margin-bottom:6px}
 .voice-coach-error p{margin:0 0 10px;white-space:pre-wrap;overflow-wrap:anywhere}
 .voice-coach-error .btn{margin:0;font-size:12px;min-height:32px;color:var(--danger);border-color:var(--danger)}
+.voice-coach-settings{flex:none;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;justify-content:center;padding:12px 16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(20,23,17,.7);backdrop-filter:blur(10px)}
+.voice-coach-settings label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#c9cdc2}
+.voice-coach-settings select{min-width:150px;min-height:40px;background:#1a1d17;color:#fff;border:1px solid #393939;border-radius:10px;padding:8px 10px;font:inherit}

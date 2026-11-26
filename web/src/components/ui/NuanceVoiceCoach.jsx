@@ -18,13 +18,45 @@ async function fetchToken() {
 export default function NuanceVoiceCoach({ open, onClose }) {
   const [caption, setCaption] = useState('');
   const [notes, setNotes] = useState([]);
-  const started = useRef(false);
   const [copied, setCopied] = useState(false);
+  const [audioDevices, setAudioDevices] = useState([]);
+  const [sinkId, setSinkId] = useState('');
+  const [muted, setMuted] = useState(false);
+  const audioEl = useRef(null);
+  const started = useRef(false);
+  const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
+
+  // Enumerate audio output devices (speaker, earpiece, Bluetooth).
+  useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    const load = () => navigator.mediaDevices.enumerateDevices()
+      .then((devs) => setAudioDevices(devs.filter((d) => d.kind === 'audiooutput')))
+      .catch(() => {});
+    load();
+    try { navigator.mediaDevices.addEventListener?.('devicechange', load); } catch { /* older browsers */ }
+    return () => { try { navigator.mediaDevices.removeEventListener?.('devicechange', load); } catch { /* ok */ } };
+  }, []);
+
+  // Route the persona's voice to the chosen output.
+  function chooseSink(id) {
+    setSinkId(id);
+    if (audioEl.current && typeof audioEl.current.setSinkId === 'function') {
+      audioEl.current.setSinkId(id).catch(() => {});
+    }
+  }
+
+  function toggleMute() {
+    const avatar = conversation?.avatar;
+    if (!avatar) return;
+    const next = !muted;
+    setMuted(next);
+    if (next) avatar.muteAudio?.(); else avatar.unmuteAudio?.();
+  }
+
   function copyError(err) {
     const text = JSON.stringify({ name: err?.name, message: err?.message, status: err?.status, code: err?.code, state, stack: String(err?.stack || '').slice(0, 800) }, null, 2);
     try { navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* ignore */ }
   }
-  const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
 
   // Start once when opened.
   useEffect(() => {
@@ -36,7 +68,7 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     if (!open) started.current = false;
   }, [open, start]);
 
-  // Close only when the persona/server ends the session naturally (never on a failed start).
+  // Close only when the persona/server ends the session naturally.
   useEffect(() => {
     if (!conversation) return;
     return conversation.onChange((event) => {
@@ -70,14 +102,17 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   if (!open) return null;
 
   const connecting = state === 'idle' || state === 'queued' || state === 'connecting';
+  const setAudioEl = (el) => { audioEl.current = el; audioRef(el); };
 
   return (
     <div className="voice-coach" role="dialog" aria-modal="true" aria-label="Video voice coach">
-      <video ref={videoRef} autoPlay playsInline className="voice-coach-avatar" />
-      <audio ref={audioRef} autoPlay />
-      <div className="voice-coach-bar">
-        <span className="voice-coach-live">● {state === 'connected' ? 'Live' : connecting ? 'Connecting…' : state}</span>
-        <button type="button" className="btn btn-primary" onClick={() => { end().catch(() => {}); onClose(); }}>Close</button>
+      <div className="voice-coach-stage">
+        <video ref={videoRef} autoPlay playsInline className="voice-coach-avatar" />
+        <audio ref={setAudioEl} autoPlay />
+        <div className="voice-coach-bar">
+          <span className="voice-coach-live">● {state === 'connected' ? 'Live' : connecting ? 'Connecting…' : state}</span>
+          <button type="button" className="voice-coach-close" onClick={() => { end().catch(() => {}); onClose(); }} aria-label="End call">✕</button>
+        </div>
       </div>
       {connecting && !error && <p className="voice-coach-caption">Connecting to your coach…</p>}
       {caption && <p className="voice-coach-caption" aria-live="polite">{caption}</p>}
@@ -91,6 +126,15 @@ export default function NuanceVoiceCoach({ open, onClose }) {
           <button type="button" className="btn btn-ghost" onClick={() => copyError(error)}>{copied ? 'Copied ✓' : 'Copy error'}</button>
         </div>
       )}
+      <div className="voice-coach-settings">
+        <label>Audio output
+          <select value={sinkId} onChange={(e) => chooseSink(e.target.value)}>
+            <option value="">Default</option>
+            {audioDevices.map((d) => <option key={d.deviceId} value={d.deviceId}>{d.label || `Output ${audioDevices.indexOf(d) + 1}`}</option>)}
+          </select>
+        </label>
+        <button type="button" className="btn btn-secondary" onClick={toggleMute} disabled={!conversation?.avatar}>{muted ? 'Unmute' : 'Mute'}</button>
+      </div>
     </div>
   );
 }
