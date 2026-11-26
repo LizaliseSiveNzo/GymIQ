@@ -8,7 +8,8 @@ async function fetchToken() {
   if (error) {
     let message;
     try { message = (await error.context.json()).error; } catch { message = error.message; }
-    throw new Error(message || 'Voice coach is unavailable right now.');
+    console.error('nuance-session invoke failed:', error);
+    throw new Error(message === 'Failed to fetch' ? 'Could not reach the voice coach. Check your connection and try again.' : (message || 'Voice coach is unavailable right now.'));
   }
   if (!data?.token) throw new Error(data?.error || 'Voice coach is unavailable right now.');
   return data.token;
