@@ -26,6 +26,8 @@ export default function NuanceVoiceCoach({ open, onClose }) {
   const started = useRef(false);
   const audioCtx = useRef(null);
   const sourceNode = useRef(null);
+  const selfVideoRef = useRef(null);
+  const selfStream = useRef(null);
   const { state, error, videoRef, audioRef, start, end, conversation } = useNuanceConversation({ token: fetchToken });
 
   // Enumerate audio output devices and auto-route to the loud speaker.
@@ -127,6 +129,25 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     audioCtx.current = null;
   }, []);
 
+  // Show the user's own camera in a self-view so they can see what the AI sees.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        selfStream.current = stream;
+        if (selfVideoRef.current) selfVideoRef.current.srcObject = stream;
+      } catch { /* camera unavailable or denied — no self-view */ }
+    })();
+    return () => {
+      cancelled = true;
+      selfStream.current?.getTracks().forEach((t) => t.stop());
+      selfStream.current = null;
+    };
+  }, [open]);
+
   // Run the persona's tool calls (show_note).
   useEffect(() => {
     if (!conversation) return;
@@ -158,6 +179,7 @@ export default function NuanceVoiceCoach({ open, onClose }) {
     <div className="voice-coach" role="dialog" aria-modal="true" aria-label="Video voice coach">
       <div className="voice-coach-stage">
         <video ref={videoRef} autoPlay playsInline className="voice-coach-avatar" />
+        <video ref={selfVideoRef} autoPlay playsInline muted className="voice-coach-self" />
         <audio ref={audioRef} id="nuance-audio" autoPlay />
         <div className="voice-coach-bar">
           <span className="voice-coach-live">● {state === 'connected' ? 'Live' : connecting ? 'Connecting…' : state}</span>

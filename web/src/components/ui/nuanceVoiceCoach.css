@@ -1,6 +1,7 @@
 .voice-coach{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px;background:rgba(11,11,11,.5);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%)}
 .voice-coach-stage{position:relative;width:min(80vw,340px);aspect-ratio:1;border-radius:24px;overflow:hidden;background:#000;box-shadow:0 30px 90px rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.08)}
 .voice-coach-avatar{width:100%;height:100%;object-fit:cover}
+.voice-coach-self{position:absolute;right:12px;bottom:12px;width:88px;height:118px;border-radius:14px;object-fit:cover;border:2px solid rgba(255,255,255,.28);background:#000;transform:scaleX(-1);z-index:2}
 .voice-coach-bar{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .voice-coach-live{color:#c6ff3a;font-size:12px;font-weight:700;background:rgba(0,0,0,.5);padding:5px 11px;border-radius:99px}
 .voice-coach-close{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:16px;cursor:pointer}
